@@ -1,0 +1,523 @@
+-- List management module for markdown-plus.nvim
+local utils = require("markdown-plus.utils")
+local M = {}
+
+-- Module configuration
+M.config = {}
+
+-- List patterns
+M.patterns = {
+  unordered = "^(%s*)([%-%+%*])%s+",
+  ordered = "^(%s*)(%d+)%.%s+",
+  checkbox = "^(%s*)([%-%+%*])%s+%[(.?)%]%s+",
+  ordered_checkbox = "^(%s*)(%d+)%.%s+%[(.?)%]%s+",
+}
+
+-- Setup function
+function M.setup(config)
+  M.config = config or {}
+end
+
+-- Enable list management features
+function M.enable()
+  if not utils.is_markdown_buffer() then
+    return
+  end
+
+  -- Set up keymaps
+  M.setup_keymaps()
+end
+
+-- Set up keymaps for list management
+function M.setup_keymaps()
+  local opts = { buffer = true, silent = true }
+
+  -- Enter key for auto-continuing lists
+  vim.keymap.set("i", "<CR>", M.handle_enter, opts)
+
+  -- Tab/Shift+Tab for indentation
+  vim.keymap.set("i", "<Tab>", M.handle_tab, opts)
+  vim.keymap.set("i", "<S-Tab>", M.handle_shift_tab, opts)
+
+  -- Backspace for smart list removal
+  vim.keymap.set("i", "<BS>", M.handle_backspace, opts)
+
+  -- Manual renumber command for testing
+  vim.keymap.set("n", "<leader>mr", M.renumber_ordered_lists, opts)
+
+  -- Debug command for testing
+  vim.keymap.set("n", "<leader>md", M.debug_list_groups, opts)
+
+  -- Normal mode o/O for creating new list items
+  vim.keymap.set("n", "o", M.handle_normal_o, opts)
+  vim.keymap.set("n", "O", M.handle_normal_O, opts)
+
+  -- Set up autocommands for auto-renumbering
+  M.setup_renumber_autocmds()
+end
+
+-- Set up autocommands for auto-renumbering
+function M.setup_renumber_autocmds()
+  local group = vim.api.nvim_create_augroup("MarkdownPlusListRenumber", { clear = true })
+
+  -- Renumber on text changes (insertions/deletions)
+  vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI" }, {
+    group = group,
+    buffer = 0,
+    callback = function()
+      M.renumber_ordered_lists()
+    end,
+  })
+end
+
+-- Handle Enter key press
+function M.handle_enter()
+  local current_line = utils.get_current_line()
+  local cursor = utils.get_cursor()
+  local row, col = cursor[1], cursor[2]
+
+  -- Check if we're in a list
+  local list_info = M.parse_list_line(current_line)
+
+  if not list_info then
+    -- Not in a list, use default Enter behavior
+    return "<CR>"
+  end
+
+  -- Check if current list item is empty
+  if M.is_empty_list_item(current_line, list_info) then
+    -- Empty list item - break out of list
+    return M.break_out_of_list(list_info)
+  end
+
+  -- Create next list item
+  return M.create_next_list_item(list_info)
+end
+
+-- Parse a line to detect list information
+function M.parse_list_line(line)
+  if not line then
+    return nil
+  end
+
+  -- Try ordered list with checkbox
+  local indent, number, checkbox = line:match(M.patterns.ordered_checkbox)
+  if indent and number and checkbox then
+    return {
+      type = "ordered",
+      indent = indent,
+      marker = number .. ".",
+      checkbox = checkbox,
+      full_marker = number .. ". [" .. checkbox .. "]",
+    }
+  end
+
+  -- Try unordered list with checkbox
+  local indent, bullet, checkbox = line:match(M.patterns.checkbox)
+  if indent and bullet and checkbox then
+    return {
+      type = "unordered",
+      indent = indent,
+      marker = bullet,
+      checkbox = checkbox,
+      full_marker = bullet .. " [" .. checkbox .. "]",
+    }
+  end
+
+  -- Try ordered list
+  local indent, number = line:match(M.patterns.ordered)
+  if indent and number then
+    return {
+      type = "ordered",
+      indent = indent,
+      marker = number .. ".",
+      checkbox = nil,
+      full_marker = number .. ".",
+    }
+  end
+
+  -- Try unordered list
+  local indent, bullet = line:match(M.patterns.unordered)
+  if indent and bullet then
+    return {
+      type = "unordered",
+      indent = indent,
+      marker = bullet,
+      checkbox = nil,
+      full_marker = bullet,
+    }
+  end
+
+  return nil
+end
+
+-- Check if a list item is empty (only contains marker)
+function M.is_empty_list_item(line, list_info)
+  if not line or not list_info then
+    return false
+  end
+
+  local content_pattern = "^" .. utils.escape_pattern(list_info.indent .. list_info.full_marker) .. "%s*$"
+  return line:match(content_pattern) ~= nil
+end
+
+-- Break out of list (remove current empty item)
+function M.break_out_of_list(list_info)
+  local cursor = utils.get_cursor()
+  local row = cursor[1]
+
+  -- Replace current line with just the indentation
+  utils.set_line(row, list_info.indent)
+
+  -- Position cursor at end of line
+  utils.set_cursor(row, #list_info.indent)
+
+  return ""
+end
+
+-- Create next list item
+function M.create_next_list_item(list_info)
+  local cursor = utils.get_cursor()
+  local row = cursor[1]
+
+  local next_marker
+  if list_info.type == "ordered" then
+    -- Get next number
+    local current_num = tonumber(list_info.marker:match("(%d+)"))
+    next_marker = (current_num + 1) .. "."
+  else
+    -- Keep same bullet
+    next_marker = list_info.marker
+  end
+
+  -- Build next line
+  local next_line = list_info.indent .. next_marker .. " "
+  if list_info.checkbox then
+    next_line = next_line .. "[ ] "
+  end
+
+  -- Insert new line
+  utils.insert_line(row + 1, next_line)
+
+  -- Move cursor to new line at end
+  utils.set_cursor(row + 1, #next_line)
+
+  return ""
+end
+
+-- Handle Tab key for indentation
+function M.handle_tab()
+  local current_line = utils.get_current_line()
+  local list_info = M.parse_list_line(current_line)
+
+  if not list_info then
+    -- Not in a list, use default Tab behavior
+    return "<Tab>"
+  end
+
+  -- Increase indentation
+  local cursor = utils.get_cursor()
+  local row, col = cursor[1], cursor[2]
+  local indent_size = vim.bo.shiftwidth
+
+  local new_indent = list_info.indent .. string.rep(" ", indent_size)
+  local new_line = new_indent .. list_info.full_marker .. " " .. current_line:match(list_info.full_marker .. "%s*(.*)")
+
+  utils.set_line(row, new_line)
+
+  -- Adjust cursor position
+  utils.set_cursor(row, col + indent_size)
+
+  return ""
+end
+
+-- Handle Shift+Tab key for outdentation
+function M.handle_shift_tab()
+  local current_line = utils.get_current_line()
+  local list_info = M.parse_list_line(current_line)
+
+  if not list_info then
+    -- Not in a list, use default behavior
+    return "<C-d>"
+  end
+
+  -- Decrease indentation
+  local cursor = utils.get_cursor()
+  local row, col = cursor[1], cursor[2]
+  local indent_size = vim.bo.shiftwidth
+
+  if #list_info.indent < indent_size then
+    -- Can't outdent further
+    return ""
+  end
+
+  local new_indent = list_info.indent:sub(1, -indent_size - 1)
+  local content = current_line:match(list_info.full_marker .. "%s*(.*)")
+  local new_line = new_indent .. list_info.full_marker .. " " .. (content or "")
+
+  utils.set_line(row, new_line)
+
+  -- Adjust cursor position
+  local new_col = math.max(0, col - indent_size)
+  utils.set_cursor(row, new_col)
+
+  return ""
+end
+
+-- Handle Backspace key for smart list removal
+function M.handle_backspace()
+  local current_line = utils.get_current_line()
+  local cursor = utils.get_cursor()
+  local row, col = cursor[1], cursor[2]
+
+  -- Check if cursor is at the beginning of list content
+  local list_info = M.parse_list_line(current_line)
+  if not list_info then
+    return "<BS>"
+  end
+
+  local marker_end = #list_info.indent + #list_info.full_marker + 1
+  if col == marker_end and M.is_empty_list_item(current_line, list_info) then
+    -- At the beginning of empty list item, remove the list marker
+    utils.set_line(row, list_info.indent)
+    utils.set_cursor(row, #list_info.indent)
+    return ""
+  end
+
+  return "<BS>"
+end
+
+-- Handle normal mode 'o' key
+function M.handle_normal_o()
+  local current_line = utils.get_current_line()
+  local cursor = utils.get_cursor()
+  local row = cursor[1]
+
+  -- Check if current line is a list item
+  local list_info = M.parse_list_line(current_line)
+
+  if not list_info then
+    -- Not in a list, use default 'o' behavior
+    vim.cmd("normal! o")
+    return
+  end
+
+  -- Create next list item and enter insert mode
+  local next_marker
+  if list_info.type == "ordered" then
+    -- Get next number
+    local current_num = tonumber(list_info.marker:match("(%d+)"))
+    next_marker = (current_num + 1) .. "."
+  else
+    -- Keep same bullet
+    next_marker = list_info.marker
+  end
+
+  -- Build next line
+  local next_line = list_info.indent .. next_marker .. " "
+  if list_info.checkbox then
+    next_line = next_line .. "[ ] "
+  end
+
+  -- Insert new line after current
+  utils.insert_line(row + 1, next_line)
+
+  -- Move cursor to new line at end and enter insert mode
+  utils.set_cursor(row + 1, #next_line)
+  vim.cmd("startinsert!")
+end
+
+-- Handle normal mode 'O' key
+function M.handle_normal_O()
+  local current_line = utils.get_current_line()
+  local cursor = utils.get_cursor()
+  local row = cursor[1]
+
+  -- Check if current line is a list item
+  local list_info = M.parse_list_line(current_line)
+
+  if not list_info then
+    -- Not in a list, use default 'O' behavior
+    vim.cmd("normal! O")
+    return
+  end
+
+  -- For 'O', we need to create a list item before the current one
+  -- This means we need to determine what the previous number should be
+  local prev_marker
+  if list_info.type == "ordered" then
+    -- Get current number and subtract 1
+    local current_num = tonumber(list_info.marker:match("(%d+)"))
+    local prev_num = math.max(1, current_num) -- Don't go below 1
+
+    -- Check if there's a previous line that might be a list item
+    if row > 1 then
+      local prev_line = utils.get_line(row - 1)
+      local prev_list_info = M.parse_list_line(prev_line)
+
+      if prev_list_info and prev_list_info.type == "ordered" and #prev_list_info.indent == #list_info.indent then
+        -- There's a previous ordered list item at same indent, use its number + 1
+        local prev_num_actual = tonumber(prev_list_info.marker:match("(%d+)"))
+        prev_marker = (prev_num_actual + 1) .. "."
+      else
+        -- No previous list item, this will become item 1, current will be renumbered
+        prev_marker = "1."
+      end
+    else
+      -- At top of document
+      prev_marker = "1."
+    end
+  else
+    -- Keep same bullet for unordered lists
+    prev_marker = list_info.marker
+  end
+
+  -- Build previous line
+  local prev_line = list_info.indent .. prev_marker .. " "
+  if list_info.checkbox then
+    prev_line = prev_line .. "[ ] "
+  end
+
+  -- Insert new line before current
+  utils.insert_line(row, prev_line)
+
+  -- Move cursor to new line at end and enter insert mode
+  utils.set_cursor(row, #prev_line)
+  vim.cmd("startinsert!")
+end
+
+-- Renumber all ordered lists in the buffer
+function M.renumber_ordered_lists()
+  local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+  local modified = false
+  local changes = {}
+
+  -- Find all distinct list groups
+  local list_groups = M.find_list_groups(lines)
+
+  -- Renumber each list group
+  for _, group in ipairs(list_groups) do
+    local renumbered = M.renumber_list_group(group)
+    if renumbered then
+      modified = true
+      for _, change in ipairs(renumbered) do
+        table.insert(changes, change)
+      end
+    end
+  end
+
+  -- Apply changes if any were made
+  if modified then
+    for _, change in ipairs(changes) do
+      utils.set_line(change.line_num, change.new_line)
+    end
+  end
+end
+
+-- Find all distinct list groups in the buffer
+function M.find_list_groups(lines)
+  local groups = {}
+  local current_groups_by_indent = {} -- Track active groups by indentation level
+
+  for i, line in ipairs(lines) do
+    local list_info = M.parse_list_line(line)
+
+    if list_info and list_info.type == "ordered" then
+      local indent_level = #list_info.indent
+
+      -- Check if we have an active group at this indentation level
+      local current_group = current_groups_by_indent[indent_level]
+
+      if not current_group then
+        -- Create new group for this indentation level
+        current_group = {
+          indent = indent_level,
+          start_line = i,
+          items = {},
+        }
+        current_groups_by_indent[indent_level] = current_group
+        table.insert(groups, current_group)
+      end
+
+      -- Add item to current group
+      table.insert(current_group.items, {
+        line_num = i,
+        indent = list_info.indent,
+        checkbox = list_info.checkbox,
+        content = line:match(list_info.full_marker .. "%s*(.*)") or "",
+        original_line = line,
+      })
+
+    else
+      -- Not an ordered list item
+      -- Check if this line breaks the list continuity
+      if M.is_list_breaking_line(line) then
+        -- Clear all active groups (lists are separated by non-list content)
+        current_groups_by_indent = {}
+      end
+    end
+  end
+
+  return groups
+end
+
+-- Check if a line breaks list continuity
+function M.is_list_breaking_line(line)
+  -- Empty lines don't break lists
+  if not line or line:match("^%s*$") then
+    return false
+  end
+
+  -- Any non-list content breaks list continuity
+  -- This includes headers, paragraphs, etc.
+  return true
+end
+
+
+-- Renumber items in a list group
+function M.renumber_list_group(group)
+  if #group.items == 0 then
+    return nil
+  end
+
+  local changes = {}
+  local expected_number = 1
+
+  for _, item in ipairs(group.items) do
+    local checkbox_part = ""
+    if item.checkbox then
+      checkbox_part = " [" .. item.checkbox .. "]"
+    end
+
+    local expected_line = item.indent .. expected_number .. "." .. checkbox_part .. " " .. item.content
+
+    -- Only create change if line is different
+    if expected_line ~= item.original_line then
+      table.insert(changes, {
+        line_num = item.line_num,
+        new_line = expected_line,
+      })
+    end
+
+    expected_number = expected_number + 1
+  end
+
+  return #changes > 0 and changes or nil
+end
+
+-- Debug function to show detected list groups
+function M.debug_list_groups()
+  local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+  local groups = M.find_list_groups(lines)
+
+  print("=== Detected List Groups ===")
+  for i, group in ipairs(groups) do
+    print(string.format("Group %d (indent: %d, start: %d):", i, group.indent, group.start_line))
+    for _, item in ipairs(group.items) do
+      print(string.format("  Line %d: %s", item.line_num, item.original_line))
+    end
+    print()
+  end
+end
+
+return M
