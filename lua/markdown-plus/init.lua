@@ -50,6 +50,11 @@ function M.setup(opts)
     M.format.setup(M.config)
   end
 
+  if M.config.features.headers_toc then
+    M.headers = require("markdown-plus.headers")
+    M.headers.setup(M.config)
+  end
+
   -- TODO: Load other modules as they are implemented
 
   -- Set up autocommands for markdown files
@@ -70,6 +75,9 @@ function M.setup_autocmds()
       end
       if M.format then
         M.format.enable()
+      end
+      if M.headers then
+        M.headers.enable()
       end
     end,
   })

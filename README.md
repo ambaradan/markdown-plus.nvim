@@ -24,6 +24,17 @@ A comprehensive Neovim plugin that provides modern markdown editing capabilities
 - **Smart word detection**: Works with words containing hyphens (`test-word`), dots (`file.name`), and underscores (`snake_case`)
 - **Visual and normal mode**: All formatting commands work in both visual selection and normal mode (on current word)
 
+### Headers & Table of Contents
+- **Header navigation**: Jump between headers with `]]` (next) and `[[` (previous)
+- **Promote/demote headers**: Increase/decrease header importance with `<leader>h+` and `<leader>h-`
+- **Set header level**: Quickly set header level 1-6 with `<leader>h1` through `<leader>h6`
+- **Generate TOC**: Auto-generate table of contents with `<leader>ht`
+- **Update TOC**: Refresh existing TOC with `<leader>hu` after modifying headers
+- **Follow TOC links**: Press `<CR>` or `gd` on a TOC link to jump to that header
+- **Smart TOC placement**: TOC appears right before first section (after introduction text)
+- **Code block aware**: Headers inside code blocks are correctly ignored
+- **GitHub-compatible slugs**: Anchor links work correctly on GitHub (handles `Q&A`, `C++`, etc.)
+
 ## Installation
 
 <details>
@@ -40,6 +51,7 @@ A comprehensive Neovim plugin that provides modern markdown editing capabilities
       features = {
         list_management = true,  -- Enable list management features
         text_formatting = true,  -- Enable text formatting features
+        headers_toc = true,      -- Enable headers and TOC features
       },
       keymaps = {
         enabled = true,  -- Enable default keymaps
@@ -197,6 +209,98 @@ Select any text in visual mode and format it:
 
 Example: Select "multiple words here" → **multiple words here**
 ```
+</details>
+
+<details>
+<summary>Headers & TOC Examples</summary>
+
+### Header Navigation
+```markdown
+Use ]] and [[ to jump between headers quickly:
+# Main Title       ← Press ]] to jump here
+Content
+## Section 1       ← Press ]] to jump here
+Content
+### Subsection    ← Press ]] to jump here
+Content
+Press [[ to jump backwards
+```
+
+### Promote/Demote Headers
+```markdown
+Position cursor on any header and adjust its level:
+### Subsection    ← Press <leader>h+ → ## Subsection (promoted)
+## Section        ← Press <leader>h- → ### Section (demoted)
+```
+
+### Convert to Header
+```markdown
+Position cursor on any line:
+Regular text      ← Press <leader>h2 → ## Regular text
+Already header    ← Press <leader>h4 → #### Already header
+```
+
+### Generate Table of Contents
+```markdown
+# My Document
+
+Press <leader>ht to generate TOC:
+
+## Table of Contents
+
+- [Section 1](#section-1)
+  - [Subsection 1.1](#subsection-1-1)
+- [Section 2](#section-2)
+
+## Section 1
+...
+```
+
+### Update TOC
+```markdown
+After adding/removing/renaming headers:
+1. Press <leader>hu to update the TOC
+2. All links are regenerated automatically
+```
+
+### Follow TOC Links
+```markdown
+## Table of Contents
+
+- [Getting Started](#getting-started)  ← Position cursor here
+- [API & SDK](#api--sdk)
+- [Q&A](#qa)
+
+Press <CR> or gd to jump directly to that header!
+
+## Getting Started    ← You jump here instantly!
+```
+
+### TOC with Symbols (GitHub-Compatible)
+```markdown
+# API Documentation
+
+## Q&A              → TOC link: [Q&A](#qa)
+## API & SDK        → TOC link: [API & SDK](#api--sdk)
+## C++ Examples     → TOC link: [C++ Examples](#c-examples)
+## What's New?      → TOC link: [What's New?](#whats-new)
+
+All links work correctly on GitHub! ✓
+```
+
+### Code Blocks Ignored
+```markdown
+# Document
+
+## Real Section
+
+\`\`\`bash
+# This is NOT in the TOC
+## Neither is this
+\`\`\`
+
+Press <leader>ht → Only "Real Section" appears in TOC ✓
+```
 
 </details>
 
@@ -230,6 +334,24 @@ Example: Select "multiple words here" → **multiple words here**
 | `<leader>mc` | Normal/Visual | Toggle `` `code` `` formatting |
 | `<leader>mC` | Normal/Visual | Clear all formatting |
 
+### Headers & TOC (Normal Mode)
+| Keymap | Mode | Description |
+|--------|------|-------------|
+| `]]` | Normal | Jump to next header |
+| `[[` | Normal | Jump to previous header |
+| `<leader>h+` | Normal | Promote header (increase importance) |
+| `<leader>h-` | Normal | Demote header (decrease importance) |
+| `<leader>h1` | Normal | Set/convert to H1 |
+| `<leader>h2` | Normal | Set/convert to H2 |
+| `<leader>h3` | Normal | Set/convert to H3 |
+| `<leader>h4` | Normal | Set/convert to H4 |
+| `<leader>h5` | Normal | Set/convert to H5 |
+| `<leader>h6` | Normal | Set/convert to H6 |
+| `<leader>ht` | Normal | Generate table of contents |
+| `<leader>hu` | Normal | Update existing table of contents |
+| `<CR>` | Normal | Follow TOC link (jump to header) |
+| `gd` | Normal | Follow TOC link (jump to header) |
+
 **Note**: In normal mode, these commands operate on the word under cursor. In visual mode, they operate on the selected text.
 
 </details>
@@ -248,6 +370,7 @@ require("markdown-plus").setup({
   features = {
     list_management = true,    -- List management features
     text_formatting = true,    -- Text formatting features
+    headers_toc = true,        -- Headers and TOC features
   },
 
   -- Keymap configuration
