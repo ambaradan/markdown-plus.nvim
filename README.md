@@ -2,6 +2,50 @@
 
 A comprehensive Neovim plugin that provides modern markdown editing capabilities, implementing features found in popular editors like Typora, Mark Text, and Obsidian.
 
+## Table of Contents
+
+- [Features](#features)
+  - [List Management](#list-management)
+  - [Text Formatting](#text-formatting)
+  - [Headers & Table of Contents](#headers--table-of-contents)
+- [Installation](#installation)
+- [Usage](#usage)
+  - [Auto-continue Lists](#auto-continue-lists)
+  - [Checkbox Lists](#checkbox-lists)
+  - [Smart Indentation](#smart-indentation)
+  - [List Breaking](#list-breaking)
+  - [Smart Backspace](#smart-backspace)
+  - [Normal Mode List Creation](#normal-mode-list-creation)
+  - [Toggle Bold](#toggle-bold)
+  - [Toggle Italic](#toggle-italic)
+  - [Toggle Strikethrough](#toggle-strikethrough)
+  - [Toggle Inline Code](#toggle-inline-code)
+  - [Clear All Formatting](#clear-all-formatting)
+  - [Smart Word Detection](#smart-word-detection)
+  - [Visual Mode Selection](#visual-mode-selection)
+  - [Header Navigation](#header-navigation)
+  - [Promote/Demote Headers](#promotedemote-headers)
+  - [Convert to Header](#convert-to-header)
+  - [Generate Table of Contents](#generate-table-of-contents)
+  - [Update TOC](#update-toc)
+  - [Follow TOC Links](#follow-toc-links)
+  - [TOC with Symbols (GitHub-Compatible)](#toc-with-symbols-github-compatible)
+  - [Code Blocks Ignored](#code-blocks-ignored)
+- [Keymaps Reference](#keymaps-reference)
+  - [List Management (Insert Mode)](#list-management-insert-mode)
+  - [List Management (Normal Mode)](#list-management-normal-mode)
+  - [Text Formatting (Normal & Visual Mode)](#text-formatting-normal--visual-mode)
+  - [Headers & TOC (Normal Mode)](#headers--toc-normal-mode)
+- [Configuration](#configuration)
+- [Tips & Best Practices](#tips--best-practices)
+  - [Text Formatting Behavior](#text-formatting-behavior)
+  - [List Management Tips](#list-management-tips)
+  - [Workflow Examples](#workflow-examples)
+- [Contributing](#contributing)
+- [Requirements](#requirements)
+- [License](#license)
+
+
 ## Features
 
 ### List Management
