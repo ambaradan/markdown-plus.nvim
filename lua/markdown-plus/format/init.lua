@@ -1,0 +1,367 @@
+-- Text formatting module for markdown-plus.nvim
+local utils = require("markdown-plus.utils")
+local M = {}
+
+-- Module configuration
+M.config = {}
+
+-- Formatting patterns
+M.patterns = {
+  bold = { start = "%*%*", end_pat = "%*%*", wrap = "**" },
+  italic = { start = "%*", end_pat = "%*", wrap = "*" },
+  strikethrough = { start = "~~", end_pat = "~~", wrap = "~~" },
+  code = { start = "`", end_pat = "`", wrap = "`" },
+}
+
+-- Setup function
+function M.setup(config)
+  M.config = config or {}
+end
+
+-- Enable formatting features
+function M.enable()
+  if not utils.is_markdown_buffer() then
+    return
+  end
+
+  -- Set up keymaps
+  M.setup_keymaps()
+end
+
+-- Set up keymaps for text formatting
+function M.setup_keymaps()
+  local opts = { buffer = true, silent = true }
+
+  -- Visual mode keymaps for formatting selections
+  -- Using :<C-u> to clear command line and preserve visual selection
+  vim.keymap.set("x", "<leader>mb", ":<C-u>lua require('markdown-plus.format').toggle_format('bold')<CR>", opts)
+  vim.keymap.set("x", "<leader>mi", ":<C-u>lua require('markdown-plus.format').toggle_format('italic')<CR>", opts)
+  vim.keymap.set("x", "<leader>ms", ":<C-u>lua require('markdown-plus.format').toggle_format('strikethrough')<CR>", opts)
+  vim.keymap.set("x", "<leader>mc", ":<C-u>lua require('markdown-plus.format').toggle_format('code')<CR>", opts)
+  vim.keymap.set("x", "<leader>mC", ":<C-u>lua require('markdown-plus.format').clear_formatting()<CR>", opts)
+
+  -- Normal mode keymaps for formatting current word
+  vim.keymap.set("n", "<leader>mb", function() M.toggle_format_word("bold") end, opts)
+  vim.keymap.set("n", "<leader>mi", function() M.toggle_format_word("italic") end, opts)
+  vim.keymap.set("n", "<leader>ms", function() M.toggle_format_word("strikethrough") end, opts)
+  vim.keymap.set("n", "<leader>mc", function() M.toggle_format_word("code") end, opts)
+  vim.keymap.set("n", "<leader>mC", M.clear_formatting_word, opts)
+end
+
+-- Get visual selection range
+function M.get_visual_selection()
+  -- Get the start and end positions of the visual selection
+  local start_pos = vim.fn.getpos("'<")
+  local end_pos = vim.fn.getpos("'>")
+  
+  local start_row = start_pos[2]
+  local start_col = start_pos[3]
+  local end_row = end_pos[2]
+  local end_col = end_pos[3]
+  
+  -- In visual mode, vim uses 1-indexed columns
+  -- For character-wise selection, end_col is inclusive
+  return {
+    start_row = start_row,
+    start_col = start_col,
+    end_row = end_row,
+    end_col = end_col,
+  }
+end
+
+-- Get text in range
+function M.get_text_in_range(start_row, start_col, end_row, end_col)
+  local lines = vim.api.nvim_buf_get_lines(0, start_row - 1, end_row, false)
+  
+  if #lines == 0 then
+    return ""
+  end
+  
+  if #lines == 1 then
+    -- Single line selection
+    return lines[1]:sub(start_col, end_col)
+  else
+    -- Multi-line selection
+    local text = {}
+    -- First line
+    table.insert(text, lines[1]:sub(start_col))
+    -- Middle lines
+    for i = 2, #lines - 1 do
+      table.insert(text, lines[i])
+    end
+    -- Last line
+    table.insert(text, lines[#lines]:sub(1, end_col))
+    return table.concat(text, "\n")
+  end
+end
+
+-- Set text in range
+function M.set_text_in_range(start_row, start_col, end_row, end_col, new_text)
+  local lines = vim.split(new_text, "\n")
+  
+  if start_row == end_row then
+    -- Single line replacement
+    local line = utils.get_line(start_row)
+    local before = line:sub(1, start_col - 1)
+    local after = line:sub(end_col + 1)
+    local new_line = before .. new_text .. after
+    utils.set_line(start_row, new_line)
+  else
+    -- Multi-line replacement
+    local first_line = utils.get_line(start_row)
+    local last_line = utils.get_line(end_row)
+    
+    local before = first_line:sub(1, start_col - 1)
+    local after = last_line:sub(end_col + 1)
+    
+    lines[1] = before .. lines[1]
+    lines[#lines] = lines[#lines] .. after
+    
+    vim.api.nvim_buf_set_lines(0, start_row - 1, end_row, false, lines)
+  end
+end
+
+-- Check if text has formatting
+function M.has_formatting(text, format_type)
+  local pattern = M.patterns[format_type]
+  if not pattern then
+    return false
+  end
+  
+  local start_pattern = "^" .. pattern.start
+  local end_pattern = pattern.end_pat .. "$"
+  
+  return text:match(start_pattern) ~= nil and text:match(end_pattern) ~= nil
+end
+
+-- Add formatting to text
+function M.add_formatting(text, format_type)
+  local pattern = M.patterns[format_type]
+  if not pattern then
+    return text
+  end
+  
+  return pattern.wrap .. text .. pattern.wrap
+end
+
+-- Remove formatting from text
+function M.remove_formatting(text, format_type)
+  local pattern = M.patterns[format_type]
+  if not pattern then
+    return text
+  end
+  
+  local start_pattern = "^" .. pattern.start
+  local end_pattern = pattern.end_pat .. "$"
+  
+  text = text:gsub(start_pattern, "")
+  text = text:gsub(end_pattern, "")
+  
+  return text
+end
+
+-- Toggle formatting on visual selection
+function M.toggle_format(format_type)
+  -- When called from visual mode with :<C-u>, the marks '< and '> are already set
+  local selection = M.get_visual_selection()
+  local text = M.get_text_in_range(
+    selection.start_row,
+    selection.start_col,
+    selection.end_row,
+    selection.end_col
+  )
+  
+  local new_text
+  if M.has_formatting(text, format_type) then
+    new_text = M.remove_formatting(text, format_type)
+  else
+    new_text = M.add_formatting(text, format_type)
+  end
+  
+  M.set_text_in_range(
+    selection.start_row,
+    selection.start_col,
+    selection.end_row,
+    selection.end_col,
+    new_text
+  )
+end
+
+-- Get current word boundaries
+function M.get_word_boundaries()
+  local cursor = utils.get_cursor()
+  local row = cursor[1]
+  local col = cursor[2]
+  local line = utils.get_current_line()
+  
+  -- Define what characters are considered word boundaries (stop points)
+  -- We want to stop at spaces and most punctuation, but NOT:
+  -- - hyphens (-) - for words like "test-with-hyphens"
+  -- - dots (.) - for words like "test.with.dots"  
+  -- - underscores (_) - for words like "test_with_underscores"
+  -- - formatting markers (*, `, ~) - we need to include them in selection
+  local function is_word_boundary(char)
+    -- Empty or space is always a boundary
+    if char == "" or char:match("%s") then
+      return true
+    end
+    -- Punctuation except our allowed characters
+    if char:match("%p") then
+      -- Allow these characters as part of words
+      if char == "-" or char == "." or char == "_" or 
+         char == "*" or char == "`" or char == "~" then
+        return false
+      end
+      return true
+    end
+    return false
+  end
+  
+  -- Find word start
+  local word_start = col
+  while word_start > 0 do
+    local char = line:sub(word_start, word_start)
+    if is_word_boundary(char) then
+      word_start = word_start + 1
+      break
+    end
+    word_start = word_start - 1
+  end
+  if word_start == 0 then
+    word_start = 1
+  end
+  
+  -- Find word end
+  local word_end = col + 1
+  while word_end <= #line do
+    local char = line:sub(word_end, word_end)
+    if is_word_boundary(char) then
+      word_end = word_end - 1
+      break
+    end
+    word_end = word_end + 1
+  end
+  if word_end > #line then
+    word_end = #line
+  end
+  
+  return {
+    row = row,
+    start_col = word_start,
+    end_col = word_end,
+  }
+end
+
+-- Toggle formatting on current word
+function M.toggle_format_word(format_type)
+  local boundaries = M.get_word_boundaries()
+  local text = M.get_text_in_range(
+    boundaries.row,
+    boundaries.start_col,
+    boundaries.row,
+    boundaries.end_col
+  )
+  
+  if text == "" then
+    return
+  end
+  
+  local new_text
+  if M.has_formatting(text, format_type) then
+    new_text = M.remove_formatting(text, format_type)
+  else
+    new_text = M.add_formatting(text, format_type)
+  end
+  
+  M.set_text_in_range(
+    boundaries.row,
+    boundaries.start_col,
+    boundaries.row,
+    boundaries.end_col,
+    new_text
+  )
+  
+  -- Adjust cursor position
+  local cursor = utils.get_cursor()
+  utils.set_cursor(cursor[1], cursor[2])
+end
+
+-- Remove all formatting from visual selection
+function M.clear_formatting()
+  -- When called from visual mode with :<C-u>, the marks '< and '> are already set
+  local selection = M.get_visual_selection()
+  local text = M.get_text_in_range(
+    selection.start_row,
+    selection.start_col,
+    selection.end_row,
+    selection.end_col
+  )
+  
+  -- Remove all formatting - must process in order from longest to shortest
+  -- to avoid issues like ** becoming * after first pass
+  local new_text = text
+  
+  -- Remove bold (must come before italic since ** contains *)
+  new_text = new_text:gsub("%*%*(.-)%*%*", "%1")  -- **text**
+  new_text = new_text:gsub("__(.-)__", "%1")       -- __text__
+  
+  -- Remove strikethrough
+  new_text = new_text:gsub("~~(.-)~~", "%1")       -- ~~text~~
+  
+  -- Remove italic (after bold to avoid breaking **)
+  new_text = new_text:gsub("%*(.-)%*", "%1")       -- *text*
+  new_text = new_text:gsub("_(.-)_", "%1")         -- _text_
+  
+  -- Remove code
+  new_text = new_text:gsub("`(.-)`", "%1")         -- `text`
+  
+  M.set_text_in_range(
+    selection.start_row,
+    selection.start_col,
+    selection.end_row,
+    selection.end_col,
+    new_text
+  )
+end
+
+-- Remove all formatting from current word
+function M.clear_formatting_word()
+  local boundaries = M.get_word_boundaries()
+  local text = M.get_text_in_range(
+    boundaries.row,
+    boundaries.start_col,
+    boundaries.row,
+    boundaries.end_col
+  )
+  
+  if text == "" then
+    return
+  end
+  
+  -- Remove all formatting - must process in order from longest to shortest
+  local new_text = text
+  
+  -- Remove bold (must come before italic)
+  new_text = new_text:gsub("%*%*(.-)%*%*", "%1")
+  new_text = new_text:gsub("__(.-)__", "%1")
+  
+  -- Remove strikethrough
+  new_text = new_text:gsub("~~(.-)~~", "%1")
+  
+  -- Remove italic (after bold)
+  new_text = new_text:gsub("%*(.-)%*", "%1")
+  new_text = new_text:gsub("_(.-)_", "%1")
+  
+  -- Remove code
+  new_text = new_text:gsub("`(.-)`", "%1")
+  
+  M.set_text_in_range(
+    boundaries.row,
+    boundaries.start_col,
+    boundaries.row,
+    boundaries.end_col,
+    new_text
+  )
+end
+
+return M

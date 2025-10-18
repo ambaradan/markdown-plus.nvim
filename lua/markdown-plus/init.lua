@@ -45,11 +45,12 @@ function M.setup(opts)
     M.list.setup(M.config)
   end
 
+  if M.config.features.text_formatting then
+    M.format = require("markdown-plus.format")
+    M.format.setup(M.config)
+  end
+
   -- TODO: Load other modules as they are implemented
-  -- if M.config.features.text_formatting then
-  --   M.format = require("markdown-plus.format")
-  --   M.format.setup(M.config)
-  -- end
 
   -- Set up autocommands for markdown files
   M.setup_autocmds()
@@ -66,6 +67,9 @@ function M.setup_autocmds()
       -- Enable features for markdown files
       if M.list then
         M.list.enable()
+      end
+      if M.format then
+        M.format.enable()
       end
     end,
   })
