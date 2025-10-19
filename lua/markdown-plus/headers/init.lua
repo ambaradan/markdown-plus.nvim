@@ -25,43 +25,97 @@ end
 
 -- Set up keymaps for headers
 function M.setup_keymaps()
-	local opts = { buffer = true, silent = true }
-
 	-- Header navigation
-	vim.keymap.set("n", "]]", M.next_header, opts)
-	vim.keymap.set("n", "[[", M.prev_header, opts)
+	vim.keymap.set("n", "]]", M.next_header, {
+		buffer = true,
+		silent = true,
+		desc = "Jump to next header"
+	})
+	vim.keymap.set("n", "[[", M.prev_header, {
+		buffer = true,
+		silent = true,
+		desc = "Jump to previous header"
+	})
 
 	-- Promote/demote headers
-	vim.keymap.set("n", "<leader>h+", M.promote_header, opts)
-	vim.keymap.set("n", "<leader>h-", M.demote_header, opts)
+	vim.keymap.set("n", "<leader>h+", M.promote_header, {
+		buffer = true,
+		silent = true,
+		desc = "Promote header (increase level)"
+	})
+	vim.keymap.set("n", "<leader>h-", M.demote_header, {
+		buffer = true,
+		silent = true,
+		desc = "Demote header (decrease level)"
+	})
 
 	-- TOC generation
-	vim.keymap.set("n", "<leader>ht", M.generate_toc, opts)
-	vim.keymap.set("n", "<leader>hu", M.update_toc, opts)
-	
+	vim.keymap.set("n", "<leader>ht", M.generate_toc, {
+		buffer = true,
+		silent = true,
+		desc = "Generate table of contents"
+	})
+	vim.keymap.set("n", "<leader>hu", M.update_toc, {
+		buffer = true,
+		silent = true,
+		desc = "Update table of contents"
+	})
+
 	-- Follow TOC link (jump to header from TOC)
-	vim.keymap.set("n", "<CR>", M.follow_link, opts)
-	vim.keymap.set("n", "gd", M.follow_link, opts)
+	vim.keymap.set("n", "<CR>", M.follow_link, {
+		buffer = true,
+		silent = true,
+		desc = "Follow TOC link to header"
+	})
+	vim.keymap.set("n", "gd", M.follow_link, {
+		buffer = true,
+		silent = true,
+		desc = "Follow TOC link to header"
+	})
 
 	-- Header level shortcuts
 	vim.keymap.set("n", "<leader>h1", function()
 		M.set_header_level(1)
-	end, opts)
+	end, {
+		buffer = true,
+		silent = true,
+		desc = "Set/convert to H1"
+	})
 	vim.keymap.set("n", "<leader>h2", function()
 		M.set_header_level(2)
-	end, opts)
+	end, {
+		buffer = true,
+		silent = true,
+		desc = "Set/convert to H2"
+	})
 	vim.keymap.set("n", "<leader>h3", function()
 		M.set_header_level(3)
-	end, opts)
+	end, {
+		buffer = true,
+		silent = true,
+		desc = "Set/convert to H3"
+	})
 	vim.keymap.set("n", "<leader>h4", function()
 		M.set_header_level(4)
-	end, opts)
+	end, {
+		buffer = true,
+		silent = true,
+		desc = "Set/convert to H4"
+	})
 	vim.keymap.set("n", "<leader>h5", function()
 		M.set_header_level(5)
-	end, opts)
+	end, {
+		buffer = true,
+		silent = true,
+		desc = "Set/convert to H5"
+	})
 	vim.keymap.set("n", "<leader>h6", function()
 		M.set_header_level(6)
-	end, opts)
+	end, {
+		buffer = true,
+		silent = true,
+		desc = "Set/convert to H6"
+	})
 end
 
 -- Parse a line to check if it's a header
@@ -93,7 +147,7 @@ function M.get_all_headers()
 		if line:match("^```") or line:match("^~~~") then
 			in_code_block = not in_code_block
 		end
-		
+
 		-- Only parse headers if we're not inside a code block
 		if not in_code_block then
 			local header = M.parse_header(line)
@@ -150,20 +204,20 @@ function M.follow_link()
 	local cursor = utils.get_cursor()
 	local line_num = cursor[1]
 	local line = utils.get_current_line()
-	
+
 	-- Try to extract anchor from markdown link: [text](#anchor)
 	local anchor = line:match("%[.-%]%(#(.-)%)")
-	
+
 	if not anchor then
 		-- Not on a TOC link, just do normal Enter behavior
 		vim.cmd("normal! j")
 		return
 	end
-	
+
 	-- Convert anchor back to header text (reverse of slug generation)
 	-- Anchors are lowercase with hyphens, need to find matching header
 	local headers = M.get_all_headers()
-	
+
 	for _, header in ipairs(headers) do
 		local slug = M.generate_slug(header.text)
 		if slug == anchor then
@@ -174,7 +228,7 @@ function M.follow_link()
 			return
 		end
 	end
-	
+
 	-- No matching header found
 	print("Header not found: " .. anchor)
 end
@@ -262,28 +316,28 @@ end
 -- Generate a slug from header text (for TOC links)
 function M.generate_slug(text)
 	local slug = text
-	
+
 	-- Step 1: Remove markdown formatting (must be done before lowercase)
-	slug = slug:gsub("%*%*(.-)%*%*", "%1")  -- **bold**
-	slug = slug:gsub("%*(.-)%*", "%1")      -- *italic*
-	slug = slug:gsub("`(.-)`", "%1")        -- `code`
-	slug = slug:gsub("~~(.-)~~", "%1")      -- ~~strikethrough~~
-	
+	slug = slug:gsub("%*%*(.-)%*%*", "%1") -- **bold**
+	slug = slug:gsub("%*(.-)%*", "%1") -- *italic*
+	slug = slug:gsub("`(.-)`", "%1") -- `code`
+	slug = slug:gsub("~~(.-)~~", "%1") -- ~~strikethrough~~
+
 	-- Step 2: Convert to lowercase
 	slug = slug:lower()
-	
+
 	-- Step 3: Replace spaces with hyphens (before removing punctuation!)
 	slug = slug:gsub("%s+", "-")
-	
+
 	-- Step 4: Remove punctuation (GitHub-compatible)
 	-- Keep: alphanumeric, hyphens (-), underscores (_)
 	-- Remove: & ! @ # $ % ^ * ( ) = + [ ] { } \ | ; : ' " < > ? / . ,
 	slug = slug:gsub("[&!@#$%%^*()=+%[%]{}\\|;:'\",<>?/.]", "")
-	
+
 	-- Step 5: Remove leading/trailing hyphens
 	slug = slug:gsub("^%-+", "")
 	slug = slug:gsub("%-+$", "")
-	
+
 	return slug
 end
 
@@ -298,7 +352,7 @@ function M.generate_toc()
 
 	-- Find where to insert TOC (right before first non-H1 header)
 	local toc_insert_line = 1
-	
+
 	-- Find first header that is not H1
 	for _, header in ipairs(headers) do
 		if header.level > 1 then
@@ -307,7 +361,7 @@ function M.generate_toc()
 			break
 		end
 	end
-	
+
 	-- If all headers are H1 (unusual), default to after first H1
 	if toc_insert_line == 1 and headers[1] and headers[1].level == 1 then
 		toc_insert_line = headers[1].line_num + 1

@@ -30,27 +30,57 @@ end
 
 -- Set up keymaps for list management
 function M.setup_keymaps()
-  local opts = { buffer = true, silent = true }
-
   -- Enter key for auto-continuing lists
-  vim.keymap.set("i", "<CR>", M.handle_enter, opts)
+  vim.keymap.set("i", "<CR>", M.handle_enter, {
+    buffer = true,
+    silent = true,
+    desc = "Auto-continue list or break out"
+  })
 
   -- Tab/Shift+Tab for indentation
-  vim.keymap.set("i", "<Tab>", M.handle_tab, opts)
-  vim.keymap.set("i", "<S-Tab>", M.handle_shift_tab, opts)
+  vim.keymap.set("i", "<Tab>", M.handle_tab, {
+    buffer = true,
+    silent = true,
+    desc = "Indent list item"
+  })
+  vim.keymap.set("i", "<S-Tab>", M.handle_shift_tab, {
+    buffer = true,
+    silent = true,
+    desc = "Outdent list item"
+  })
 
   -- Backspace for smart list removal
-  vim.keymap.set("i", "<BS>", M.handle_backspace, opts)
+  vim.keymap.set("i", "<BS>", M.handle_backspace, {
+    buffer = true,
+    silent = true,
+    desc = "Smart backspace (remove empty list)"
+  })
 
   -- Manual renumber command for testing
-  vim.keymap.set("n", "<leader>mr", M.renumber_ordered_lists, opts)
+  vim.keymap.set("n", "<leader>mr", M.renumber_ordered_lists, {
+    buffer = true,
+    silent = true,
+    desc = "Renumber ordered lists"
+  })
 
   -- Debug command for testing
-  vim.keymap.set("n", "<leader>md", M.debug_list_groups, opts)
+  vim.keymap.set("n", "<leader>md", M.debug_list_groups, {
+    buffer = true,
+    silent = true,
+    desc = "Debug list groups"
+  })
 
   -- Normal mode o/O for creating new list items
-  vim.keymap.set("n", "o", M.handle_normal_o, opts)
-  vim.keymap.set("n", "O", M.handle_normal_O, opts)
+  vim.keymap.set("n", "o", M.handle_normal_o, {
+    buffer = true,
+    silent = true,
+    desc = "New list item below"
+  })
+  vim.keymap.set("n", "O", M.handle_normal_O, {
+    buffer = true,
+    silent = true,
+    desc = "New list item above"
+  })
 
   -- Set up autocommands for auto-renumbering
   M.setup_renumber_autocmds()

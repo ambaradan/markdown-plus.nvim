@@ -30,22 +30,60 @@ end
 
 -- Set up keymaps for text formatting
 function M.setup_keymaps()
-  local opts = { buffer = true, silent = true }
-
   -- Visual mode keymaps for formatting selections
   -- Using :<C-u> to clear command line and preserve visual selection
-  vim.keymap.set("x", "<leader>mb", ":<C-u>lua require('markdown-plus.format').toggle_format('bold')<CR>", opts)
-  vim.keymap.set("x", "<leader>mi", ":<C-u>lua require('markdown-plus.format').toggle_format('italic')<CR>", opts)
-  vim.keymap.set("x", "<leader>ms", ":<C-u>lua require('markdown-plus.format').toggle_format('strikethrough')<CR>", opts)
-  vim.keymap.set("x", "<leader>mc", ":<C-u>lua require('markdown-plus.format').toggle_format('code')<CR>", opts)
-  vim.keymap.set("x", "<leader>mC", ":<C-u>lua require('markdown-plus.format').clear_formatting()<CR>", opts)
+  vim.keymap.set("x", "<leader>mb", ":<C-u>lua require('markdown-plus.format').toggle_format('bold')<CR>", {
+    buffer = true,
+    silent = true,
+    desc = "Toggle bold formatting"
+  })
+  vim.keymap.set("x", "<leader>mi", ":<C-u>lua require('markdown-plus.format').toggle_format('italic')<CR>", {
+    buffer = true,
+    silent = true,
+    desc = "Toggle italic formatting"
+  })
+  vim.keymap.set("x", "<leader>ms", ":<C-u>lua require('markdown-plus.format').toggle_format('strikethrough')<CR>", {
+    buffer = true,
+    silent = true,
+    desc = "Toggle strikethrough formatting"
+  })
+  vim.keymap.set("x", "<leader>mc", ":<C-u>lua require('markdown-plus.format').toggle_format('code')<CR>", {
+    buffer = true,
+    silent = true,
+    desc = "Toggle inline code formatting"
+  })
+  vim.keymap.set("x", "<leader>mC", ":<C-u>lua require('markdown-plus.format').clear_formatting()<CR>", {
+    buffer = true,
+    silent = true,
+    desc = "Clear all formatting"
+  })
 
   -- Normal mode keymaps for formatting current word
-  vim.keymap.set("n", "<leader>mb", function() M.toggle_format_word("bold") end, opts)
-  vim.keymap.set("n", "<leader>mi", function() M.toggle_format_word("italic") end, opts)
-  vim.keymap.set("n", "<leader>ms", function() M.toggle_format_word("strikethrough") end, opts)
-  vim.keymap.set("n", "<leader>mc", function() M.toggle_format_word("code") end, opts)
-  vim.keymap.set("n", "<leader>mC", M.clear_formatting_word, opts)
+  vim.keymap.set("n", "<leader>mb", function() M.toggle_format_word("bold") end, {
+    buffer = true,
+    silent = true,
+    desc = "Toggle bold on word"
+  })
+  vim.keymap.set("n", "<leader>mi", function() M.toggle_format_word("italic") end, {
+    buffer = true,
+    silent = true,
+    desc = "Toggle italic on word"
+  })
+  vim.keymap.set("n", "<leader>ms", function() M.toggle_format_word("strikethrough") end, {
+    buffer = true,
+    silent = true,
+    desc = "Toggle strikethrough on word"
+  })
+  vim.keymap.set("n", "<leader>mc", function() M.toggle_format_word("code") end, {
+    buffer = true,
+    silent = true,
+    desc = "Toggle inline code on word"
+  })
+  vim.keymap.set("n", "<leader>mC", M.clear_formatting_word, {
+    buffer = true,
+    silent = true,
+    desc = "Clear formatting on word"
+  })
 end
 
 -- Get visual selection range
