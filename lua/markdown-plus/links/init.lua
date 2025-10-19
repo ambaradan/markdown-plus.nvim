@@ -52,14 +52,14 @@ function M.setup_keymaps()
   })
   
   -- Convert to reference-style link
-  vim.keymap.set("n", "<leader>mr", M.convert_to_reference, {
+  vim.keymap.set("n", "<leader>mR", M.convert_to_reference, {
     buffer = true,
     silent = true,
     desc = "Convert to reference-style link"
   })
   
   -- Convert to inline link
-  vim.keymap.set("n", "<leader>mi", M.convert_to_inline, {
+  vim.keymap.set("n", "<leader>mI", M.convert_to_inline, {
     buffer = true,
     silent = true,
     desc = "Convert to inline link"
@@ -79,46 +79,64 @@ function M.get_link_at_cursor()
   local line = utils.get_current_line()
   local col = cursor[2]  -- 0-indexed column
   
-  -- Try to find inline link [text](url)
-  for text, url in line:gmatch(M.patterns.inline_link) do
-    local start_pos, end_pos = line:find("%[" .. utils.escape_pattern(text) .. "%]%(" .. utils.escape_pattern(url) .. "%)", 1, true)
-    if start_pos then
-      -- Convert to 0-indexed for comparison
-      local start_idx = start_pos - 1
-      local end_idx = end_pos - 1
+  -- Find all inline links [text](url) with their positions
+  local init = 1
+  while true do
+    local link_start, link_end = line:find("%[.-%]%(.-%)", init)
+    if not link_start then break end
+    
+    -- Check if cursor is within this link
+    local start_idx = link_start - 1
+    local end_idx = link_end - 1
+    
+    if col >= start_idx and col <= end_idx then
+      -- Extract text and url from the matched link
+      local link_str = line:sub(link_start, link_end)
+      local text, url = link_str:match("^%[(.-)%]%((.-)%)$")
       
-      if col >= start_idx and col <= end_idx then
+      if text and url then
         return {
           type = "inline",
           text = text,
           url = url,
-          start_pos = start_pos,
-          end_pos = end_pos,
+          start_pos = link_start,
+          end_pos = link_end,
           line_num = cursor[1]
         }
       end
     end
+    
+    init = link_end + 1
   end
   
-  -- Try to find reference link [text][ref]
-  for text, ref in line:gmatch(M.patterns.reference_link) do
-    local start_pos, end_pos = line:find("%[" .. utils.escape_pattern(text) .. "%]%[" .. utils.escape_pattern(ref) .. "%]", 1, true)
-    if start_pos then
-      -- Convert to 0-indexed for comparison
-      local start_idx = start_pos - 1
-      local end_idx = end_pos - 1
+  -- Find all reference links [text][ref] with their positions
+  init = 1
+  while true do
+    local link_start, link_end = line:find("%[.-%]%[.-%]", init)
+    if not link_start then break end
+    
+    -- Check if cursor is within this link
+    local start_idx = link_start - 1
+    local end_idx = link_end - 1
+    
+    if col >= start_idx and col <= end_idx then
+      -- Extract text and ref from the matched link
+      local link_str = line:sub(link_start, link_end)
+      local text, ref = link_str:match("^%[(.-)%]%[(.-)%]$")
       
-      if col >= start_idx and col <= end_idx then
+      if text and ref then
         return {
           type = "reference",
           text = text,
           ref = ref,
-          start_pos = start_pos,
-          end_pos = end_pos,
+          start_pos = link_start,
+          end_pos = link_end,
           line_num = cursor[1]
         }
       end
     end
+    
+    init = link_end + 1
   end
   
   return nil
@@ -284,9 +302,15 @@ function M.convert_to_reference()
   -- Generate reference ID (use lowercase text as ref)
   local ref = link.text:lower():gsub("%s+", "-"):gsub("[^%w%-]", "")
   
-  -- Check if reference already exists
+  -- Validate that ref is not empty
+  if ref == "" then
+    print("Cannot generate reference: link text does not contain any alphanumeric characters")
+    return
+  end
+  
+  -- Check if reference already exists with the same URL
   local existing_url = M.find_reference_url(ref)
-  if existing_url then
+  if existing_url and existing_url == link.url then
     -- Use existing reference
     local line = utils.get_line(link.line_num)
     local new_link = "[" .. link.text .. "][" .. ref .. "]"

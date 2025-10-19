@@ -250,7 +250,7 @@ Toggle bold with `<leader>mb`:
 
 ITALIC ~
 
-Toggle italic with `<leader>mi`:
+Toggle italic with `<leader>mI`:
 
 >markdown
     This is text           ->    This is *text*
@@ -366,12 +366,12 @@ Leave the text prompt empty to use the URL as link text.
 
 REFERENCE-STYLE LINKS ~
 
-Convert inline link to reference-style with `<leader>mr`:
+Convert inline link to reference-style with `<leader>mR`:
 
 >markdown
     [Documentation](https://docs.example.com)
 
-    Press <leader>mr:
+    Press <leader>mR:
 
     Result:
     [Documentation][documentation]
@@ -383,14 +383,14 @@ Convert inline link to reference-style with `<leader>mr`:
 The reference ID is auto-generated from the link text (lowercase, hyphens,
 alphanumeric only).
 
-Convert reference link to inline with `<leader>mi`:
+Convert reference link to inline with `<leader>mI`:
 
 >markdown
     [My Link][myref]
 
     [myref]: https://myref.com
 
-    Press <leader>mi on the link:
+    Press <leader>mI on the link:
 
     Result: [My Link](https://myref.com)
 <
@@ -398,20 +398,36 @@ Convert reference link to inline with `<leader>mi`:
 
 REFERENCE REUSE ~
 
-When converting multiple links with the same text to reference-style, the
-plugin automatically reuses existing reference definitions:
+When converting links with the same text and URL to reference-style, the
+plugin automatically reuses the existing reference:
 
 >markdown
-    [Documentation](https://docs.example.com)
-    [More Docs](https://docs.example.com)
+    Check out [GitHub](https://github.com) for code.
+    Visit [GitHub](https://github.com) to see projects.
 
-    Press <leader>mr on both:
+    Press <leader>mR on both:
 
     Result:
-    [Documentation][documentation]
-    [More Docs][documentation]        <- Reuses same reference!
+    Check out [GitHub][github] for code.
+    Visit [GitHub][github] to see projects.
 
-    [documentation]: https://docs.example.com  <- Only one definition
+    [github]: https://github.com  <- Only one definition
+<
+
+Links with different text create separate references even with same URL:
+
+>markdown
+    [dotfiles](https://github.com/yousefhadder/dotfiles)
+    [My Dotfiles](https://github.com/yousefhadder/dotfiles)
+
+    Press <leader>mR on both:
+
+    Result:
+    [dotfiles][dotfiles]
+    [My Dotfiles][my-dotfiles]
+
+    [dotfiles]: https://github.com/yousefhadder/dotfiles
+    [my-dotfiles]: https://github.com/yousefhadder/dotfiles
 <
 
 
@@ -453,12 +469,12 @@ Default keymaps:
         -- List operations (Normal mode)
         new_item_below = 'o',               -- New list item below
         new_item_above = 'O',               -- New list item above
-        renumber_lists = '<leader>mr',      -- Manual renumber
+        renumber_lists = '<leader>mR',      -- Manual renumber
         debug_lists = '<leader>md',         -- Debug: show list groups
 
         -- Formatting operations (normal + visual)
         toggle_bold = '<leader>mb',
-        toggle_italic = '<leader>mi',
+        toggle_italic = '<leader>mI',
         toggle_strikethrough = '<leader>ms',
         toggle_code = '<leader>mc',
         clear_formatting = '<leader>mC',
@@ -467,8 +483,8 @@ Default keymaps:
         insert_link = '<leader>ml',        -- Insert/convert to link
         edit_link = '<leader>me',          -- Edit link under cursor
         auto_link_url = '<leader>ma',      -- Convert URL to link
-        to_reference = '<leader>mr',       -- Convert to reference-style
-        to_inline = '<leader>mi',          -- Convert to inline
+        to_reference = '<leader>mR',       -- Convert to reference-style
+        to_inline = '<leader>mI',          -- Convert to inline
         follow_link = 'gd',                -- Follow TOC link
         open_link = 'gx',                  -- Open link in browser (native)
       }
@@ -722,7 +738,7 @@ ISSUE: FORMATTING TOGGLE NOT WORKING ~
 
 Ensure you're using the correct keymap. By default:
 - `<leader>mb` for bold
-- `<leader>mi` for italic
+- `<leader>mI` for italic
 - `<leader>ms` for strikethrough
 - `<leader>mc` for inline code
 - `<leader>mC` for clearing formatting

@@ -100,8 +100,8 @@ A comprehensive Neovim plugin that provides modern markdown editing capabilities
 - **Open links**: Use `gx` (native Neovim) to open links in your browser
 - **Auto-convert URL**: `<leader>ma` on a URL to convert it to a markdown link
 - **Reference-style links**: Convert between inline `[text](url)` and reference `[text][ref]` styles
-- **Convert to reference**: `<leader>mr` to convert inline link to reference-style
-- **Convert to inline**: `<leader>mi` to convert reference link to inline
+- **Convert to reference**: `<leader>mR` to convert inline link to reference-style
+- **Convert to inline**: `<leader>mI` to convert reference link to inline
 - **Smart URL detection**: Works with bare URLs and properly formatted links
 
 </details>
@@ -446,11 +446,11 @@ Result: [https://github.com/yousefhadder/markdown-plus.nvim](https://github.com/
 
 ### Reference-Style Links
 ```markdown
-Convert inline link to reference-style with <leader>mr:
+Convert inline link to reference-style with <leader>mR:
 
 [Documentation](https://docs.example.com)  ← cursor here
 
-Press <leader>mr:
+Press <leader>mR:
 Result:
 [Documentation][documentation]
 
@@ -459,30 +459,46 @@ Result:
 
 ---
 
-Convert reference link to inline with <leader>mi:
+Convert reference link to inline with <leader>mI:
 
 [My Link][myref]  ← cursor here
 
 ... (elsewhere in document)
 [myref]: https://myref.com
 
-Press <leader>mi:
+Press <leader>mI:
 Result: [My Link](https://myref.com)
 ```
 
 ### Reuse Existing References
 ```markdown
-When converting to reference-style, existing references are reused:
+When converting links with the same text and URL to reference-style, 
+the reference is reused:
 
-[Documentation](https://docs.example.com)  ← First link
-[More Docs](https://docs.example.com)      ← Same URL
+Check out [GitHub](https://github.com) for code.
+Visit [GitHub](https://github.com) to see projects.
 
-Press <leader>mr on both:
+Press <leader>mR on both:
 Result:
-[Documentation][documentation]
-[More Docs][documentation]  ← Reuses same reference!
+Check out [GitHub][github] for code.
+Visit [GitHub][github] to see projects.
 
-[documentation]: https://docs.example.com  ← Only one definition
+[github]: https://github.com  ← Only one definition
+
+---
+
+Links with different text create separate references even with same URL:
+
+[dotfiles](https://github.com/yousefhadder/dotfiles)
+[My Dotfiles](https://github.com/yousefhadder/dotfiles)
+
+Press <leader>mR on both:
+Result:
+[dotfiles][dotfiles]
+[My Dotfiles][my-dotfiles]
+
+[dotfiles]: https://github.com/yousefhadder/dotfiles
+[my-dotfiles]: https://github.com/yousefhadder/dotfiles
 ```
 
 </details>
@@ -541,8 +557,8 @@ Result:
 | `<leader>ml` | Visual | Convert selection to link |
 | `<leader>me` | Normal | Edit link under cursor |
 | `<leader>ma` | Normal | Convert URL to markdown link |
-| `<leader>mr` | Normal | Convert to reference-style link |
-| `<leader>mi` | Normal | Convert to inline link |
+| `<leader>mR` | Normal | Convert to reference-style link |
+| `<leader>mI` | Normal | Convert to inline link |
 | `gx` | Normal | Open link in browser (native Neovim) |
 
 **Note**: In normal mode, these commands operate on the word under cursor. In visual mode, they operate on the selected text.
