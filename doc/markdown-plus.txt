@@ -128,6 +128,8 @@ You can also set a specific header level directly:
 - `<leader>h2` to convert to H2 (## Header)
 - `<leader>h3` to convert to H3 (### Header)
 - `<leader>h4` to convert to H4 (#### Header)
+- `<leader>h5` to convert to H5 (##### Header)
+- `<leader>h6` to convert to H6 (###### Header)
 
 
 NAVIGATE HEADERS ~
@@ -318,6 +320,8 @@ Default keymaps:
         set_h2 = '<leader>h2',              -- Convert to H2
         set_h3 = '<leader>h3',              -- Convert to H3
         set_h4 = '<leader>h4',              -- Convert to H4
+        set_h5 = '<leader>h5',              -- Convert to H5
+        set_h6 = '<leader>h6',              -- Convert to H6
 
         -- List operations (Insert mode)
         auto_continue = '<CR>',             -- Auto-continue lists
@@ -329,6 +333,7 @@ Default keymaps:
         new_item_below = 'o',               -- New list item below
         new_item_above = 'O',               -- New list item above
         renumber_lists = '<leader>mr',      -- Manual renumber
+        debug_lists = '<leader>md',         -- Debug: show list groups
 
         -- Formatting operations (normal + visual)
         toggle_bold = '<leader>mb',
@@ -463,6 +468,11 @@ markdown-plus.list.handle_normal_O()
                                     *markdown-plus.list.renumber_ordered_lists*
 markdown-plus.list.renumber_ordered_lists()
     Manually triggers renumbering of all ordered lists in the buffer.
+
+                                          *markdown-plus.list.debug_list_groups*
+markdown-plus.list.debug_list_groups()
+    Debug function that prints detected list groups to help troubleshoot
+    list recognition issues. Used for development and debugging.
 
 
 FORMAT MODULE                                          *markdown-plus.format*
