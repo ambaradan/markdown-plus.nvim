@@ -72,9 +72,9 @@ A comprehensive Neovim plugin that provides modern markdown editing capabilities
 - **Header navigation**: Jump between headers with `]]` (next) and `[[` (previous)
 - **Promote/demote headers**: Increase/decrease header importance with `<leader>h+` and `<leader>h-`
 - **Set header level**: Quickly set header level 1-6 with `<leader>h1` through `<leader>h6`
-- **Generate TOC**: Auto-generate table of contents with `<leader>ht`
+- **Generate TOC**: Auto-generate table of contents with `<leader>ht` (uses HTML markers to prevent duplicates)
 - **Update TOC**: Refresh existing TOC with `<leader>hu` after modifying headers
-- **Follow TOC links**: Press `<CR>` or `gd` on a TOC link to jump to that header
+- **Follow TOC links**: Press `gd` on a TOC link to jump to that header
 - **Smart TOC placement**: TOC appears right before first section (after introduction text)
 - **Code block aware**: Headers inside code blocks are correctly ignored
 - **GitHub-compatible slugs**: Anchor links work correctly on GitHub (handles `Q&A`, `C++`, etc.)
@@ -290,21 +290,28 @@ Already header    ← Press <leader>h4 → #### Already header
 
 Press <leader>ht to generate TOC:
 
+<!-- TOC -->
+
 ## Table of Contents
 
 - [Section 1](#section-1)
   - [Subsection 1.1](#subsection-1-1)
 - [Section 2](#section-2)
 
+<!-- /TOC -->
+
 ## Section 1
 ...
 ```
+
+**Note:** The TOC is wrapped in HTML comment markers `<!-- TOC -->` and `<!-- /TOC -->`. This prevents duplicate TOCs from being created if you press `<leader>ht` again. To update an existing TOC, use `<leader>hu` instead.
 
 ### Update TOC
 ```markdown
 After adding/removing/renaming headers:
 1. Press <leader>hu to update the TOC
 2. All links are regenerated automatically
+3. The content between <!-- TOC --> and <!-- /TOC --> is replaced
 ```
 
 ### Follow TOC Links
@@ -315,7 +322,7 @@ After adding/removing/renaming headers:
 - [API & SDK](#api--sdk)
 - [Q&A](#qa)
 
-Press <CR> or gd to jump directly to that header!
+Press gd to jump directly to that header!
 
 ## Getting Started    ← You jump here instantly!
 ```
@@ -393,7 +400,6 @@ Press <leader>ht → Only "Real Section" appears in TOC ✓
 | `<leader>h6` | Normal | Set/convert to H6 |
 | `<leader>ht` | Normal | Generate table of contents |
 | `<leader>hu` | Normal | Update existing table of contents |
-| `<CR>` | Normal | Follow TOC link (jump to header) |
 | `gd` | Normal | Follow TOC link (jump to header) |
 
 **Note**: In normal mode, these commands operate on the word under cursor. In visual mode, they operate on the selected text.

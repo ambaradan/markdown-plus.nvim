@@ -61,13 +61,13 @@ function M.setup_keymaps()
 		desc = "Update table of contents"
 	})
 
-	-- Follow TOC link (jump to header from TOC)
-	vim.keymap.set("n", "<CR>", M.follow_link, {
-		buffer = true,
-		silent = true,
-		desc = "Follow TOC link to header"
-	})
-	vim.keymap.set("n", "gd", M.follow_link, {
+	-- Follow TOC link (jump to header from TOC) - use gd only, not CR
+	-- We don't map <CR> to avoid interfering with normal mode behavior
+	vim.keymap.set("n", "gd", function()
+		M.follow_link()
+		-- If follow_link returns false, it means we're not on a TOC link
+		-- In that case, we let the default gd behavior work (handled by other plugins/LSP)
+	end, {
 		buffer = true,
 		silent = true,
 		desc = "Follow TOC link to header"
@@ -209,9 +209,8 @@ function M.follow_link()
 	local anchor = line:match("%[.-%]%(#(.-)%)")
 
 	if not anchor then
-		-- Not on a TOC link, just do normal Enter behavior
-		vim.cmd("normal! j")
-		return
+		-- Not on a TOC link, don't do anything (let other mappings or default behavior handle it)
+		return false
 	end
 
 	-- Convert anchor back to header text (reverse of slug generation)
@@ -225,12 +224,13 @@ function M.follow_link()
 			utils.set_cursor(header.line_num, 0)
 			-- Center the screen on the header
 			vim.cmd("normal! zz")
-			return
+			return true
 		end
 	end
 
 	-- No matching header found
 	print("Header not found: " .. anchor)
+	return false
 end
 
 -- Promote header (decrease level number, increase importance)
@@ -350,6 +350,13 @@ function M.generate_toc()
 		return
 	end
 
+	-- Check if TOC already exists
+	local existing_toc = M.find_toc()
+	if existing_toc then
+		print("TOC already exists. Use <leader>hu to update it.")
+		return
+	end
+
 	-- Find where to insert TOC (right before first non-H1 header)
 	local toc_insert_line = 1
 
@@ -367,8 +374,10 @@ function M.generate_toc()
 		toc_insert_line = headers[1].line_num + 1
 	end
 
-	-- Build TOC lines
+	-- Build TOC lines with HTML comment markers
 	local toc_lines = {
+		"",
+		"<!-- TOC -->",
 		"",
 		"## Table of Contents",
 		"",
@@ -385,6 +394,8 @@ function M.generate_toc()
 	end
 
 	table.insert(toc_lines, "")
+	table.insert(toc_lines, "<!-- /TOC -->")
+	table.insert(toc_lines, "")
 
 	-- Insert TOC into buffer
 	vim.api.nvim_buf_set_lines(0, toc_insert_line - 1, toc_insert_line - 1, false, toc_lines)
@@ -396,24 +407,45 @@ end
 function M.find_toc()
 	local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
 
+	-- Look for <!-- TOC --> marker
+	local toc_start = nil
+	local toc_end = nil
+
+	for i, line in ipairs(lines) do
+		if line:match("^%s*<!%-%-%s*TOC%s*%-%->%s*$") then
+			toc_start = i
+		elseif toc_start and line:match("^%s*<!%-%-%s*/TOC%s*%-%->%s*$") then
+			toc_end = i
+			break
+		end
+	end
+
+	if toc_start and toc_end then
+		return {
+			start_line = toc_start,
+			end_line = toc_end,
+		}
+	end
+
+	-- Fallback: look for old-style TOC without markers (for backwards compatibility)
 	for i, line in ipairs(lines) do
 		-- Look for "## Table of Contents" or similar
 		if line:match("^##%s+[Tt]able%s+[Oo]f%s+[Cc]ontents") then
 			-- Find the end of TOC (next header or empty line pattern)
-			local toc_end = i
+			local toc_end_line = i
 			for j = i + 1, #lines do
 				local next_line = lines[j]
 				-- TOC ends at next header (but not the TOC header itself)
 				if next_line:match("^#[^#]") or (next_line == "" and lines[j + 1] and lines[j + 1]:match("^#")) then
-					toc_end = j - 1
+					toc_end_line = j - 1
 					break
 				end
-				toc_end = j
+				toc_end_line = j
 			end
 
 			return {
 				start_line = i,
-				end_line = toc_end,
+				end_line = toc_end_line,
 			}
 		end
 	end
@@ -432,8 +464,10 @@ function M.update_toc()
 
 	local headers = M.get_all_headers()
 
-	-- Build new TOC content
+	-- Build new TOC content with markers
 	local toc_lines = {
+		"<!-- TOC -->",
+		"",
 		"## Table of Contents",
 		"",
 	}
@@ -452,6 +486,7 @@ function M.update_toc()
 	end
 
 	table.insert(toc_lines, "")
+	table.insert(toc_lines, "<!-- /TOC -->")
 
 	-- Replace old TOC with new one
 	vim.api.nvim_buf_set_lines(0, toc_location.start_line - 1, toc_location.end_line, false, toc_lines)

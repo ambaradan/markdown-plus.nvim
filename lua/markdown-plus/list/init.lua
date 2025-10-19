@@ -110,18 +110,26 @@ function M.handle_enter()
   local list_info = M.parse_list_line(current_line)
 
   if not list_info then
-    -- Not in a list, use default Enter behavior
-    return "<CR>"
+    -- Not in a list, simulate default Enter behavior
+    -- Split the line at cursor position
+    local line_before = current_line:sub(1, col)
+    local line_after = current_line:sub(col + 1)
+    
+    utils.set_line(row, line_before)
+    utils.insert_line(row + 1, line_after)
+    utils.set_cursor(row + 1, 0)
+    return
   end
 
   -- Check if current list item is empty
   if M.is_empty_list_item(current_line, list_info) then
     -- Empty list item - break out of list
-    return M.break_out_of_list(list_info)
+    M.break_out_of_list(list_info)
+    return
   end
 
   -- Create next list item
-  return M.create_next_list_item(list_info)
+  M.create_next_list_item(list_info)
 end
 
 -- Parse a line to detect list information
@@ -201,8 +209,6 @@ function M.break_out_of_list(list_info)
 
   -- Position cursor at end of line
   utils.set_cursor(row, #list_info.indent)
-
-  return ""
 end
 
 -- Create next list item
@@ -231,8 +237,6 @@ function M.create_next_list_item(list_info)
 
   -- Move cursor to new line at end
   utils.set_cursor(row + 1, #next_line)
-
-  return ""
 end
 
 -- Handle Tab key for indentation
@@ -241,8 +245,14 @@ function M.handle_tab()
   local list_info = M.parse_list_line(current_line)
 
   if not list_info then
-    -- Not in a list, use default Tab behavior
-    return "<Tab>"
+    -- Not in a list, insert a tab character or spaces
+    local cursor = utils.get_cursor()
+    local row, col = cursor[1], cursor[2]
+    local indent = string.rep(" ", vim.bo.shiftwidth or 2)
+    local new_line = current_line:sub(1, col) .. indent .. current_line:sub(col + 1)
+    utils.set_line(row, new_line)
+    utils.set_cursor(row, col + #indent)
+    return
   end
 
   -- Increase indentation
@@ -257,8 +267,6 @@ function M.handle_tab()
 
   -- Adjust cursor position
   utils.set_cursor(row, col + indent_size)
-
-  return ""
 end
 
 -- Handle Shift+Tab key for outdentation
@@ -267,8 +275,18 @@ function M.handle_shift_tab()
   local list_info = M.parse_list_line(current_line)
 
   if not list_info then
-    -- Not in a list, use default behavior
-    return "<C-d>"
+    -- Not in a list, remove indentation if any
+    local cursor = utils.get_cursor()
+    local row, col = cursor[1], cursor[2]
+    local indent_size = vim.bo.shiftwidth or 2
+    local leading_spaces = current_line:match("^(%s*)")
+    
+    if #leading_spaces >= indent_size then
+      local new_line = current_line:sub(indent_size + 1)
+      utils.set_line(row, new_line)
+      utils.set_cursor(row, math.max(0, col - indent_size))
+    end
+    return
   end
 
   -- Decrease indentation
@@ -278,7 +296,7 @@ function M.handle_shift_tab()
 
   if #list_info.indent < indent_size then
     -- Can't outdent further
-    return ""
+    return
   end
 
   local new_indent = list_info.indent:sub(1, -indent_size - 1)
@@ -290,8 +308,6 @@ function M.handle_shift_tab()
   -- Adjust cursor position
   local new_col = math.max(0, col - indent_size)
   utils.set_cursor(row, new_col)
-
-  return ""
 end
 
 -- Handle Backspace key for smart list removal
@@ -303,7 +319,19 @@ function M.handle_backspace()
   -- Check if cursor is at the beginning of list content
   local list_info = M.parse_list_line(current_line)
   if not list_info then
-    return "<BS>"
+    -- Not in a list, delete character before cursor
+    if col > 0 then
+      local new_line = current_line:sub(1, col - 1) .. current_line:sub(col + 1)
+      utils.set_line(row, new_line)
+      utils.set_cursor(row, col - 1)
+    elseif row > 1 then
+      -- At beginning of line, join with previous line
+      local prev_line = utils.get_line(row - 1)
+      local joined = prev_line .. current_line
+      vim.api.nvim_buf_set_lines(0, row - 2, row, false, {joined})
+      utils.set_cursor(row - 1, #prev_line)
+    end
+    return
   end
 
   local marker_end = #list_info.indent + #list_info.full_marker + 1
@@ -311,10 +339,15 @@ function M.handle_backspace()
     -- At the beginning of empty list item, remove the list marker
     utils.set_line(row, list_info.indent)
     utils.set_cursor(row, #list_info.indent)
-    return ""
+    return
   end
 
-  return "<BS>"
+  -- Default backspace in list item
+  if col > 0 then
+    local new_line = current_line:sub(1, col - 1) .. current_line:sub(col + 1)
+    utils.set_line(row, new_line)
+    utils.set_cursor(row, col - 1)
+  end
 end
 
 -- Handle normal mode 'o' key
@@ -328,7 +361,10 @@ function M.handle_normal_o()
 
   if not list_info then
     -- Not in a list, use default 'o' behavior
-    vim.cmd("normal! o")
+    -- Create blank line below and enter insert mode
+    utils.insert_line(row + 1, "")
+    utils.set_cursor(row + 1, 0)
+    vim.cmd("startinsert")
     return
   end
 
@@ -368,7 +404,10 @@ function M.handle_normal_O()
 
   if not list_info then
     -- Not in a list, use default 'O' behavior
-    vim.cmd("normal! O")
+    -- Create blank line above and enter insert mode
+    utils.insert_line(row, "")
+    utils.set_cursor(row, 0)
+    vim.cmd("startinsert")
     return
   end
 
