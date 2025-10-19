@@ -1,0 +1,584 @@
+*markdown-plus.txt*      Enhanced Markdown editing for Neovim      Last change: 2025 January 19
+
+==============================================================================
+Table of Contents                            *markdown-plus-table-of-contents*
+
+1. Introduction                                       |markdown-plus-introduction|
+  - Features                                 |markdown-plus-introduction-features|
+2. Installation                                       |markdown-plus-installation|
+  - lazy.nvim                               |markdown-plus-installation-lazy.nvim|
+  - Configuration                     |markdown-plus-installation-configuration|
+3. Usage                                                     |markdown-plus-usage|
+  - Headers                                        |markdown-plus-usage-headers|
+  - Lists                                            |markdown-plus-usage-lists|
+  - Formatting                                  |markdown-plus-usage-formatting|
+  - Links                                            |markdown-plus-usage-links|
+4. Configuration                                     |markdown-plus-configuration|
+  - Keymaps                                  |markdown-plus-configuration-keymaps|
+  - Options                                  |markdown-plus-configuration-options|
+5. Commands                                               |markdown-plus-commands|
+6. API                                                         |markdown-plus-api|
+7. Troubleshooting                                 |markdown-plus-troubleshooting|
+8. Contributing                                       |markdown-plus-contributing|
+9. License                                                 |markdown-plus-license|
+
+==============================================================================
+1. Introduction                                       *markdown-plus-introduction*
+
+markdown-plus.nvim is a comprehensive plugin that enhances Markdown editing in
+Neovim with intelligent formatting, list management, header manipulation, and
+table of contents generation. It provides context-aware keymaps that work
+seamlessly within lists while preserving normal Vim behavior elsewhere.
+
+The plugin is designed to be lightweight, fast, and integrate naturally with
+your existing Neovim workflow.
+
+
+FEATURES                                     *markdown-plus-introduction-features*
+
+- Smart list management:
+  - Auto-continuation with proper markers and indentation
+  - Intelligent renumbering for ordered lists
+  - Context-aware Tab/Shift-Tab for indentation
+  - Automatic empty item removal
+  - Smart backspace to remove list markers
+
+- Header operations:
+  - Quick header level promotion/demotion
+  - Set specific header levels (H1-H4)
+  - Navigate between headers with ]] and [[
+  - Generate and update Table of Contents (TOC) with GitHub-style anchors
+  - TOC duplicate prevention with HTML comment markers
+  - Navigate to headers from TOC
+
+- Text formatting:
+  - Toggle bold, italic, strikethrough, and inline code
+  - Smart formatting that respects word boundaries
+  - Clear all formatting from selected text
+  - Works in both normal and visual mode
+
+- Context-aware keymaps:
+  - List operations only active within lists
+  - Proper fallback to default Vim behavior
+  - Insert mode operations that respect context
+
+
+==============================================================================
+2. Installation                                       *markdown-plus-installation*
+
+
+LAZY.NVIM                                   *markdown-plus-installation-lazy.nvim*
+
+>lua
+    {
+      'yousefhadder/markdown-plus.nvim',
+      ft = 'markdown',
+      opts = {
+        -- See configuration section for available options
+      },
+    }
+<
+
+
+CONFIGURATION                         *markdown-plus-installation-configuration*
+
+Basic configuration with custom keymaps:
+
+>lua
+    {
+      'yousefhadder/markdown-plus.nvim',
+      ft = 'markdown',
+      config = function()
+        require('markdown-plus').setup({
+          enabled = true,
+          features = {
+            list_management = true,
+            text_formatting = true,
+            headers_toc = true,
+          },
+        })
+      end,
+    }
+<
+
+
+==============================================================================
+3. Usage                                                     *markdown-plus-usage*
+
+
+HEADERS                                            *markdown-plus-usage-headers*
+
+Headers are lines starting with one or more `#` symbols.
+
+
+PROMOTE/DEMOTE ~
+
+Place your cursor on a header line and use:
+- `<leader>h+` to promote (decrease level, add `#`)
+- `<leader>h-` to demote (increase level, remove `#`)
+
+Example:
+>
+    ### Header              ->   ## Header     (promoted with <leader>h+)
+    ## Another Header       ->   ### Another   (demoted with <leader>h-)
+<
+
+You can also set a specific header level directly:
+- `<leader>h1` to convert to H1 (# Header)
+- `<leader>h2` to convert to H2 (## Header)
+- `<leader>h3` to convert to H3 (### Header)
+- `<leader>h4` to convert to H4 (#### Header)
+
+
+NAVIGATE HEADERS ~
+
+Jump between headers quickly:
+- `]]` to jump to next header
+- `[[` to jump to previous header
+
+
+
+TABLE OF CONTENTS ~
+
+Generate a TOC with `<leader>ht`. The TOC will be wrapped in HTML comment
+markers to prevent duplicates:
+
+>markdown
+    <!-- TOC -->
+
+    ## Table of Contents
+
+    - [Introduction](#introduction)
+    - [Getting Started](#getting-started)
+      - [Installation](#installation)
+      - [Configuration](#configuration)
+
+    <!-- /TOC -->
+<
+
+The HTML markers (`<!-- TOC -->` and `<!-- /TOC -->`) are invisible in
+rendered Markdown but provide clear boundaries. If you try to generate a TOC
+when one already exists, you'll see: "TOC already exists. Use <leader>hu to
+update it."
+
+Update the TOC with `<leader>hu` when you've added or modified headers.
+
+Follow TOC links with `gd` when cursor is on a link to jump to that header.
+
+
+LISTS                                                *markdown-plus-usage-lists*
+
+markdown-plus.nvim provides intelligent list management with context-aware
+behavior.
+
+
+AUTO-CONTINUATION ~
+
+Press `<CR>` in insert mode or `o`/`O` in normal mode on a list item to
+create a new item:
+
+>markdown
+    - First item
+    - Second item|         ->    - Second item
+                                 - |
+
+    1. First item
+    2. Second item|        ->    2. Second item
+                                 3. |
+<
+
+Empty items are automatically removed when you press `<CR>` again:
+
+>markdown
+    - Item one
+    - |                    ->    - Item one
+
+                                 |
+<
+
+Note: In insert mode, `<CR>` is context-aware - it only creates new list
+items when you're actually in a list. Outside of lists, it behaves normally.
+
+
+INDENTATION ~
+
+Use `<Tab>` and `<S-Tab>` in insert mode to indent/dedent list items:
+
+>markdown
+    - Item
+      - Sub-item|          <Tab>    - Item
+      - Another                       - Sub-item
+                                        - |
+                                      - Another
+<
+
+Outside of lists, `<Tab>` and `<S-Tab>` insert/remove indentation normally.
+
+
+SMART BACKSPACE ~
+
+The `<BS>` key in insert mode is context-aware:
+- In empty list items: removes the list marker
+- Otherwise: deletes character normally
+
+
+FORMATTING                                      *markdown-plus-usage-formatting*
+
+All formatting commands work in both normal and visual mode. Use `<leader>m`
+prefix for formatting operations.
+
+
+BOLD ~
+
+Toggle bold with `<leader>mb`:
+
+>markdown
+    This is text           ->    This is **text**
+    This is **text**       ->    This is text
+<
+
+
+ITALIC ~
+
+Toggle italic with `<leader>mi`:
+
+>markdown
+    This is text           ->    This is *text*
+    This is *text*         ->    This is text
+<
+
+
+STRIKETHROUGH ~
+
+Toggle strikethrough with `<leader>ms`:
+
+>markdown
+    This is text           ->    This is ~~text~~
+    This is ~~text~~       ->    This is text
+<
+
+
+CODE ~
+
+Toggle inline code with `<leader>mc`:
+
+>markdown
+    This is code           ->    This is `code`
+    This is `code`         ->    This is code
+<
+
+
+CLEAR FORMATTING ~
+
+Remove all formatting with `<leader>mC`:
+
+>markdown
+    **This** is *some* `text`    ->    This is some text
+<
+
+
+LINKS                                                *markdown-plus-usage-links*
+
+Follow Markdown links with `gd` when cursor is on a TOC link.
+
+
+TOC LINKS ~
+
+When viewing a Table of Contents, place your cursor on a link and press `gd`
+to jump to that header:
+
+>markdown
+    [Introduction](#introduction)    -> Jumps to # Introduction
+<
+
+
+==============================================================================
+4. Configuration                                     *markdown-plus-configuration*
+
+
+KEYMAPS                                      *markdown-plus-configuration-keymaps*
+
+Keymaps are automatically set up when the plugin loads for markdown files.
+Currently, keymaps are not customizable through the setup function - they
+use the default mappings shown below.
+
+Default keymaps:
+
+>lua
+    {
+      keymaps = {
+        -- Header operations
+        promote_header = '<leader>h+',      -- Promote (increase level)
+        demote_header = '<leader>h-',       -- Demote (decrease level)
+        generate_toc = '<leader>ht',        -- Generate TOC
+        update_toc = '<leader>hu',          -- Update TOC
+        next_header = ']]',                 -- Jump to next header
+        prev_header = '[[',                 -- Jump to previous header
+        set_h1 = '<leader>h1',              -- Convert to H1
+        set_h2 = '<leader>h2',              -- Convert to H2
+        set_h3 = '<leader>h3',              -- Convert to H3
+        set_h4 = '<leader>h4',              -- Convert to H4
+
+        -- List operations (Insert mode)
+        auto_continue = '<CR>',             -- Auto-continue lists
+        indent_list = '<Tab>',              -- Indent list item
+        dedent_list = '<S-Tab>',            -- Dedent list item
+        smart_backspace = '<BS>',           -- Smart backspace
+
+        -- List operations (Normal mode)
+        new_item_below = 'o',               -- New list item below
+        new_item_above = 'O',               -- New list item above
+        renumber_lists = '<leader>mr',      -- Manual renumber
+
+        -- Formatting operations (normal + visual)
+        toggle_bold = '<leader>mb',
+        toggle_italic = '<leader>mi',
+        toggle_strikethrough = '<leader>ms',
+        toggle_code = '<leader>mc',
+        clear_formatting = '<leader>mC',
+
+        -- Link operations
+        follow_link = 'gd',                 -- Follow TOC link
+      }
+    }
+<
+
+
+OPTIONS                                      *markdown-plus-configuration-options*
+
+The plugin can be configured through the setup function:
+
+>lua
+    require('markdown-plus').setup({
+      enabled = true,           -- Enable/disable the plugin
+      features = {
+        list_management = true,  -- List auto-continuation, indentation, etc.
+        text_formatting = true,  -- Bold, italic, strikethrough, code
+        headers_toc = true,      -- Header manipulation and TOC generation
+        links = false,           -- Not yet implemented
+        tables = false,          -- Not yet implemented
+        code_blocks = false,     -- Not yet implemented
+        structure = false,       -- Not yet implemented
+        live_features = false,   -- Not yet implemented
+      },
+    })
+<
+
+Future versions may add:
+- Custom TOC formatting options
+- Custom list markers
+- Custom header anchor generation
+- Keymap customization
+- Link following behavior customization
+
+
+==============================================================================
+5. Commands                                               *markdown-plus-commands*
+
+The plugin currently does not provide Ex commands. All functionality is
+accessed through keymaps (see |markdown-plus-configuration-keymaps|).
+
+However, you can call the Lua API functions directly if needed:
+
+>vim
+    :lua require('markdown-plus').headers.generate_toc()
+    :lua require('markdown-plus').list.renumber_ordered_lists()
+    :lua require('markdown-plus').format.toggle_format('bold')
+<
+
+See |markdown-plus-api| for a complete list of available functions.
+
+
+==============================================================================
+6. API                                                         *markdown-plus-api*
+
+For plugin developers or advanced users, markdown-plus.nvim exposes a Lua API:
+
+
+HEADERS MODULE                                        *markdown-plus.headers*
+
+                                                    *markdown-plus.headers.promote*
+markdown-plus.headers.promote_header()
+    Promotes the header on the current line (adds a `#`).
+
+                                                     *markdown-plus.headers.demote*
+markdown-plus.headers.demote_header()
+    Demotes the header on the current line (removes a `#`).
+
+                                                *markdown-plus.headers.generate_toc*
+markdown-plus.headers.generate_toc()
+    Generates a Table of Contents at cursor position.
+    Returns: nothing. Shows error message if TOC already exists.
+
+                                                  *markdown-plus.headers.update_toc*
+markdown-plus.headers.update_toc()
+    Updates the existing Table of Contents.
+
+                                                *markdown-plus.headers.follow_link*
+markdown-plus.headers.follow_link()
+    Follows the TOC link under cursor.
+    Returns: boolean - true if a link was followed, false otherwise.
+
+                                               *markdown-plus.headers.next_header*
+markdown-plus.headers.next_header()
+    Jumps to the next header in the document.
+
+                                               *markdown-plus.headers.prev_header*
+markdown-plus.headers.prev_header()
+    Jumps to the previous header in the document.
+
+                                          *markdown-plus.headers.set_header_level*
+markdown-plus.headers.set_header_level(level)
+    Sets the current line to a specific header level (1-6).
+    Parameters: ~
+        {level}  (number) The header level (1 = #, 2 = ##, etc.)
+
+
+LIST MODULE                                              *markdown-plus.list*
+
+                                              *markdown-plus.list.handle_enter*
+markdown-plus.list.handle_enter()
+    Handles Enter key in insert mode for auto-continuing lists.
+
+                                                *markdown-plus.list.handle_tab*
+markdown-plus.list.handle_tab()
+    Handles Tab key in insert mode for indenting list items.
+
+                                          *markdown-plus.list.handle_shift_tab*
+markdown-plus.list.handle_shift_tab()
+    Handles Shift-Tab key in insert mode for dedenting list items.
+
+                                          *markdown-plus.list.handle_backspace*
+markdown-plus.list.handle_backspace()
+    Handles Backspace key in insert mode with smart list removal.
+
+                                         *markdown-plus.list.handle_normal_o*
+markdown-plus.list.handle_normal_o()
+    Handles 'o' key in normal mode for creating new list items below.
+
+                                         *markdown-plus.list.handle_normal_O*
+markdown-plus.list.handle_normal_O()
+    Handles 'O' key in normal mode for creating new list items above.
+
+                                    *markdown-plus.list.renumber_ordered_lists*
+markdown-plus.list.renumber_ordered_lists()
+    Manually triggers renumbering of all ordered lists in the buffer.
+
+
+FORMAT MODULE                                          *markdown-plus.format*
+
+                                             *markdown-plus.format.toggle_format*
+markdown-plus.format.toggle_format(format_type)
+    Toggles formatting on visual selection or current word.
+    Parameters: ~
+        {format_type}  (string) One of: 'bold', 'italic', 'strikethrough', 'code'
+
+                                        *markdown-plus.format.toggle_format_word*
+markdown-plus.format.toggle_format_word(format_type)
+    Toggles formatting on the word under cursor.
+    Parameters: ~
+        {format_type}  (string) One of: 'bold', 'italic', 'strikethrough', 'code'
+
+                                        *markdown-plus.format.clear_formatting*
+markdown-plus.format.clear_formatting()
+    Clears all formatting from visual selection.
+
+                                   *markdown-plus.format.clear_formatting_word*
+markdown-plus.format.clear_formatting_word()
+    Clears all formatting from the word under cursor.
+
+
+Example usage:
+>lua
+    -- Call API functions directly
+    require('markdown-plus').headers.generate_toc()
+    require('markdown-plus').list.renumber_ordered_lists()
+    require('markdown-plus').format.toggle_format('bold')
+    require('markdown-plus').headers.set_header_level(2)
+<
+
+
+==============================================================================
+7. Troubleshooting                                 *markdown-plus-troubleshooting*
+
+
+ISSUE: KEYMAPS NOT WORKING ~
+
+Ensure the plugin is loaded for Markdown files. Check with:
+>vim
+    :verbose map <your-keymap>
+<
+
+If nothing shows up, the filetype might not be set correctly:
+>vim
+    :set filetype?
+<
+
+Should show `filetype=markdown`.
+
+
+ISSUE: O AND <CR> NOT ENTERING INSERT MODE ~
+
+This was a known issue in older versions. Update to the latest version where
+`o` and `O` properly enter insert mode when used on non-list lines.
+
+
+ISSUE: TOC GENERATION CREATES DUPLICATES ~
+
+The plugin now prevents duplicate TOCs by using HTML comment markers
+(`<!-- TOC -->` and `<!-- /TOC -->`). If you have an old-style TOC without
+markers, you may need to manually add them or delete the old TOC and generate
+a new one.
+
+
+ISSUE: LIST OPERATIONS AFFECTING NON-LIST TEXT ~
+
+The plugin is designed to be context-aware. If list operations are affecting
+non-list text, please report this as a bug with a minimal example.
+
+
+ISSUE: FORMATTING TOGGLE NOT WORKING ~
+
+Ensure you're using the correct keymap. By default:
+- `<leader>mb` for bold
+- `<leader>mi` for italic
+- `<leader>ms` for strikethrough
+- `<leader>mc` for inline code
+- `<leader>mC` for clearing formatting
+
+These work in both normal mode (on word under cursor) and visual mode
+(on selection).
+
+Check your leader key with:
+>vim
+    :echo mapleader
+<
+
+
+==============================================================================
+8. Contributing                                       *markdown-plus-contributing*
+
+Contributions are welcome! The plugin follows these principles:
+
+1. Context-aware behavior: Operations should only affect relevant text
+2. Vim conventions: Respect normal Vim behavior and mappings
+3. Performance: Keep operations fast and lightweight
+4. Minimal configuration: Sensible defaults with easy customization
+
+See CONTRIBUTING.md in the repository for detailed guidelines on:
+- Code style and structure
+- Testing requirements
+- Pull request process
+- Feature requests
+
+
+==============================================================================
+9. License                                                 *markdown-plus-license*
+
+markdown-plus.nvim is licensed under the MIT License.
+See LICENSE file in the repository for full details.
+
+Copyright (c) 2025 Yousef Hadder
+
+==============================================================================
+vim:tw=78:ts=8:ft=help:norl:
