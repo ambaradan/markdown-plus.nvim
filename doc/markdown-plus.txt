@@ -260,8 +260,8 @@ BOLD ~
 Toggle bold with `<leader>mb`:
 
 >markdown
-    This is text           ->    This is **text**
-    This is **text**       ->    This is text
+    This is text           ->    This is *bold text*
+    This is *bold text*    ->    This is text
 <
 
 
@@ -270,8 +270,8 @@ ITALIC ~
 Toggle italic with `<leader>mi`:
 
 >markdown
-    This is text           ->    This is *text*
-    This is *text*         ->    This is text
+    This is text           ->    This is *italic text*
+    This is *italic text*  ->    This is text
 <
 
 
@@ -300,7 +300,7 @@ CLEAR FORMATTING ~
 Remove all formatting with `<leader>mC`:
 
 >markdown
-    **This** is *some* `text`    ->    This is some text
+    Formatted text         ->    This is some text
 <
 
 
