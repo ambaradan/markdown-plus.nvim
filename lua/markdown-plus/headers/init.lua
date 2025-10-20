@@ -441,7 +441,7 @@ local function is_valid_toc_content(lines, start_line, end_line)
 end
 
 ---Find existing TOC in document
----@return table|nil TOC location {start_line, end_line}
+---@return {start_line: number, end_line: number}|nil TOC location
 function M.find_toc()
   local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
 

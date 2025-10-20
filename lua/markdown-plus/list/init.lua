@@ -427,10 +427,6 @@ function M.handle_normal_O()
   -- This means we need to determine what the previous number should be
   local prev_marker
   if list_info.type == "ordered" then
-    -- Get current number
-    local current_num = tonumber(list_info.marker:match("(%d+)"))
-    local _ = math.max(1, current_num) -- Don't go below 1
-
     -- Check if there's a previous line that might be a list item
     if row > 1 then
       local prev_line = utils.get_line(row - 1)

@@ -16,10 +16,24 @@ help:
 # Run all tests using plenary.nvim's test runner
 test:
 	@echo "Running all tests..."
+	@# Check if plenary.nvim is available
+	@if [ -n "$${PLENARY_DIR}" ] && [ -d "$${PLENARY_DIR}" ]; then \
+		true; \
+	elif [ -d "${HOME}/.local/share/nvim/site/pack/vendor/start/plenary.nvim" ]; then \
+		true; \
+	elif [ -d "${HOME}/.local/share/nvim/lazy/plenary.nvim" ]; then \
+		true; \
+	elif [ -d "${HOME}/.local/share/nvim/site/pack/packer/start/plenary.nvim" ]; then \
+		true; \
+	else \
+		echo ""; \
+		echo "⚠️  Tests require plenary.nvim to be installed"; \
+		echo "   Install with your plugin manager or set PLENARY_DIR environment variable"; \
+		echo ""; \
+		exit 1; \
+	fi
 	@nvim --headless --noplugin -u spec/minimal_init.lua \
-		-c "lua require('plenary.test_harness').test_directory('spec/', { minimal_init = 'spec/minimal_init.lua' })" || \
-		(echo ""; echo "⚠️  Tests require plenary.nvim to be installed"; \
-		 echo "   Install with your plugin manager or set PLENARY_DIR environment variable"; exit 1)
+		-c "lua require('plenary.test_harness').test_directory('spec/', { minimal_init = 'spec/minimal_init.lua' })"
 
 # Run a specific test file
 test-file:
