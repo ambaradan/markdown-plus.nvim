@@ -55,7 +55,10 @@ function M.setup(opts)
     M.headers.setup(M.config)
   end
 
-  -- TODO: Load other modules as they are implemented
+  if M.config.features.links then
+    M.links = require("markdown-plus.links")
+    M.links.setup(M.config)
+  end
 
   -- Set up autocommands for markdown files
   M.setup_autocmds()
@@ -78,6 +81,9 @@ function M.setup_autocmds()
       end
       if M.headers then
         M.headers.enable()
+      end
+      if M.links then
+        M.links.enable()
       end
     end,
   })
