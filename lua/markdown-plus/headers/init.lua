@@ -410,6 +410,10 @@ end
 ---@param start_line number Start line (1-indexed)
 ---@param end_line number End line (1-indexed)
 ---@return boolean is_valid True if content looks like a TOC
+---@param lines string[]
+---@param start_line number
+---@param end_line number
+---@return boolean
 local function is_valid_toc_content(lines, start_line, end_line)
   local has_toc_header = false
   local has_links = false
