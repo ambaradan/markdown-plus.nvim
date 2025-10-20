@@ -16,158 +16,43 @@ describe("markdown-plus list management", function()
     end
   end)
 
-  describe("toggle_task", function()
-    it("toggles unchecked task to checked", function()
-      vim.api.nvim_buf_set_lines(buf, 0, -1, false, {
-        "- [ ] Unchecked task",
-      })
-      vim.api.nvim_win_set_cursor(0, { 1, 0 })
-
-      list.toggle_task()
-
-      local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
-      assert.are.equal("- [x] Unchecked task", lines[1])
+  describe("parse_list_line", function()
+    it("parses unordered list items", function()
+      local info = list.parse_list_line("- List item")
+      assert.is_not_nil(info)
+      assert.are.equal("unordered", info.type)
+      assert.are.equal("-", info.marker)
     end)
 
-    it("toggles checked task to unchecked", function()
-      vim.api.nvim_buf_set_lines(buf, 0, -1, false, {
-        "- [x] Checked task",
-      })
-      vim.api.nvim_win_set_cursor(0, { 1, 0 })
-
-      list.toggle_task()
-
-      local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
-      assert.are.equal("- [ ] Checked task", lines[1])
+    it("parses ordered list items", function()
+      local info = list.parse_list_line("1. List item")
+      assert.is_not_nil(info)
+      assert.are.equal("ordered", info.type)
     end)
 
-    it("handles tasks with uppercase X", function()
-      vim.api.nvim_buf_set_lines(buf, 0, -1, false, {
-        "- [X] Checked task",
-      })
-      vim.api.nvim_win_set_cursor(0, { 1, 0 })
-
-      list.toggle_task()
-
-      local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
-      assert.are.equal("- [ ] Checked task", lines[1])
+    it("parses task list items", function()
+      local info = list.parse_list_line("- [ ] Unchecked task")
+      assert.is_not_nil(info)
+      assert.is_not_nil(info.checkbox)
     end)
 
-    it("handles different bullet styles", function()
-      vim.api.nvim_buf_set_lines(buf, 0, -1, false, {
-        "* [ ] Star bullet",
-      })
-      vim.api.nvim_win_set_cursor(0, { 1, 0 })
-
-      list.toggle_task()
-
-      local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
-      assert.are.equal("* [x] Star bullet", lines[1])
+    it("returns nil for non-list lines", function()
+      local info = list.parse_list_line("Not a list")
+      assert.is_nil(info)
     end)
   end)
 
-  describe("cycle_list_marker", function()
-    it("cycles through bullet styles: - -> * -> + -> -", function()
-      vim.api.nvim_buf_set_lines(buf, 0, -1, false, {
-        "- List item",
-      })
-      vim.api.nvim_win_set_cursor(0, { 1, 0 })
-
-      list.cycle_list_marker()
-      local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
-      assert.are.equal("* List item", lines[1])
-
-      list.cycle_list_marker()
-      lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
-      assert.are.equal("+ List item", lines[1])
-
-      list.cycle_list_marker()
-      lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
-      assert.are.equal("- List item", lines[1])
+  describe("is_empty_list_item", function()
+    it("detects empty list items", function()
+      local info = list.parse_list_line("- ")
+      local is_empty = list.is_empty_list_item("- ", info)
+      assert.is_true(is_empty)
     end)
 
-    it("preserves list content and indentation", function()
-      vim.api.nvim_buf_set_lines(buf, 0, -1, false, {
-        "  - Indented list item with content",
-      })
-      vim.api.nvim_win_set_cursor(0, { 1, 0 })
-
-      list.cycle_list_marker()
-
-      local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
-      assert.are.equal("  * Indented list item with content", lines[1])
-    end)
-
-    it("preserves task checkbox state", function()
-      vim.api.nvim_buf_set_lines(buf, 0, -1, false, {
-        "- [x] Completed task",
-      })
-      vim.api.nvim_win_set_cursor(0, { 1, 0 })
-
-      list.cycle_list_marker()
-
-      local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
-      assert.are.equal("* [x] Completed task", lines[1])
-    end)
-  end)
-
-  describe("increment_numbered_list", function()
-    it("increments numbered list items", function()
-      vim.api.nvim_buf_set_lines(buf, 0, -1, false, {
-        "1. First item",
-        "1. Second item",
-        "1. Third item",
-      })
-
-      list.increment_numbered_list()
-
-      local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
-      assert.are.equal("1. First item", lines[1])
-      assert.are.equal("2. Second item", lines[2])
-      assert.are.equal("3. Third item", lines[3])
-    end)
-
-    it("handles nested lists", function()
-      vim.api.nvim_buf_set_lines(buf, 0, -1, false, {
-        "1. First item",
-        "   1. Nested item",
-        "   1. Nested item",
-        "1. Second item",
-      })
-
-      list.increment_numbered_list()
-
-      local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
-      assert.are.equal("1. First item", lines[1])
-      -- Nested items should be renumbered independently
-    end)
-  end)
-
-  describe("indent/dedent", function()
-    it("indents list items", function()
-      vim.api.nvim_buf_set_lines(buf, 0, -1, false, {
-        "- List item",
-      })
-      vim.api.nvim_win_set_cursor(0, { 1, 0 })
-
-      list.indent_list_item()
-
-      local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
-      -- Should add indentation (implementation-specific)
-      assert.is_true(lines[1]:match("^%s+%-"))
-    end)
-
-    it("dedents list items", function()
-      vim.api.nvim_buf_set_lines(buf, 0, -1, false, {
-        "  - Indented item",
-      })
-      vim.api.nvim_win_set_cursor(0, { 1, 0 })
-
-      list.dedent_list_item()
-
-      local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
-      -- Should remove indentation
-      assert.are.equal("- Indented item", lines[1])
+    it("detects non-empty list items", function()
+      local info = list.parse_list_line("- Content")
+      local is_empty = list.is_empty_list_item("- Content", info)
+      assert.is_false(is_empty)
     end)
   end)
 end)

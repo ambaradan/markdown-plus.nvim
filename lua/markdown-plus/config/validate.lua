@@ -55,11 +55,12 @@ function M.validate(opts)
   local known_fields = { enabled = true, features = true, keymaps = true }
   for key in pairs(opts) do
     if not known_fields[key] then
-      return false, string.format(
-        "config: unknown field '%s'. Valid fields are: %s",
-        key,
-        table.concat(vim.tbl_keys(known_fields), ", ")
-      )
+      return false,
+        string.format(
+          "config: unknown field '%s'. Valid fields are: %s",
+          key,
+          table.concat(vim.tbl_keys(known_fields), ", ")
+        )
     end
   end
 
@@ -73,11 +74,12 @@ function M.validate(opts)
     }
     for key in pairs(opts.features) do
       if not known_feature_fields[key] then
-        return false, string.format(
-          "config.features: unknown field '%s'. Valid fields are: %s",
-          key,
-          table.concat(vim.tbl_keys(known_feature_fields), ", ")
-        )
+        return false,
+          string.format(
+            "config.features: unknown field '%s'. Valid fields are: %s",
+            key,
+            table.concat(vim.tbl_keys(known_feature_fields), ", ")
+          )
       end
     end
   end
@@ -87,11 +89,12 @@ function M.validate(opts)
     local known_keymap_fields = { enabled = true }
     for key in pairs(opts.keymaps) do
       if not known_keymap_fields[key] then
-        return false, string.format(
-          "config.keymaps: unknown field '%s'. Valid fields are: %s",
-          key,
-          table.concat(vim.tbl_keys(known_keymap_fields), ", ")
-        )
+        return false,
+          string.format(
+            "config.keymaps: unknown field '%s'. Valid fields are: %s",
+            key,
+            table.concat(vim.tbl_keys(known_keymap_fields), ", ")
+          )
       end
     end
   end

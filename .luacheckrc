@@ -1,7 +1,7 @@
 -- Configuration for luacheck (Lua linter)
 -- https://luacheck.readthedocs.io/en/stable/
 
-std = "lua51+vim"
+std = "luajit"
 
 globals = {
   "vim",

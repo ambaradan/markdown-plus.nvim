@@ -26,18 +26,15 @@ M.headers = nil
 ---@return nil
 function M.setup(opts)
   opts = opts or {}
-  
+
   -- Validate configuration
   local validator = require("markdown-plus.config.validate")
   local ok, err = validator.validate(opts)
   if not ok then
-    vim.notify(
-      string.format("markdown-plus.nvim: Invalid configuration\n%s", err),
-      vim.log.levels.ERROR
-    )
+    vim.notify(string.format("markdown-plus.nvim: Invalid configuration\n%s", err), vim.log.levels.ERROR)
     return
   end
-  
+
   -- Merge user config with defaults
   M.config = vim.tbl_deep_extend("force", M.config, opts)
 

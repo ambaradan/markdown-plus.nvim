@@ -40,7 +40,7 @@ describe("markdown-plus configuration", function()
           list_management = false,
         },
       })
-      
+
       -- Check that other features are still enabled (default)
       assert.is_false(markdown_plus.config.features.list_management)
       assert.is_true(markdown_plus.config.features.text_formatting)
@@ -48,7 +48,7 @@ describe("markdown-plus configuration", function()
     end)
 
     it("validates boolean fields", function()
-      local ok = pcall(function()
+      local _ = pcall(function()
         markdown_plus.setup({
           enabled = "yes", -- Should be boolean
         })

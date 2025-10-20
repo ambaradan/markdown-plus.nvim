@@ -1,4 +1,4 @@
-.PHONY: test test-file test-watch lint help
+.PHONY: test test-file test-watch lint format format-check help
 
 # Default target
 help:
@@ -8,6 +8,8 @@ help:
 	@echo "  make test-file     - Run specific test file (FILE=spec/path/to/file_spec.lua)"
 	@echo "  make test-watch    - Watch files and run tests on change (requires entr)"
 	@echo "  make lint          - Run luacheck linter"
+	@echo "  make format        - Format all Lua files with stylua"
+	@echo "  make format-check  - Check formatting without modifying files"
 	@echo "  make help          - Show this help message"
 	@echo ""
 
@@ -45,3 +47,21 @@ lint:
 		 echo "Install with: luarocks install luacheck"; exit 1)
 	@echo "Running luacheck..."
 	@luacheck lua/ spec/ --globals vim
+
+# Format Lua code with stylua
+format:
+	@command -v stylua >/dev/null 2>&1 || \
+		(echo "Error: 'stylua' not found"; \
+		 echo "Install with: cargo install stylua"; \
+		 echo "Or on macOS: brew install stylua"; exit 1)
+	@echo "Formatting Lua files with stylua..."
+	@stylua lua/ spec/ plugin/
+
+# Check formatting without modifying files
+format-check:
+	@command -v stylua >/dev/null 2>&1 || \
+		(echo "Error: 'stylua' not found"; \
+		 echo "Install with: cargo install stylua"; \
+		 echo "Or on macOS: brew install stylua"; exit 1)
+	@echo "Checking Lua formatting..."
+	@stylua --check lua/ spec/ plugin/

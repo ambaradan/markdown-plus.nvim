@@ -691,6 +691,29 @@ make test-watch  # requires 'entr' command
 
 # Run linter
 make lint  # requires 'luacheck'
+
+# Format code
+make format  # requires 'stylua'
+
+# Check formatting without modifying
+make format-check
+```
+
+#### Code Quality Tools
+
+**Linter**: [luacheck](https://github.com/mpeterv/luacheck)
+```bash
+# Install via LuaRocks
+luarocks install luacheck
+```
+
+**Formatter**: [stylua](https://github.com/JohnnyMorganz/StyLua)
+```bash
+# Install via Homebrew (macOS)
+brew install stylua
+
+# Or via Cargo
+cargo install stylua
 ```
 
 ### Test Structure
