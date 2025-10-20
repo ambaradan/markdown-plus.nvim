@@ -504,15 +504,13 @@ The plugin can be configured through the setup function:
         text_formatting = true,  -- Bold, italic, strikethrough, code
         headers_toc = true,      -- Header manipulation and TOC generation
         links = true,            -- Link management and references
-        tables = false,          -- Not yet implemented
-        code_blocks = false,     -- Not yet implemented
-        structure = false,       -- Not yet implemented
-        live_features = false,   -- Not yet implemented
       },
     })
 <
 
 Future versions may add:
+- Table manipulation features
+- Code block management
 - Custom TOC formatting options
 - Custom list markers
 - Custom header anchor generation

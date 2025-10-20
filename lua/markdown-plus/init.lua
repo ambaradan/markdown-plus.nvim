@@ -8,11 +8,7 @@ M.config = {
     list_management = true,
     text_formatting = true,
     links = true,
-    tables = true,
-    code_blocks = true,
     headers_toc = true,
-    structure = true,
-    live_features = true,
   },
   keymaps = {
     enabled = true,
@@ -23,11 +19,7 @@ M.config = {
 M.list = nil
 M.format = nil
 M.links = nil
-M.tables = nil
-M.code = nil
 M.headers = nil
-M.structure = nil
-M.live = nil
 
 -- Setup function
 function M.setup(opts)
