@@ -13,12 +13,15 @@ describe("markdown-plus utils", function()
       vim.api.nvim_buf_delete(buf, { force = true })
     end)
 
-    it("returns false for non-markdown buffers", function()
+    it("always returns true (filetype filtering done by autocmd)", function()
+      -- Note: is_markdown_buffer() always returns true because filetype
+      -- filtering is handled by the autocmd pattern in init.lua.
+      -- This allows the plugin to work with any configured filetype.
       local buf = vim.api.nvim_create_buf(false, true)
       vim.api.nvim_buf_set_option(buf, "filetype", "lua")
       vim.api.nvim_set_current_buf(buf)
 
-      assert.is_false(utils.is_markdown_buffer())
+      assert.is_true(utils.is_markdown_buffer())
 
       vim.api.nvim_buf_delete(buf, { force = true })
     end)
