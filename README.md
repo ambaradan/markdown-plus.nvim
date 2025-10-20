@@ -838,11 +838,13 @@ Note: The plugin uses `hasmapto()` to check if a `<Plug>` mapping is already map
 
 ## Contributing
 
-Contributions are welcome! Each feature is implemented, tested, and refined individually.
+Contributions are welcome! We encourage direct collaboration - you can open issues and pull requests directly to this repository.
 
 - 🐛 **Bug Reports**: Please include steps to reproduce and your Neovim version
 - 💡 **Feature Requests**: Feel free to suggest improvements or new features
-- 🔧 **Pull Requests**: Focus on single features and include appropriate documentation
+- 🔧 **Pull Requests**: Focus on single features and include appropriate tests and documentation
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed development guidelines.
 
 ## Requirements
 
@@ -926,10 +928,12 @@ spec/
 
 ### Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Add tests for new features
-4. Ensure all tests pass: `make test`
-5. Run linter: `make lint`
+1. Create a feature branch: `git checkout -b feature/your-feature`
+2. Add tests for new features
+3. Ensure all tests pass: `make test`
+4. Run linter: `make lint`
+5. Format code: `make format`
 6. Submit a pull request
+
+**Note**: You can contribute directly by opening issues or pull requests to this repository. See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.
 
