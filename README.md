@@ -128,6 +128,7 @@ A comprehensive Neovim plugin that provides modern markdown editing capabilities
       keymaps = {
         enabled = true,  -- Enable default keymaps
       },
+      filetypes = { "markdown" },
     })
   end,
 }
@@ -587,6 +588,9 @@ require("markdown-plus").setup({
   keymaps = {
     enabled = true,  -- Set to false to disable all default keymaps
   },
+
+  -- Filetypes configuration (which filetypes will enable the plugin)
+  filetypes = { "markdown" },
 })
 ```
 </details>
