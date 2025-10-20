@@ -13,6 +13,7 @@ M.config = {
   keymaps = {
     enabled = true,
   },
+  filetypes = { 'markdown' },
 }
 
 -- Module references
@@ -62,7 +63,7 @@ function M.setup_autocmds()
 
   vim.api.nvim_create_autocmd("FileType", {
     group = group,
-    pattern = "markdown",
+    pattern = M.config.filetypes or "markdown",
     callback = function()
       -- Enable features for markdown files
       if M.list then

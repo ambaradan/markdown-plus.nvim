@@ -52,9 +52,10 @@ function M.get_indent_string(level)
   end
 end
 
--- Check if current buffer is markdown
+-- Check if current buffer is markdown (deprecated, kept for compatibility)
+-- Note: This check is now redundant as the autocmd pattern already filters by filetype
 function M.is_markdown_buffer()
-  return vim.bo.filetype == "markdown"
+  return true
 end
 
 -- Safe string matching with nil check
