@@ -47,51 +47,36 @@ function M.setup_keymaps()
 
   -- Create <Plug> mappings first
   -- Visual mode <Plug> mappings
-  vim.keymap.set(
-    "x",
-    "<Plug>(MarkdownPlusBold)",
-    ":<C-u>lua require('markdown-plus.format').toggle_format('bold')<CR>",
-    {
-      silent = true,
-      desc = "Toggle bold formatting",
-    }
-  )
-  vim.keymap.set(
-    "x",
-    "<Plug>(MarkdownPlusItalic)",
-    ":<C-u>lua require('markdown-plus.format').toggle_format('italic')<CR>",
-    {
-      silent = true,
-      desc = "Toggle italic formatting",
-    }
-  )
-  vim.keymap.set(
-    "x",
-    "<Plug>(MarkdownPlusStrikethrough)",
-    ":<C-u>lua require('markdown-plus.format').toggle_format('strikethrough')<CR>",
-    {
-      silent = true,
-      desc = "Toggle strikethrough formatting",
-    }
-  )
-  vim.keymap.set(
-    "x",
-    "<Plug>(MarkdownPlusCode)",
-    ":<C-u>lua require('markdown-plus.format').toggle_format('code')<CR>",
-    {
-      silent = true,
-      desc = "Toggle inline code formatting",
-    }
-  )
-  vim.keymap.set(
-    "x",
-    "<Plug>(MarkdownPlusClearFormatting)",
-    ":<C-u>lua require('markdown-plus.format').clear_formatting()<CR>",
-    {
-      silent = true,
-      desc = "Clear all formatting",
-    }
-  )
+  vim.keymap.set("x", "<Plug>(MarkdownPlusBold)", function()
+    M.toggle_format("bold")
+  end, {
+    silent = true,
+    desc = "Toggle bold formatting",
+  })
+  vim.keymap.set("x", "<Plug>(MarkdownPlusItalic)", function()
+    M.toggle_format("italic")
+  end, {
+    silent = true,
+    desc = "Toggle italic formatting",
+  })
+  vim.keymap.set("x", "<Plug>(MarkdownPlusStrikethrough)", function()
+    M.toggle_format("strikethrough")
+  end, {
+    silent = true,
+    desc = "Toggle strikethrough formatting",
+  })
+  vim.keymap.set("x", "<Plug>(MarkdownPlusCode)", function()
+    M.toggle_format("code")
+  end, {
+    silent = true,
+    desc = "Toggle inline code formatting",
+  })
+  vim.keymap.set("x", "<Plug>(MarkdownPlusClearFormatting)", function()
+    M.clear_formatting()
+  end, {
+    silent = true,
+    desc = "Clear all formatting",
+  })
 
   -- Normal mode <Plug> mappings
   vim.keymap.set("n", "<Plug>(MarkdownPlusBold)", function()
