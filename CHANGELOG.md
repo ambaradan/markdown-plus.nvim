@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+
+TOC
 #### Headers Module
 - Header promotion/demotion with `<leader>h+` and `<leader>h-`
 - Jump between headers with `]]` and `[[`

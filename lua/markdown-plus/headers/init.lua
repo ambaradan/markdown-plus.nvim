@@ -2,18 +2,21 @@
 local utils = require("markdown-plus.utils")
 local M = {}
 
--- Module configuration
+---@type markdown-plus.InternalConfig
 M.config = {}
 
--- Header pattern (matches # through ######)
+---Header pattern (matches # through ######)
 M.header_pattern = "^(#+)%s+(.+)$"
 
--- Setup function
+---Setup headers module
+---@param config markdown-plus.InternalConfig Plugin configuration
+---@return nil
 function M.setup(config)
 	M.config = config or {}
 end
 
--- Enable headers features
+---Enable headers features for current buffer
+---@return nil
 function M.enable()
 	if not utils.is_markdown_buffer() then
 		return
@@ -23,7 +26,8 @@ function M.enable()
 	M.setup_keymaps()
 end
 
--- Set up keymaps for headers
+---Set up keymaps for headers
+---@return nil
 function M.setup_keymaps()
 	-- Header navigation
 	vim.keymap.set("n", "]]", M.next_header, {
@@ -403,50 +407,110 @@ function M.generate_toc()
 	print("TOC generated with " .. (#headers - 1) .. " entries")
 end
 
--- Find existing TOC in document
+---Check if content between markers looks like a valid TOC
+---@param lines string[] All lines in buffer
+---@param start_line number Start line (1-indexed)
+---@param end_line number End line (1-indexed)
+---@return boolean is_valid True if content looks like a TOC
+local function is_valid_toc_content(lines, start_line, end_line)
+	local has_toc_header = false
+	local has_links = false
+	local link_count = 0
+	
+	for i = start_line, end_line do
+		local line = lines[i]
+		if not line then break end
+		
+		-- Check for TOC header
+		if line:match("^##%s+[Tt]able%s+[Oo]f%s+[Cc]ontents") then
+			has_toc_header = true
+		end
+		
+		-- Check for markdown links (TOC entries)
+		-- Match patterns like: - [Text](#link) or   - [Text](#link)
+		if line:match("^%s*%-%s+%[.-%]%(#.-%)") then
+			has_links = true
+			link_count = link_count + 1
+		end
+	end
+	
+	-- Valid TOC should have either:
+	-- 1. A TOC header + at least one link, OR
+	-- 2. At least 2 links (for TOCs without header)
+	return (has_toc_header and has_links) or (link_count >= 2)
+end
+
+---Find existing TOC in document
+---@return table|nil TOC location {start_line, end_line}
 function M.find_toc()
 	local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
 
-	-- Look for <!-- TOC --> marker
-	local toc_start = nil
-	local toc_end = nil
-
+	-- Look for <!-- TOC --> marker pairs
+	local toc_candidates = {}
+	
 	for i, line in ipairs(lines) do
 		if line:match("^%s*<!%-%-%s*TOC%s*%-%->%s*$") then
-			toc_start = i
-		elseif toc_start and line:match("^%s*<!%-%-%s*/TOC%s*%-%->%s*$") then
-			toc_end = i
-			break
+			-- Found opening marker, look for closing marker
+			for j = i + 1, #lines do
+				if lines[j]:match("^%s*<!%-%-%s*/TOC%s*%-%->%s*$") then
+					-- Found a complete pair, validate it's actually a TOC
+					if is_valid_toc_content(lines, i, j) then
+						table.insert(toc_candidates, {
+							start_line = i,
+							end_line = j,
+						})
+					end
+					break
+				end
+			end
 		end
 	end
-
-	if toc_start and toc_end then
-		return {
-			start_line = toc_start,
-			end_line = toc_end,
-		}
+	
+	-- Return the first valid TOC found
+	if #toc_candidates > 0 then
+		return toc_candidates[1]
 	end
 
 	-- Fallback: look for old-style TOC without markers (for backwards compatibility)
 	for i, line in ipairs(lines) do
 		-- Look for "## Table of Contents" or similar
 		if line:match("^##%s+[Tt]able%s+[Oo]f%s+[Cc]ontents") then
-			-- Find the end of TOC (next header or empty line pattern)
-			local toc_end_line = i
-			for j = i + 1, #lines do
-				local next_line = lines[j]
-				-- TOC ends at next header (but not the TOC header itself)
-				if next_line:match("^#[^#]") or (next_line == "" and lines[j + 1] and lines[j + 1]:match("^#")) then
-					toc_end_line = j - 1
+			-- Check if the next few lines contain TOC links
+			local has_links = false
+			local check_lines = math.min(i + 10, #lines) -- Check next 10 lines
+			
+			for j = i + 1, check_lines do
+				if lines[j]:match("^%s*%-%s+%[.-%]%(#.-%)") then
+					has_links = true
 					break
 				end
-				toc_end_line = j
 			end
+			
+			-- Only treat as TOC if it has actual links
+			if has_links then
+				-- Find the end of TOC (next header at same or higher level)
+				local toc_end_line = i
+				for j = i + 1, #lines do
+					local next_line = lines[j]
+					-- TOC ends at next header (any level: #, ##, ###, etc.)
+					-- Pattern matches lines starting with # followed by space
+					if next_line:match("^#+%s") then
+						toc_end_line = j - 1
+						break
+					end
+					-- Also end at blank line followed by non-list content
+					if next_line == "" and lines[j + 1] and not lines[j + 1]:match("^%s*%-") then
+						toc_end_line = j - 1
+						break
+					end
+					toc_end_line = j
+				end
 
-			return {
-				start_line = i,
-				end_line = toc_end_line,
-			}
+				return {
+					start_line = i,
+					end_line = toc_end_line,
+				}
+			end
 		end
 	end
 

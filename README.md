@@ -1,13 +1,12 @@
 # markdown-plus.nvim
 
 A comprehensive Neovim plugin that provides modern markdown editing capabilities, implementing features found in popular editors like Typora, Mark Text, and Obsidian.
+<!-- TOC -->
+
 
 ## Table of Contents
 
 - [Features](#features)
-  - [List Management](#list-management)
-  - [Text Formatting](#text-formatting)
-  - [Headers & Table of Contents](#headers--table-of-contents)
 - [Installation](#installation)
 - [Usage](#usage)
   - [Auto-continue Lists](#auto-continue-lists)
@@ -31,11 +30,19 @@ A comprehensive Neovim plugin that provides modern markdown editing capabilities
   - [Follow TOC Links](#follow-toc-links)
   - [TOC with Symbols (GitHub-Compatible)](#toc-with-symbols-github-compatible)
   - [Code Blocks Ignored](#code-blocks-ignored)
+  - [Insert New Link](#insert-new-link)
+  - [Convert Selection to Link](#convert-selection-to-link)
+  - [Edit Existing Link](#edit-existing-link)
+  - [Open Link in Browser](#open-link-in-browser)
+  - [Convert URL to Link](#convert-url-to-link)
+  - [Reference-Style Links](#reference-style-links)
+  - [Reuse Existing References](#reuse-existing-references)
 - [Keymaps Reference](#keymaps-reference)
   - [List Management (Insert Mode)](#list-management-insert-mode)
   - [List Management (Normal Mode)](#list-management-normal-mode)
   - [Text Formatting (Normal & Visual Mode)](#text-formatting-normal--visual-mode)
   - [Headers & TOC (Normal Mode)](#headers--toc-normal-mode)
+  - [Links & References (Normal & Visual Mode)](#links--references-normal--visual-mode)
 - [Configuration](#configuration)
 - [Tips & Best Practices](#tips--best-practices)
   - [Text Formatting Behavior](#text-formatting-behavior)
@@ -45,6 +52,7 @@ A comprehensive Neovim plugin that provides modern markdown editing capabilities
 - [Requirements](#requirements)
 - [License](#license)
 
+<!-- /TOC -->
 
 ## Features
 
@@ -472,7 +480,7 @@ Result: [My Link](https://myref.com)
 
 ### Reuse Existing References
 ```markdown
-When converting links with the same text and URL to reference-style, 
+When converting links with the same text and URL to reference-style,
 the reference is reused:
 
 Check out [GitHub](https://github.com) for code.
@@ -649,4 +657,61 @@ Contributions are welcome! Each feature is implemented, tested, and refined indi
 ## License
 
 MIT License - see [LICENSE](./LICENSE) file for details.
+
+
+## Development
+
+### Running Tests
+
+This plugin uses [plenary.nvim](https://github.com/nvim-lua/plenary.nvim) for testing.
+
+#### Prerequisites
+
+```bash
+# Install plenary.nvim (if not already installed)
+# Using lazy.nvim (add to your plugins):
+{ "nvim-lua/plenary.nvim" }
+
+# Or clone manually:
+git clone https://github.com/nvim-lua/plenary.nvim \
+  ~/.local/share/nvim/site/pack/vendor/start/plenary.nvim
+```
+
+#### Run Tests
+
+```bash
+# Run all tests
+make test
+
+# Run specific test file
+make test-file FILE=spec/markdown-plus/config_spec.lua
+
+# Watch for changes and run tests
+make test-watch  # requires 'entr' command
+
+# Run linter
+make lint  # requires 'luacheck'
+```
+
+### Test Structure
+
+```
+spec/
+├── markdown-plus/
+│   ├── config_spec.lua      # Configuration tests
+│   ├── utils_spec.lua        # Utility function tests
+│   ├── list_spec.lua         # List management tests
+│   ├── headers_spec.lua      # Headers & TOC tests
+│   └── links_spec.lua        # Link management tests
+└── minimal_init.lua           # Test environment setup
+```
+
+### Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Add tests for new features
+4. Ensure all tests pass: `make test`
+5. Run linter: `make lint`
+6. Submit a pull request
 

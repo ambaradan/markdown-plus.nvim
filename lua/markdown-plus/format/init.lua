@@ -2,10 +2,17 @@
 local utils = require("markdown-plus.utils")
 local M = {}
 
--- Module configuration
+---@type markdown-plus.InternalConfig
 M.config = {}
 
--- Formatting patterns
+---Formatting pattern definition
+---@class markdown-plus.format.Pattern
+---@field start string Start pattern (Lua pattern)
+---@field end_pat string End pattern (Lua pattern)
+---@field wrap string Wrapper string
+
+---Formatting patterns for different styles
+---@type table<string, markdown-plus.format.Pattern>
 M.patterns = {
   bold = { start = "%*%*", end_pat = "%*%*", wrap = "**" },
   italic = { start = "%*", end_pat = "%*", wrap = "*" },
@@ -13,12 +20,15 @@ M.patterns = {
   code = { start = "`", end_pat = "`", wrap = "`" },
 }
 
--- Setup function
+---Setup text formatting module
+---@param config markdown-plus.InternalConfig Plugin configuration
+---@return nil
 function M.setup(config)
   M.config = config or {}
 end
 
--- Enable formatting features
+---Enable formatting features for current buffer
+---@return nil
 function M.enable()
   if not utils.is_markdown_buffer() then
     return
@@ -28,7 +38,8 @@ function M.enable()
   M.setup_keymaps()
 end
 
--- Set up keymaps for text formatting
+---Set up keymaps for text formatting
+---@return nil
 function M.setup_keymaps()
   -- Visual mode keymaps for formatting selections
   -- Using :<C-u> to clear command line and preserve visual selection

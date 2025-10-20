@@ -1,7 +1,7 @@
 -- Main entry point for markdown-plus.nvim
 local M = {}
 
--- Default configuration
+---@type markdown-plus.InternalConfig
 M.config = {
   enabled = true,
   features = {
@@ -21,10 +21,25 @@ M.format = nil
 M.links = nil
 M.headers = nil
 
--- Setup function
+---Setup markdown-plus.nvim with user configuration
+---@param opts? markdown-plus.Config User configuration
+---@return nil
 function M.setup(opts)
+  opts = opts or {}
+  
+  -- Validate configuration
+  local validator = require("markdown-plus.config.validate")
+  local ok, err = validator.validate(opts)
+  if not ok then
+    vim.notify(
+      string.format("markdown-plus.nvim: Invalid configuration\n%s", err),
+      vim.log.levels.ERROR
+    )
+    return
+  end
+  
   -- Merge user config with defaults
-  M.config = vim.tbl_deep_extend("force", M.config, opts or {})
+  M.config = vim.tbl_deep_extend("force", M.config, opts)
 
   -- Only load if enabled
   if not M.config.enabled then
@@ -56,7 +71,8 @@ function M.setup(opts)
   M.setup_autocmds()
 end
 
--- Set up autocommands
+---Set up autocommands for markdown files
+---@return nil
 function M.setup_autocmds()
   local group = vim.api.nvim_create_augroup("MarkdownPlus", { clear = true })
 

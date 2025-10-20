@@ -2,10 +2,11 @@
 local utils = require("markdown-plus.utils")
 local M = {}
 
--- Module configuration
+---@type markdown-plus.InternalConfig
 M.config = {}
 
--- Link patterns
+---Link patterns for detection
+---@type table<string, string>
 M.patterns = {
   inline_link = "%[(.-)%]%((.-)%)",           -- [text](url)
   reference_link = "%[(.-)%]%[(.-)%]",        -- [text][ref]
@@ -13,12 +14,15 @@ M.patterns = {
   url = "https?://[%w-_%.%?%.:/%#%[%]@!%$&'%(%)%*%+,;=]+",  -- URL pattern
 }
 
--- Setup function
+---Setup links module
+---@param config markdown-plus.InternalConfig Plugin configuration
+---@return nil
 function M.setup(config)
   M.config = config or {}
 end
 
--- Enable links features
+---Enable links features for current buffer
+---@return nil
 function M.enable()
   if not utils.is_markdown_buffer() then
     return
@@ -28,7 +32,8 @@ function M.enable()
   M.setup_keymaps()
 end
 
--- Set up keymaps for links
+---Set up keymaps for links
+---@return nil
 function M.setup_keymaps()
   -- Insert link
   vim.keymap.set("n", "<leader>ml", M.insert_link, {

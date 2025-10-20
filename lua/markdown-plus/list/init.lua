@@ -2,10 +2,17 @@
 local utils = require("markdown-plus.utils")
 local M = {}
 
--- Module configuration
+---@type markdown-plus.InternalConfig
 M.config = {}
 
--- List patterns
+---List patterns for detection
+---@class markdown-plus.list.Patterns
+---@field unordered string Pattern for unordered lists (-, +, *)
+---@field ordered string Pattern for ordered lists (1., 2., etc.)
+---@field checkbox string Pattern for checkbox lists (- [ ], - [x], etc.)
+---@field ordered_checkbox string Pattern for ordered checkbox lists (1. [ ], etc.)
+
+---@type markdown-plus.list.Patterns
 M.patterns = {
   unordered = "^(%s*)([%-%+%*])%s+",
   ordered = "^(%s*)(%d+)%.%s+",
@@ -13,12 +20,15 @@ M.patterns = {
   ordered_checkbox = "^(%s*)(%d+)%.%s+%[(.?)%]%s+",
 }
 
--- Setup function
+---Setup list management module
+---@param config markdown-plus.InternalConfig Plugin configuration
+---@return nil
 function M.setup(config)
   M.config = config or {}
 end
 
--- Enable list management features
+---Enable list management features for current buffer
+---@return nil
 function M.enable()
   if not utils.is_markdown_buffer() then
     return
@@ -28,7 +38,8 @@ function M.enable()
   M.setup_keymaps()
 end
 
--- Set up keymaps for list management
+---Set up keymaps for list management
+---@return nil
 function M.setup_keymaps()
   -- Enter key for auto-continuing lists
   vim.keymap.set("i", "<CR>", M.handle_enter, {
@@ -86,7 +97,8 @@ function M.setup_keymaps()
   M.setup_renumber_autocmds()
 end
 
--- Set up autocommands for auto-renumbering
+---Set up autocommands for auto-renumbering
+---@return nil
 function M.setup_renumber_autocmds()
   local group = vim.api.nvim_create_augroup("MarkdownPlusListRenumber", { clear = true })
 
