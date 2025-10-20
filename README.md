@@ -1,6 +1,8 @@
 # markdown-plus.nvim
 
 A comprehensive Neovim plugin that provides modern markdown editing capabilities, implementing features found in popular editors like Typora, Mark Text, and Obsidian.
+<!-- TOC -->
+
 
 **Note:** While originally designed for Markdown, this plugin can be configured to work with any filetype (see [Configuration](#configuration)).
 <!-- TOC -->
@@ -710,4 +712,84 @@ Contributions are welcome! Each feature is implemented, tested, and refined indi
 ## License
 
 MIT License - see [LICENSE](./LICENSE) file for details.
+
+
+## Development
+
+### Running Tests
+
+This plugin uses [plenary.nvim](https://github.com/nvim-lua/plenary.nvim) for testing.
+
+#### Prerequisites
+
+```bash
+# Install plenary.nvim (if not already installed)
+# Using lazy.nvim (add to your plugins):
+{ "nvim-lua/plenary.nvim" }
+
+# Or clone manually:
+git clone https://github.com/nvim-lua/plenary.nvim \
+  ~/.local/share/nvim/site/pack/vendor/start/plenary.nvim
+```
+
+#### Run Tests
+
+```bash
+# Run all tests
+make test
+
+# Run specific test file
+make test-file FILE=spec/markdown-plus/config_spec.lua
+
+# Watch for changes and run tests
+make test-watch  # requires 'entr' command
+
+# Run linter
+make lint  # requires 'luacheck'
+
+# Format code
+make format  # requires 'stylua'
+
+# Check formatting without modifying
+make format-check
+```
+
+#### Code Quality Tools
+
+**Linter**: [luacheck](https://github.com/mpeterv/luacheck)
+```bash
+# Install via LuaRocks
+luarocks install luacheck
+```
+
+**Formatter**: [stylua](https://github.com/JohnnyMorganz/StyLua)
+```bash
+# Install via Homebrew (macOS)
+brew install stylua
+
+# Or via Cargo
+cargo install stylua
+```
+
+### Test Structure
+
+```
+spec/
+├── markdown-plus/
+│   ├── config_spec.lua      # Configuration tests
+│   ├── utils_spec.lua        # Utility function tests
+│   ├── list_spec.lua         # List management tests
+│   ├── headers_spec.lua      # Headers & TOC tests
+│   └── links_spec.lua        # Link management tests
+└── minimal_init.lua           # Test environment setup
+```
+
+### Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Add tests for new features
+4. Ensure all tests pass: `make test`
+5. Run linter: `make lint`
+6. Submit a pull request
 

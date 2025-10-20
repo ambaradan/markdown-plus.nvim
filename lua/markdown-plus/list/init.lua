@@ -2,10 +2,17 @@
 local utils = require("markdown-plus.utils")
 local M = {}
 
--- Module configuration
+---@type markdown-plus.InternalConfig
 M.config = {}
 
--- List patterns
+---List patterns for detection
+---@class markdown-plus.list.Patterns
+---@field unordered string Pattern for unordered lists (-, +, *)
+---@field ordered string Pattern for ordered lists (1., 2., etc.)
+---@field checkbox string Pattern for checkbox lists (- [ ], - [x], etc.)
+---@field ordered_checkbox string Pattern for ordered checkbox lists (1. [ ], etc.)
+
+---@type markdown-plus.list.Patterns
 M.patterns = {
   unordered = "^(%s*)([%-%+%*])%s+",
   ordered = "^(%s*)(%d+)%.%s+",
@@ -13,12 +20,15 @@ M.patterns = {
   ordered_checkbox = "^(%s*)(%d+)%.%s+%[(.?)%]%s+",
 }
 
--- Setup function
+---Setup list management module
+---@param config markdown-plus.InternalConfig Plugin configuration
+---@return nil
 function M.setup(config)
   M.config = config or {}
 end
 
--- Enable list management features
+---Enable list management features for current buffer
+---@return nil
 function M.enable()
   if not utils.is_markdown_buffer() then
     return
@@ -28,65 +38,67 @@ function M.enable()
   M.setup_keymaps()
 end
 
--- Set up keymaps for list management
+---Set up keymaps for list management
+---@return nil
 function M.setup_keymaps()
   -- Enter key for auto-continuing lists
   vim.keymap.set("i", "<CR>", M.handle_enter, {
     buffer = true,
     silent = true,
-    desc = "Auto-continue list or break out"
+    desc = "Auto-continue list or break out",
   })
 
   -- Tab/Shift+Tab for indentation
   vim.keymap.set("i", "<Tab>", M.handle_tab, {
     buffer = true,
     silent = true,
-    desc = "Indent list item"
+    desc = "Indent list item",
   })
   vim.keymap.set("i", "<S-Tab>", M.handle_shift_tab, {
     buffer = true,
     silent = true,
-    desc = "Outdent list item"
+    desc = "Outdent list item",
   })
 
   -- Backspace for smart list removal
   vim.keymap.set("i", "<BS>", M.handle_backspace, {
     buffer = true,
     silent = true,
-    desc = "Smart backspace (remove empty list)"
+    desc = "Smart backspace (remove empty list)",
   })
 
   -- Manual renumber command for testing
   vim.keymap.set("n", "<leader>mr", M.renumber_ordered_lists, {
     buffer = true,
     silent = true,
-    desc = "Renumber ordered lists"
+    desc = "Renumber ordered lists",
   })
 
   -- Debug command for testing
   vim.keymap.set("n", "<leader>md", M.debug_list_groups, {
     buffer = true,
     silent = true,
-    desc = "Debug list groups"
+    desc = "Debug list groups",
   })
 
   -- Normal mode o/O for creating new list items
   vim.keymap.set("n", "o", M.handle_normal_o, {
     buffer = true,
     silent = true,
-    desc = "New list item below"
+    desc = "New list item below",
   })
   vim.keymap.set("n", "O", M.handle_normal_O, {
     buffer = true,
     silent = true,
-    desc = "New list item above"
+    desc = "New list item above",
   })
 
   -- Set up autocommands for auto-renumbering
   M.setup_renumber_autocmds()
 end
 
--- Set up autocommands for auto-renumbering
+---Set up autocommands for auto-renumbering
+---@return nil
 function M.setup_renumber_autocmds()
   local group = vim.api.nvim_create_augroup("MarkdownPlusListRenumber", { clear = true })
 
@@ -114,7 +126,7 @@ function M.handle_enter()
     -- Split the line at cursor position
     local line_before = current_line:sub(1, col)
     local line_after = current_line:sub(col + 1)
-    
+
     utils.set_line(row, line_before)
     utils.insert_line(row + 1, line_after)
     utils.set_cursor(row + 1, 0)
@@ -151,38 +163,38 @@ function M.parse_list_line(line)
   end
 
   -- Try unordered list with checkbox
-  local indent, bullet, checkbox = line:match(M.patterns.checkbox)
-  if indent and bullet and checkbox then
+  local indent2, bullet, checkbox2 = line:match(M.patterns.checkbox)
+  if indent2 and bullet and checkbox2 then
     return {
       type = "unordered",
-      indent = indent,
+      indent = indent2,
       marker = bullet,
-      checkbox = checkbox,
-      full_marker = bullet .. " [" .. checkbox .. "]",
+      checkbox = checkbox2,
+      full_marker = bullet .. " [" .. checkbox2 .. "]",
     }
   end
 
   -- Try ordered list
-  local indent, number = line:match(M.patterns.ordered)
-  if indent and number then
+  local indent3, number2 = line:match(M.patterns.ordered)
+  if indent3 and number2 then
     return {
       type = "ordered",
-      indent = indent,
-      marker = number .. ".",
+      indent = indent3,
+      marker = number2 .. ".",
       checkbox = nil,
-      full_marker = number .. ".",
+      full_marker = number2 .. ".",
     }
   end
 
   -- Try unordered list
-  local indent, bullet = line:match(M.patterns.unordered)
-  if indent and bullet then
+  local indent4, bullet2 = line:match(M.patterns.unordered)
+  if indent4 and bullet2 then
     return {
       type = "unordered",
-      indent = indent,
-      marker = bullet,
+      indent = indent4,
+      marker = bullet2,
       checkbox = nil,
-      full_marker = bullet,
+      full_marker = bullet2,
     }
   end
 
@@ -280,7 +292,7 @@ function M.handle_shift_tab()
     local row, col = cursor[1], cursor[2]
     local indent_size = vim.bo.shiftwidth or 2
     local leading_spaces = current_line:match("^(%s*)")
-    
+
     if #leading_spaces >= indent_size then
       local new_line = current_line:sub(indent_size + 1)
       utils.set_line(row, new_line)
@@ -328,7 +340,7 @@ function M.handle_backspace()
       -- At beginning of line, join with previous line
       local prev_line = utils.get_line(row - 1)
       local joined = prev_line .. current_line
-      vim.api.nvim_buf_set_lines(0, row - 2, row, false, {joined})
+      vim.api.nvim_buf_set_lines(0, row - 2, row, false, { joined })
       utils.set_cursor(row - 1, #prev_line)
     end
     return
@@ -415,10 +427,6 @@ function M.handle_normal_O()
   -- This means we need to determine what the previous number should be
   local prev_marker
   if list_info.type == "ordered" then
-    -- Get current number and subtract 1
-    local current_num = tonumber(list_info.marker:match("(%d+)"))
-    local prev_num = math.max(1, current_num) -- Don't go below 1
-
     -- Check if there's a previous line that might be a list item
     if row > 1 then
       local prev_line = utils.get_line(row - 1)
@@ -516,7 +524,6 @@ function M.find_list_groups(lines)
         content = line:match(list_info.full_marker .. "%s*(.*)") or "",
         original_line = line,
       })
-
     else
       -- Not an ordered list item
       -- Check if this line breaks the list continuity
@@ -541,7 +548,6 @@ function M.is_list_breaking_line(line)
   -- This includes headers, paragraphs, etc.
   return true
 end
-
 
 -- Renumber items in a list group
 function M.renumber_list_group(group)

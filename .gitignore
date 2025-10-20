@@ -24,9 +24,6 @@ Thumbs.db
 .idea/
 *.sublime-*
 
-# Plugin development
-.luarc.json
-
 # Test artifacts
 /test_results/
 
@@ -34,3 +31,12 @@ Thumbs.db
 PLAN.md
 test_*.md
 test_*.lua
+
+# Ignore all markdown files by default
+*.md
+
+# EXCEPT these important documentation files
+!README.md
+!CHANGELOG.md
+!CODE_OF_CONDUCT.md
+!CONTRIBUTING.md

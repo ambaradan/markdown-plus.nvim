@@ -1,0 +1,37 @@
+---@meta
+
+---User configuration for markdown-plus.nvim
+---@class markdown-plus.Config
+---@field enabled? boolean Enable the plugin (default: true)
+---@field features? markdown-plus.FeatureConfig Feature toggles
+---@field keymaps? markdown-plus.KeymapConfig Keymap configuration
+
+---Feature configuration
+---@class markdown-plus.FeatureConfig
+---@field list_management? boolean Enable list management (default: true)
+---@field text_formatting? boolean Enable text formatting (default: true)
+---@field headers_toc? boolean Enable headers and TOC (default: true)
+---@field links? boolean Enable link management (default: true)
+
+---Keymap configuration
+---@class markdown-plus.KeymapConfig
+---@field enabled? boolean Enable default keymaps (default: true)
+
+---Internal configuration (with all optional fields resolved)
+---@class markdown-plus.InternalConfig
+---@field enabled boolean
+---@field features markdown-plus.InternalFeatureConfig
+---@field keymaps markdown-plus.InternalKeymapConfig
+
+---Internal feature configuration
+---@class markdown-plus.InternalFeatureConfig
+---@field list_management boolean
+---@field text_formatting boolean
+---@field headers_toc boolean
+---@field links boolean
+
+---Internal keymap configuration
+---@class markdown-plus.InternalKeymapConfig
+---@field enabled boolean
+
+return {}
