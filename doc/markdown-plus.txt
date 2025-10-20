@@ -738,7 +738,7 @@ ISSUE: FORMATTING TOGGLE NOT WORKING ~
 
 Ensure you're using the correct keymap. By default:
 - `<leader>mb` for bold
-- `<leader>mI` for italic
+- `<leader>mi` for italic
 - `<leader>ms` for strikethrough
 - `<leader>mc` for inline code
 - `<leader>mC` for clearing formatting
