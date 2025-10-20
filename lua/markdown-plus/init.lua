@@ -13,7 +13,7 @@ M.config = {
   keymaps = {
     enabled = true,
   },
-  filetypes = { 'markdown' },
+  filetypes = { "markdown" },
 }
 
 -- Module references
