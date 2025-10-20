@@ -57,6 +57,14 @@ FEATURES                                     *markdown-plus-introduction-feature
   - Clear all formatting from selected text
   - Works in both normal and visual mode
 
+- Links & References:
+  - Insert and edit markdown links
+  - Convert text selection to links
+  - Auto-convert bare URLs to markdown links
+  - Convert between inline and reference-style links
+  - Smart reference ID generation and reuse
+  - Open links with native Neovim (gx)
+
 - Context-aware keymaps:
   - List operations only active within lists
   - Proper fallback to default Vim behavior
@@ -281,16 +289,145 @@ Remove all formatting with `<leader>mC`:
 
 LINKS                                                *markdown-plus-usage-links*
 
-Follow Markdown links with `gd` when cursor is on a TOC link.
+markdown-plus.nvim provides comprehensive link management with support for
+both inline and reference-style links.
 
 
-TOC LINKS ~
+INSERT NEW LINK ~
 
-When viewing a Table of Contents, place your cursor on a link and press `gd`
-to jump to that header:
+Press `<leader>ml` in normal mode to insert a new link:
 
 >markdown
-    [Introduction](#introduction)    -> Jumps to # Introduction
+    Cursor here|          ->    [GitHub](https://github.com)|
+<
+
+You'll be prompted for:
+1. Link text (e.g., "GitHub")
+2. URL (e.g., "https://github.com")
+
+
+CONVERT SELECTION TO LINK ~
+
+Select text in visual mode and press `<leader>ml`:
+
+>markdown
+    Visit my website      ->    Visit [my website](https://example.com)
+          ^^^^^^^^^^
+          (selected)
+<
+
+You'll be prompted for the URL only.
+
+
+EDIT EXISTING LINK ~
+
+Place cursor anywhere on a link and press `<leader>me`:
+
+>markdown
+    [Old Text](https://old-url.com)
+
+    Press <leader>me:
+    1. Link text: Old Text (edit or press Enter)
+    2. URL: https://old-url.com (edit or press Enter)
+
+    Result: [New Text](https://new-url.com)
+<
+
+Works with both inline links `[text](url)` and reference links `[text][ref]`.
+
+
+OPEN LINKS IN BROWSER ~
+
+Use Neovim's native `gx` command to open links:
+
+>markdown
+    [Google](https://google.com)     <- Press gx here
+    https://example.com              <- Also works on bare URLs
+<
+
+The `gx` command will open the URL in your default browser.
+
+
+AUTO-CONVERT URL TO LINK ~
+
+Place cursor on a bare URL and press `<leader>ma`:
+
+>markdown
+    https://github.com/user/repo
+
+    Press <leader>ma:
+    Link text (empty for URL): GitHub Repo
+
+    Result: [GitHub Repo](https://github.com/user/repo)
+<
+
+Leave the text prompt empty to use the URL as link text.
+
+
+REFERENCE-STYLE LINKS ~
+
+Convert inline link to reference-style with `<leader>mR`:
+
+>markdown
+    [Documentation](https://docs.example.com)
+
+    Press <leader>mR:
+
+    Result:
+    [Documentation][documentation]
+
+    ... (at end of document)
+    [documentation]: https://docs.example.com
+<
+
+The reference ID is auto-generated from the link text (lowercase, hyphens,
+alphanumeric only).
+
+Convert reference link to inline with `<leader>mI`:
+
+>markdown
+    [My Link][myref]
+
+    [myref]: https://myref.com
+
+    Press <leader>mI on the link:
+
+    Result: [My Link](https://myref.com)
+<
+
+
+REFERENCE REUSE ~
+
+When converting links with the same text and URL to reference-style, the
+plugin automatically reuses the existing reference:
+
+>markdown
+    Check out [GitHub](https://github.com) for code.
+    Visit [GitHub](https://github.com) to see projects.
+
+    Press <leader>mR on both:
+
+    Result:
+    Check out [GitHub][github] for code.
+    Visit [GitHub][github] to see projects.
+
+    [github]: https://github.com  <- Only one definition
+<
+
+Links with different text create separate references even with same URL:
+
+>markdown
+    [dotfiles](https://github.com/yousefhadder/dotfiles)
+    [My Dotfiles](https://github.com/yousefhadder/dotfiles)
+
+    Press <leader>mR on both:
+
+    Result:
+    [dotfiles][dotfiles]
+    [My Dotfiles][my-dotfiles]
+
+    [dotfiles]: https://github.com/yousefhadder/dotfiles
+    [my-dotfiles]: https://github.com/yousefhadder/dotfiles
 <
 
 
@@ -343,7 +480,13 @@ Default keymaps:
         clear_formatting = '<leader>mC',
 
         -- Link operations
-        follow_link = 'gd',                 -- Follow TOC link
+        insert_link = '<leader>ml',        -- Insert/convert to link
+        edit_link = '<leader>me',          -- Edit link under cursor
+        auto_link_url = '<leader>ma',      -- Convert URL to link
+        to_reference = '<leader>mR',       -- Convert to reference-style
+        to_inline = '<leader>mI',          -- Convert to inline
+        follow_link = 'gd',                -- Follow TOC link
+        open_link = 'gx',                  -- Open link in browser (native)
       }
     }
 <
@@ -360,7 +503,7 @@ The plugin can be configured through the setup function:
         list_management = true,  -- List auto-continuation, indentation, etc.
         text_formatting = true,  -- Bold, italic, strikethrough, code
         headers_toc = true,      -- Header manipulation and TOC generation
-        links = false,           -- Not yet implemented
+        links = true,            -- Link management and references
         tables = false,          -- Not yet implemented
         code_blocks = false,     -- Not yet implemented
         structure = false,       -- Not yet implemented
@@ -389,6 +532,7 @@ However, you can call the Lua API functions directly if needed:
     :lua require('markdown-plus').headers.generate_toc()
     :lua require('markdown-plus').list.renumber_ordered_lists()
     :lua require('markdown-plus').format.toggle_format('bold')
+    :lua require('markdown-plus').links.insert_link()
 <
 
 See |markdown-plus-api| for a complete list of available functions.
@@ -498,6 +642,47 @@ markdown-plus.format.clear_formatting_word()
     Clears all formatting from the word under cursor.
 
 
+LINKS MODULE                                            *markdown-plus.links*
+
+                                               *markdown-plus.links.insert_link*
+markdown-plus.links.insert_link()
+    Inserts a new markdown link at cursor position. Prompts for link text
+    and URL.
+
+                                         *markdown-plus.links.selection_to_link*
+markdown-plus.links.selection_to_link()
+    Converts visual selection to a markdown link. Prompts for URL.
+
+                                                 *markdown-plus.links.edit_link*
+markdown-plus.links.edit_link()
+    Edits the link under cursor. Works with both inline and reference-style
+    links. Prompts for new text and URL/reference.
+
+                                            *markdown-plus.links.auto_link_url*
+markdown-plus.links.auto_link_url()
+    Converts a bare URL under cursor to a markdown link. Prompts for link
+    text (defaults to URL if left empty).
+
+                                        *markdown-plus.links.convert_to_reference*
+markdown-plus.links.convert_to_reference()
+    Converts an inline link `[text](url)` to reference-style `[text][ref]`.
+    Adds reference definition at end of document. Reuses existing references
+    when possible.
+
+                                           *markdown-plus.links.convert_to_inline*
+markdown-plus.links.convert_to_inline()
+    Converts a reference-style link `[text][ref]` to inline `[text](url)`.
+    Looks up the reference definition in the document.
+
+                                        *markdown-plus.links.find_reference_url*
+markdown-plus.links.find_reference_url(ref)
+    Finds and returns the URL for a given reference ID.
+    Parameters: ~
+        {ref}  (string) The reference ID to look up
+    Returns: ~
+        (string|nil) The URL if found, nil otherwise
+
+
 Example usage:
 >lua
     -- Call API functions directly
@@ -505,6 +690,8 @@ Example usage:
     require('markdown-plus').list.renumber_ordered_lists()
     require('markdown-plus').format.toggle_format('bold')
     require('markdown-plus').headers.set_header_level(2)
+    require('markdown-plus').links.insert_link()
+    require('markdown-plus').links.convert_to_reference()
 <
 
 

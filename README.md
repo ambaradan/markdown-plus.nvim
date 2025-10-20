@@ -48,7 +48,9 @@ A comprehensive Neovim plugin that provides modern markdown editing capabilities
 
 ## Features
 
-### List Management
+<details>
+<summary><b>List Management</b></summary>
+
 - **Auto-create next list item**: Press Enter to automatically continue lists
 - **Normal mode list creation**: Use `o`/`O` in normal mode to create new list items
 - **Smart list indentation**: Use Tab/Shift+Tab to indent/outdent list items
@@ -59,7 +61,11 @@ A comprehensive Neovim plugin that provides modern markdown editing capabilities
 - **Mixed list types**: Supports unordered (`-`, `*`, `+`) and ordered (`1.`) lists
 - **Nested lists**: Full support for nested lists with proper renumbering
 
-### Text Formatting
+</details>
+
+<details>
+<summary><b>Text Formatting</b></summary>
+
 - **Toggle bold**: `<leader>mb` to toggle `**bold**` formatting on selection or word
 - **Toggle italic**: `<leader>mi` to toggle `*italic*` formatting on selection or word
 - **Toggle strikethrough**: `<leader>ms` to toggle `~~strikethrough~~` formatting on selection or word
@@ -68,7 +74,11 @@ A comprehensive Neovim plugin that provides modern markdown editing capabilities
 - **Smart word detection**: Works with words containing hyphens (`test-word`), dots (`file.name`), and underscores (`snake_case`)
 - **Visual and normal mode**: All formatting commands work in both visual selection and normal mode (on current word)
 
-### Headers & Table of Contents
+</details>
+
+<details>
+<summary><b>Headers & Table of Contents</b></summary>
+
 - **Header navigation**: Jump between headers with `]]` (next) and `[[` (previous)
 - **Promote/demote headers**: Increase/decrease header importance with `<leader>h+` and `<leader>h-`
 - **Set header level**: Quickly set header level 1-6 with `<leader>h1` through `<leader>h6`
@@ -78,6 +88,23 @@ A comprehensive Neovim plugin that provides modern markdown editing capabilities
 - **Smart TOC placement**: TOC appears right before first section (after introduction text)
 - **Code block aware**: Headers inside code blocks are correctly ignored
 - **GitHub-compatible slugs**: Anchor links work correctly on GitHub (handles `Q&A`, `C++`, etc.)
+
+</details>
+
+<details>
+<summary><b>Links & References</b></summary>
+
+- **Insert link**: `<leader>ml` to insert a new markdown link with text and URL
+- **Convert selection to link**: Select text and `<leader>ml` to convert it to a link
+- **Edit link**: `<leader>me` on a link to edit its text and URL
+- **Open links**: Use `gx` (native Neovim) to open links in your browser
+- **Auto-convert URL**: `<leader>ma` on a URL to convert it to a markdown link
+- **Reference-style links**: Convert between inline `[text](url)` and reference `[text][ref]` styles
+- **Convert to reference**: `<leader>mR` to convert inline link to reference-style
+- **Convert to inline**: `<leader>mI` to convert reference link to inline
+- **Smart URL detection**: Works with bare URLs and properly formatted links
+
+</details>
 
 ## Installation
 
@@ -96,6 +123,7 @@ A comprehensive Neovim plugin that provides modern markdown editing capabilities
         list_management = true,  -- Enable list management features
         text_formatting = true,  -- Enable text formatting features
         headers_toc = true,      -- Enable headers and TOC features
+        links = true,            -- Enable link management features
       },
       keymaps = {
         enabled = true,  -- Enable default keymaps
@@ -355,6 +383,126 @@ Press <leader>ht → Only "Real Section" appears in TOC ✓
 
 </details>
 
+<details>
+<summary>Links & References Examples</summary>
+
+### Insert New Link
+```markdown
+In normal mode, press <leader>ml:
+1. You'll be prompted: "Link text: "
+2. Enter the text (e.g., "GitHub")
+3. You'll be prompted: "URL: "
+4. Enter the URL (e.g., "https://github.com")
+5. Result: [GitHub](https://github.com)
+```
+
+### Convert Selection to Link
+```markdown
+Select text in visual mode:
+Visit my website  ← Select "my website" with visual mode
+
+Press <leader>ml:
+1. You'll be prompted: "URL: "
+2. Enter URL (e.g., "https://example.com")
+3. Result: Visit [my website](https://example.com)
+```
+
+### Edit Existing Link
+```markdown
+Position cursor anywhere on a link and press <leader>me:
+
+[Old Text](https://old-url.com)  ← cursor here
+
+Press <leader>me:
+1. Link text: Old Text (edit or press Enter)
+2. URL: https://old-url.com (edit or press Enter)
+
+Result: [New Text](https://new-url.com)
+```
+
+### Open Link in Browser
+```markdown
+Use native Neovim functionality:
+[Google](https://google.com)  ← Position cursor here
+Press gx to open in browser
+
+https://example.com  ← Works on bare URLs too
+Press gx to open
+```
+
+### Convert URL to Link
+```markdown
+Position cursor on a URL and press <leader>ma:
+
+Check out https://github.com/yousefhadder/markdown-plus.nvim
+
+Press <leader>ma:
+1. Link text (empty for URL): GitHub Plugin
+2. Result: Check out [GitHub Plugin](https://github.com/yousefhadder/markdown-plus.nvim)
+
+Or leave text empty to use URL as text:
+Result: [https://github.com/yousefhadder/markdown-plus.nvim](https://github.com/yousefhadder/markdown-plus.nvim)
+```
+
+### Reference-Style Links
+```markdown
+Convert inline link to reference-style with <leader>mR:
+
+[Documentation](https://docs.example.com)  ← cursor here
+
+Press <leader>mR:
+Result:
+[Documentation][documentation]
+
+... (at end of document)
+[documentation]: https://docs.example.com
+
+---
+
+Convert reference link to inline with <leader>mI:
+
+[My Link][myref]  ← cursor here
+
+... (elsewhere in document)
+[myref]: https://myref.com
+
+Press <leader>mI:
+Result: [My Link](https://myref.com)
+```
+
+### Reuse Existing References
+```markdown
+When converting links with the same text and URL to reference-style, 
+the reference is reused:
+
+Check out [GitHub](https://github.com) for code.
+Visit [GitHub](https://github.com) to see projects.
+
+Press <leader>mR on both:
+Result:
+Check out [GitHub][github] for code.
+Visit [GitHub][github] to see projects.
+
+[github]: https://github.com  ← Only one definition
+
+---
+
+Links with different text create separate references even with same URL:
+
+[dotfiles](https://github.com/yousefhadder/dotfiles)
+[My Dotfiles](https://github.com/yousefhadder/dotfiles)
+
+Press <leader>mR on both:
+Result:
+[dotfiles][dotfiles]
+[My Dotfiles][my-dotfiles]
+
+[dotfiles]: https://github.com/yousefhadder/dotfiles
+[my-dotfiles]: https://github.com/yousefhadder/dotfiles
+```
+
+</details>
+
 ## Keymaps Reference
 
 <details>
@@ -402,6 +550,17 @@ Press <leader>ht → Only "Real Section" appears in TOC ✓
 | `<leader>hu` | Normal | Update existing table of contents |
 | `gd` | Normal | Follow TOC link (jump to header) |
 
+### Links & References (Normal & Visual Mode)
+| Keymap | Mode | Description |
+|--------|------|-------------|
+| `<leader>ml` | Normal | Insert new markdown link |
+| `<leader>ml` | Visual | Convert selection to link |
+| `<leader>me` | Normal | Edit link under cursor |
+| `<leader>ma` | Normal | Convert URL to markdown link |
+| `<leader>mR` | Normal | Convert to reference-style link |
+| `<leader>mI` | Normal | Convert to inline link |
+| `gx` | Normal | Open link in browser (native Neovim) |
+
 **Note**: In normal mode, these commands operate on the word under cursor. In visual mode, they operate on the selected text.
 
 </details>
@@ -421,6 +580,7 @@ require("markdown-plus").setup({
     list_management = true,    -- List management features
     text_formatting = true,    -- Text formatting features
     headers_toc = true,        -- Headers and TOC features
+    links = true,              -- Link management and references
   },
 
   -- Keymap configuration
