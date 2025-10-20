@@ -32,11 +32,13 @@ PLAN.md
 test_*.md
 test_*.lua
 
-# Ignore all markdown files by default
+# Ignore all markdown/txt files by default
 *.md
+*.txt
 
 # EXCEPT these important documentation files
 !README.md
 !CHANGELOG.md
 !CODE_OF_CONDUCT.md
 !CONTRIBUTING.md
+!doc/markdown-plus.txt

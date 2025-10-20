@@ -651,7 +651,147 @@ require("markdown-plus").setup({
 }
 ```
 
+</details>
+
+## Customizing Keymaps
+
+<details>
+<summary>Custom Keymap Configuration</summary>
+
+markdown-plus.nvim provides `<Plug>` mappings for all features, allowing you to customize keybindings to your preference.
+
+### Disabling Default Keymaps
+
+To disable all default keymaps and define your own:
+
+```lua
+require("markdown-plus").setup({
+  keymaps = {
+    enabled = false,  -- Disable all default keymaps
+  },
+})
 ```
+
+### Using <Plug> Mappings
+
+You can create custom keymaps using the provided `<Plug>` mappings. Add these to your Neovim configuration (after the plugin loads):
+
+#### Text Formatting
+
+```lua
+-- Normal mode
+vim.keymap.set("n", "<C-b>", "<Plug>(MarkdownPlusBold)")
+vim.keymap.set("n", "<C-i>", "<Plug>(MarkdownPlusItalic)")
+vim.keymap.set("n", "<C-s>", "<Plug>(MarkdownPlusStrikethrough)")
+vim.keymap.set("n", "<C-k>", "<Plug>(MarkdownPlusCode)")
+vim.keymap.set("n", "<C-x>", "<Plug>(MarkdownPlusClearFormatting)")
+
+-- Visual mode
+vim.keymap.set("x", "<C-b>", "<Plug>(MarkdownPlusBold)")
+vim.keymap.set("x", "<C-i>", "<Plug>(MarkdownPlusItalic)")
+vim.keymap.set("x", "<C-s>", "<Plug>(MarkdownPlusStrikethrough)")
+vim.keymap.set("x", "<C-k>", "<Plug>(MarkdownPlusCode)")
+vim.keymap.set("x", "<C-x>", "<Plug>(MarkdownPlusClearFormatting)")
+```
+
+#### Headers & TOC
+
+```lua
+vim.keymap.set("n", "gn", "<Plug>(MarkdownPlusNextHeader)")
+vim.keymap.set("n", "gp", "<Plug>(MarkdownPlusPrevHeader)")
+vim.keymap.set("n", "<leader>h=", "<Plug>(MarkdownPlusPromoteHeader)")
+vim.keymap.set("n", "<leader>h-", "<Plug>(MarkdownPlusDemoteHeader)")
+vim.keymap.set("n", "<leader>ht", "<Plug>(MarkdownPlusGenerateTOC)")
+vim.keymap.set("n", "<leader>hu", "<Plug>(MarkdownPlusUpdateTOC)")
+vim.keymap.set("n", "<CR>", "<Plug>(MarkdownPlusFollowLink)")  -- Follow TOC link
+
+-- Header levels (H1-H6)
+for i = 1, 6 do
+  vim.keymap.set("n", "<leader>" .. i, "<Plug>(MarkdownPlusHeader" .. i .. ")")
+end
+```
+
+#### Links
+
+```lua
+vim.keymap.set("n", "<leader>li", "<Plug>(MarkdownPlusInsertLink)")
+vim.keymap.set("v", "<leader>li", "<Plug>(MarkdownPlusSelectionToLink)")
+vim.keymap.set("n", "<leader>le", "<Plug>(MarkdownPlusEditLink)")
+vim.keymap.set("n", "<leader>lr", "<Plug>(MarkdownPlusConvertToReference)")
+vim.keymap.set("n", "<leader>ln", "<Plug>(MarkdownPlusConvertToInline)")
+vim.keymap.set("n", "<leader>la", "<Plug>(MarkdownPlusAutoLinkURL)")
+```
+
+#### List Management
+
+```lua
+-- Insert mode
+vim.keymap.set("i", "<C-CR>", "<Plug>(MarkdownPlusListEnter)")
+vim.keymap.set("i", "<C-]>", "<Plug>(MarkdownPlusListIndent)")
+vim.keymap.set("i", "<C-[>", "<Plug>(MarkdownPlusListOutdent)")
+vim.keymap.set("i", "<C-h>", "<Plug>(MarkdownPlusListBackspace)")
+
+-- Normal mode
+vim.keymap.set("n", "<leader>lr", "<Plug>(MarkdownPlusRenumberLists)")
+vim.keymap.set("n", "<leader>ld", "<Plug>(MarkdownPlusDebugLists)")
+vim.keymap.set("n", "o", "<Plug>(MarkdownPlusNewListItemBelow)")
+vim.keymap.set("n", "O", "<Plug>(MarkdownPlusNewListItemAbove)")
+```
+
+### Available <Plug> Mappings
+
+#### Text Formatting
+- `<Plug>(MarkdownPlusBold)` - Toggle bold (n, x)
+- `<Plug>(MarkdownPlusItalic)` - Toggle italic (n, x)
+- `<Plug>(MarkdownPlusStrikethrough)` - Toggle strikethrough (n, x)
+- `<Plug>(MarkdownPlusCode)` - Toggle inline code (n, x)
+- `<Plug>(MarkdownPlusClearFormatting)` - Clear all formatting (n, x)
+
+#### Headers & TOC
+- `<Plug>(MarkdownPlusNextHeader)` - Jump to next header (n)
+- `<Plug>(MarkdownPlusPrevHeader)` - Jump to previous header (n)
+- `<Plug>(MarkdownPlusPromoteHeader)` - Promote header (n)
+- `<Plug>(MarkdownPlusDemoteHeader)` - Demote header (n)
+- `<Plug>(MarkdownPlusGenerateTOC)` - Generate TOC (n)
+- `<Plug>(MarkdownPlusUpdateTOC)` - Update TOC (n)
+- `<Plug>(MarkdownPlusFollowLink)` - Follow TOC link (n)
+- `<Plug>(MarkdownPlusHeader1)` through `<Plug>(MarkdownPlusHeader6)` - Set header level (n)
+
+#### Links
+- `<Plug>(MarkdownPlusInsertLink)` - Insert new link (n)
+- `<Plug>(MarkdownPlusSelectionToLink)` - Convert selection to link (v)
+- `<Plug>(MarkdownPlusEditLink)` - Edit link under cursor (n)
+- `<Plug>(MarkdownPlusConvertToReference)` - Convert to reference-style (n)
+- `<Plug>(MarkdownPlusConvertToInline)` - Convert to inline link (n)
+- `<Plug>(MarkdownPlusAutoLinkURL)` - Auto-convert URL to link (n)
+
+#### List Management
+- `<Plug>(MarkdownPlusListEnter)` - Auto-continue list (i)
+- `<Plug>(MarkdownPlusListIndent)` - Indent list item (i)
+- `<Plug>(MarkdownPlusListOutdent)` - Outdent list item (i)
+- `<Plug>(MarkdownPlusListBackspace)` - Smart backspace (i)
+- `<Plug>(MarkdownPlusRenumberLists)` - Renumber lists (n)
+- `<Plug>(MarkdownPlusDebugLists)` - Debug list groups (n)
+- `<Plug>(MarkdownPlusNewListItemBelow)` - New item below (n)
+- `<Plug>(MarkdownPlusNewListItemAbove)` - New item above (n)
+
+### Mixing Default and Custom Keymaps
+
+You can keep the default keymaps enabled and override specific ones:
+
+```lua
+require("markdown-plus").setup({
+  keymaps = {
+    enabled = true,  -- Keep defaults
+  },
+})
+
+-- Override only specific keymaps in your config
+vim.keymap.set("n", "<C-b>", "<Plug>(MarkdownPlusBold)", { buffer = false })  -- Global override
+```
+
+Note: The plugin uses `hasmapto()` to check if a `<Plug>` mapping is already mapped before setting defaults, so your custom mappings will take precedence.
+
 </details>
 
 ## Tips & Best Practices
