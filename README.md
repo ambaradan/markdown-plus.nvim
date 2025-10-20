@@ -3,13 +3,11 @@
 A comprehensive Neovim plugin that provides modern markdown editing capabilities, implementing features found in popular editors like Typora, Mark Text, and Obsidian.
 
 **Note:** While originally designed for Markdown, this plugin can be configured to work with any filetype (see [Configuration](#configuration)).
+<!-- TOC -->
 
 ## Table of Contents
 
 - [Features](#features)
-  - [List Management](#list-management)
-  - [Text Formatting](#text-formatting)
-  - [Headers & Table of Contents](#headers--table-of-contents)
 - [Installation](#installation)
 - [Usage](#usage)
   - [Auto-continue Lists](#auto-continue-lists)
@@ -33,20 +31,23 @@ A comprehensive Neovim plugin that provides modern markdown editing capabilities
   - [Follow TOC Links](#follow-toc-links)
   - [TOC with Symbols (GitHub-Compatible)](#toc-with-symbols-github-compatible)
   - [Code Blocks Ignored](#code-blocks-ignored)
+  - [Insert New Link](#insert-new-link)
+  - [Convert Selection to Link](#convert-selection-to-link)
+  - [Edit Existing Link](#edit-existing-link)
+  - [Open Link in Browser](#open-link-in-browser)
+  - [Convert URL to Link](#convert-url-to-link)
+  - [Reference-Style Links](#reference-style-links)
+  - [Reuse Existing References](#reuse-existing-references)
 - [Keymaps Reference](#keymaps-reference)
   - [List Management (Insert Mode)](#list-management-insert-mode)
   - [List Management (Normal Mode)](#list-management-normal-mode)
   - [Text Formatting (Normal & Visual Mode)](#text-formatting-normal--visual-mode)
   - [Headers & TOC (Normal Mode)](#headers--toc-normal-mode)
+  - [Links & References (Normal & Visual Mode)](#links--references-normal--visual-mode)
 - [Configuration](#configuration)
-- [Tips & Best Practices](#tips--best-practices)
-  - [Text Formatting Behavior](#text-formatting-behavior)
-  - [List Management Tips](#list-management-tips)
-  - [Workflow Examples](#workflow-examples)
-- [Contributing](#contributing)
-- [Requirements](#requirements)
-- [License](#license)
+  - [Using with Multiple Filetypes](#using-with-multiple-filetypes)
 
+<!-- /TOC -->
 
 ## Features
 
@@ -489,7 +490,7 @@ Result: [My Link](https://myref.com)
 
 ### Reuse Existing References
 ```markdown
-When converting links with the same text and URL to reference-style, 
+When converting links with the same text and URL to reference-style,
 the reference is reused:
 
 Check out [GitHub](https://github.com) for code.
