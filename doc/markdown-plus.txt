@@ -33,6 +33,9 @@ seamlessly within lists while preserving normal Vim behavior elsewhere.
 The plugin is designed to be lightweight, fast, and integrate naturally with
 your existing Neovim workflow.
 
+Note: While originally designed for Markdown, this plugin can be configured to
+work with any filetype. See |markdown-plus-configuration-filetypes| for details.
+
 
 FEATURES                                     *markdown-plus-introduction-features*
 
@@ -77,6 +80,7 @@ FEATURES                                     *markdown-plus-introduction-feature
 
 LAZY.NVIM                                   *markdown-plus-installation-lazy.nvim*
 
+Basic installation for markdown files:
 >lua
     {
       'yousefhadder/markdown-plus.nvim',
@@ -84,6 +88,19 @@ LAZY.NVIM                                   *markdown-plus-installation-lazy.nvi
       opts = {
         -- See configuration section for available options
       },
+    }
+<
+
+Installation for multiple filetypes:
+>lua
+    {
+      'yousefhadder/markdown-plus.nvim',
+      ft = { 'markdown', 'text', 'txt' },
+      config = function()
+        require('markdown-plus').setup({
+          filetypes = { 'markdown', 'text', 'txt' },
+        })
+      end,
     }
 <
 
@@ -243,8 +260,8 @@ BOLD ~
 Toggle bold with `<leader>mb`:
 
 >markdown
-    This is text           ->    This is **text**
-    This is **text**       ->    This is text
+    This is text           ->    This is *bold text*
+    This is *bold text*    ->    This is text
 <
 
 
@@ -253,8 +270,8 @@ ITALIC ~
 Toggle italic with `<leader>mi`:
 
 >markdown
-    This is text           ->    This is *text*
-    This is *text*         ->    This is text
+    This is text           ->    This is *italic text*
+    This is *italic text*  ->    This is text
 <
 
 
@@ -283,7 +300,7 @@ CLEAR FORMATTING ~
 Remove all formatting with `<leader>mC`:
 
 >markdown
-    **This** is *some* `text`    ->    This is some text
+    Formatted text         ->    This is some text
 <
 
 
@@ -505,7 +522,45 @@ The plugin can be configured through the setup function:
         headers_toc = true,      -- Header manipulation and TOC generation
         links = true,            -- Link management and references
       },
+      keymaps = {
+        enabled = true,          -- Enable/disable default keymaps
+      },
+      filetypes = { 'markdown' }, -- Filetypes to enable the plugin for
     })
+<
+
+                                        *markdown-plus-configuration-filetypes*
+
+The plugin can be enabled for any filetype, not just markdown. This is useful
+for plain text files, note-taking formats, or any text-based format where you
+want markdown-style formatting.
+
+Example: Enable for markdown and plain text files ~
+>lua
+    require('markdown-plus').setup({
+      filetypes = { 'markdown', 'text', 'txt' },
+    })
+<
+
+Example: Enable for custom note-taking setup ~
+>lua
+    require('markdown-plus').setup({
+      filetypes = { 'markdown', 'note', 'org', 'wiki' },
+    })
+<
+
+Important: Make sure your plugin manager also loads the plugin for these
+filetypes. For lazy.nvim:
+>lua
+    {
+      'yousefhadder/markdown-plus.nvim',
+      ft = { 'markdown', 'text', 'txt' },  -- Match your filetypes config
+      config = function()
+        require('markdown-plus').setup({
+          filetypes = { 'markdown', 'text', 'txt' },
+        })
+      end,
+    }
 <
 
 Future versions may add:

@@ -4,6 +4,9 @@ A comprehensive Neovim plugin that provides modern markdown editing capabilities
 <!-- TOC -->
 
 
+**Note:** While originally designed for Markdown, this plugin can be configured to work with any filetype (see [Configuration](#configuration)).
+<!-- TOC -->
+
 ## Table of Contents
 
 - [Features](#features)
@@ -44,13 +47,7 @@ A comprehensive Neovim plugin that provides modern markdown editing capabilities
   - [Headers & TOC (Normal Mode)](#headers--toc-normal-mode)
   - [Links & References (Normal & Visual Mode)](#links--references-normal--visual-mode)
 - [Configuration](#configuration)
-- [Tips & Best Practices](#tips--best-practices)
-  - [Text Formatting Behavior](#text-formatting-behavior)
-  - [List Management Tips](#list-management-tips)
-  - [Workflow Examples](#workflow-examples)
-- [Contributing](#contributing)
-- [Requirements](#requirements)
-- [License](#license)
+  - [Using with Multiple Filetypes](#using-with-multiple-filetypes)
 
 <!-- /TOC -->
 
@@ -122,7 +119,7 @@ A comprehensive Neovim plugin that provides modern markdown editing capabilities
 ```lua
 {
   "yousefhadder/markdown-plus.nvim",
-  ft = "markdown",
+  ft = "markdown",  -- Load on markdown files by default
   config = function()
     require("markdown-plus").setup({
       -- Configuration options (all optional)
@@ -136,6 +133,21 @@ A comprehensive Neovim plugin that provides modern markdown editing capabilities
       keymaps = {
         enabled = true,  -- Enable default keymaps
       },
+      filetypes = { "markdown" },  -- Filetypes to enable the plugin for
+    })
+  end,
+}
+```
+
+**Using with multiple filetypes:**
+
+```lua
+{
+  "yousefhadder/markdown-plus.nvim",
+  ft = { "markdown", "text", "txt" },  -- Load on multiple filetypes
+  config = function()
+    require("markdown-plus").setup({
+      filetypes = { "markdown", "text", "txt" },  -- Enable for these filetypes
     })
   end,
 }
@@ -595,7 +607,50 @@ require("markdown-plus").setup({
   keymaps = {
     enabled = true,  -- Set to false to disable all default keymaps
   },
+
+  -- Filetypes configuration
+  -- Specifies which filetypes will enable the plugin features
+  -- Default: { "markdown" }
+  filetypes = { "markdown" },
 })
+```
+
+### Using with Multiple Filetypes
+
+The plugin can be enabled for any filetype, not just markdown. This is useful for:
+- Plain text files (`.txt`, `.text`)
+- Note-taking formats (`.note`, `.org`)
+- Documentation files
+- Any text-based format where you want markdown-style formatting
+
+**Example: Enable for markdown and plain text files**
+```lua
+require("markdown-plus").setup({
+  filetypes = { "markdown", "text", "txt" },
+})
+```
+
+**Example: Enable for custom note-taking setup**
+```lua
+require("markdown-plus").setup({
+  filetypes = { "markdown", "note", "org", "wiki" },
+})
+```
+
+**Important:** Make sure your plugin manager also loads the plugin for these filetypes:
+```lua
+-- For lazy.nvim
+{
+  "yousefhadder/markdown-plus.nvim",
+  ft = { "markdown", "text", "txt" },  -- Match your filetypes config
+  config = function()
+    require("markdown-plus").setup({
+      filetypes = { "markdown", "text", "txt" },
+    })
+  end,
+}
+```
+
 ```
 </details>
 
