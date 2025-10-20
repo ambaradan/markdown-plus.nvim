@@ -250,7 +250,7 @@ Toggle bold with `<leader>mb`:
 
 ITALIC ~
 
-Toggle italic with `<leader>mI`:
+Toggle italic with `<leader>mi`:
 
 >markdown
     This is text           ->    This is *text*
@@ -469,12 +469,12 @@ Default keymaps:
         -- List operations (Normal mode)
         new_item_below = 'o',               -- New list item below
         new_item_above = 'O',               -- New list item above
-        renumber_lists = '<leader>mR',      -- Manual renumber
+        renumber_lists = '<leader>mr',      -- Manual renumber
         debug_lists = '<leader>md',         -- Debug: show list groups
 
         -- Formatting operations (normal + visual)
         toggle_bold = '<leader>mb',
-        toggle_italic = '<leader>mI',
+        toggle_italic = '<leader>mi',
         toggle_strikethrough = '<leader>ms',
         toggle_code = '<leader>mc',
         clear_formatting = '<leader>mC',
