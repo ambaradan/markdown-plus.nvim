@@ -1,3 +1,5 @@
+---Test suite for markdown-plus.nvim utility functions
+---Tests buffer detection, cursor operations, and line manipulation
 ---@diagnostic disable: undefined-field
 local utils = require("markdown-plus.utils")
 

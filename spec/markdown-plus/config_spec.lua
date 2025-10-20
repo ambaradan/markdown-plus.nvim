@@ -1,3 +1,5 @@
+---Test suite for markdown-plus.nvim configuration and validation
+---Tests configuration parsing, validation, and default values
 ---@diagnostic disable: undefined-field
 local markdown_plus = require("markdown-plus")
 

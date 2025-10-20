@@ -1,3 +1,5 @@
+---Test suite for markdown-plus.nvim list management
+---Tests list parsing, empty list detection, and list continuation
 ---@diagnostic disable: undefined-field
 local list = require("markdown-plus.list")
 

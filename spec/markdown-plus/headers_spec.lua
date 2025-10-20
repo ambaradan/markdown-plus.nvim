@@ -1,3 +1,5 @@
+---Test suite for markdown-plus.nvim headers and TOC functionality
+---Tests header parsing, slug generation, TOC detection, and TOC generation
 ---@diagnostic disable: undefined-field
 local headers = require("markdown-plus.headers")
 
