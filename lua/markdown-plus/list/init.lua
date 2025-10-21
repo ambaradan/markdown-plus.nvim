@@ -80,29 +80,35 @@ function M.setup_keymaps()
   })
 
   -- Set up default keymaps only if not already mapped
-  if not vim.fn.hasmapto("<Plug>(MarkdownPlusListEnter)", "i") then
-    vim.keymap.set("i", "<CR>", "<Plug>(MarkdownPlusListEnter)", { buffer = true })
+  -- Note: vim.fn.hasmapto() returns 0 or 1, and in Lua 0 is truthy, so we must compare with == 0
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusListEnter)", "i") == 0 then
+    vim.keymap.set("i", "<CR>", "<Plug>(MarkdownPlusListEnter)", { buffer = true, desc = "Continue list item" })
   end
-  if not vim.fn.hasmapto("<Plug>(MarkdownPlusListIndent)", "i") then
-    vim.keymap.set("i", "<Tab>", "<Plug>(MarkdownPlusListIndent)", { buffer = true })
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusListIndent)", "i") == 0 then
+    vim.keymap.set("i", "<Tab>", "<Plug>(MarkdownPlusListIndent)", { buffer = true, desc = "Indent list item" })
   end
-  if not vim.fn.hasmapto("<Plug>(MarkdownPlusListOutdent)", "i") then
-    vim.keymap.set("i", "<S-Tab>", "<Plug>(MarkdownPlusListOutdent)", { buffer = true })
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusListOutdent)", "i") == 0 then
+    vim.keymap.set("i", "<S-Tab>", "<Plug>(MarkdownPlusListOutdent)", { buffer = true, desc = "Outdent list item" })
   end
-  if not vim.fn.hasmapto("<Plug>(MarkdownPlusListBackspace)", "i") then
-    vim.keymap.set("i", "<BS>", "<Plug>(MarkdownPlusListBackspace)", { buffer = true })
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusListBackspace)", "i") == 0 then
+    vim.keymap.set(
+      "i",
+      "<BS>",
+      "<Plug>(MarkdownPlusListBackspace)",
+      { buffer = true, desc = "Smart backspace in list" }
+    )
   end
-  if not vim.fn.hasmapto("<Plug>(MarkdownPlusRenumberLists)", "n") then
-    vim.keymap.set("n", "<leader>mr", "<Plug>(MarkdownPlusRenumberLists)", { buffer = true })
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusRenumberLists)", "n") == 0 then
+    vim.keymap.set("n", "<leader>mr", "<Plug>(MarkdownPlusRenumberLists)", { buffer = true, desc = "Renumber lists" })
   end
-  if not vim.fn.hasmapto("<Plug>(MarkdownPlusDebugLists)", "n") then
-    vim.keymap.set("n", "<leader>md", "<Plug>(MarkdownPlusDebugLists)", { buffer = true })
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusDebugLists)", "n") == 0 then
+    vim.keymap.set("n", "<leader>md", "<Plug>(MarkdownPlusDebugLists)", { buffer = true, desc = "Debug lists" })
   end
-  if not vim.fn.hasmapto("<Plug>(MarkdownPlusNewListItemBelow)", "n") then
-    vim.keymap.set("n", "o", "<Plug>(MarkdownPlusNewListItemBelow)", { buffer = true })
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusNewListItemBelow)", "n") == 0 then
+    vim.keymap.set("n", "o", "<Plug>(MarkdownPlusNewListItemBelow)", { buffer = true, desc = "New list item below" })
   end
-  if not vim.fn.hasmapto("<Plug>(MarkdownPlusNewListItemAbove)", "n") then
-    vim.keymap.set("n", "O", "<Plug>(MarkdownPlusNewListItemAbove)", { buffer = true })
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusNewListItemAbove)", "n") == 0 then
+    vim.keymap.set("n", "O", "<Plug>(MarkdownPlusNewListItemAbove)", { buffer = true, desc = "New list item above" })
   end
 
   -- Set up autocommands for auto-renumbering

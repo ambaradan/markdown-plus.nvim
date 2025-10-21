@@ -66,23 +66,39 @@ function M.setup_keymaps()
   })
 
   -- Set up default keymaps only if not already mapped
-  if not vim.fn.hasmapto("<Plug>(MarkdownPlusInsertLink)", "n") then
-    vim.keymap.set("n", "<leader>ml", "<Plug>(MarkdownPlusInsertLink)", { buffer = true })
+  -- Note: vim.fn.hasmapto() returns 0 or 1, and in Lua 0 is truthy, so we must compare with == 0
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusInsertLink)", "n") == 0 then
+    vim.keymap.set("n", "<leader>ml", "<Plug>(MarkdownPlusInsertLink)", { buffer = true, desc = "Insert link" })
   end
-  if not vim.fn.hasmapto("<Plug>(MarkdownPlusSelectionToLink)", "v") then
-    vim.keymap.set("v", "<leader>ml", "<Plug>(MarkdownPlusSelectionToLink)", { buffer = true })
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusSelectionToLink)", "v") == 0 then
+    vim.keymap.set(
+      "v",
+      "<leader>ml",
+      "<Plug>(MarkdownPlusSelectionToLink)",
+      { buffer = true, desc = "Selection to link" }
+    )
   end
-  if not vim.fn.hasmapto("<Plug>(MarkdownPlusEditLink)", "n") then
-    vim.keymap.set("n", "<leader>me", "<Plug>(MarkdownPlusEditLink)", { buffer = true })
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusEditLink)", "n") == 0 then
+    vim.keymap.set("n", "<leader>me", "<Plug>(MarkdownPlusEditLink)", { buffer = true, desc = "Edit link" })
   end
-  if not vim.fn.hasmapto("<Plug>(MarkdownPlusConvertToReference)", "n") then
-    vim.keymap.set("n", "<leader>mR", "<Plug>(MarkdownPlusConvertToReference)", { buffer = true })
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusConvertToReference)", "n") == 0 then
+    vim.keymap.set(
+      "n",
+      "<leader>mR",
+      "<Plug>(MarkdownPlusConvertToReference)",
+      { buffer = true, desc = "Convert to reference link" }
+    )
   end
-  if not vim.fn.hasmapto("<Plug>(MarkdownPlusConvertToInline)", "n") then
-    vim.keymap.set("n", "<leader>mI", "<Plug>(MarkdownPlusConvertToInline)", { buffer = true })
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusConvertToInline)", "n") == 0 then
+    vim.keymap.set(
+      "n",
+      "<leader>mI",
+      "<Plug>(MarkdownPlusConvertToInline)",
+      { buffer = true, desc = "Convert to inline link" }
+    )
   end
-  if not vim.fn.hasmapto("<Plug>(MarkdownPlusAutoLinkURL)", "n") then
-    vim.keymap.set("n", "<leader>ma", "<Plug>(MarkdownPlusAutoLinkURL)", { buffer = true })
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusAutoLinkURL)", "n") == 0 then
+    vim.keymap.set("n", "<leader>ma", "<Plug>(MarkdownPlusAutoLinkURL)", { buffer = true, desc = "Auto-link URL" })
   end
 end
 

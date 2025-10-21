@@ -109,36 +109,62 @@ function M.setup_keymaps()
   })
 
   -- Set up default keymaps only if not already mapped
-  if not vim.fn.hasmapto("<Plug>(MarkdownPlusBold)", "x") then
-    vim.keymap.set("x", "<leader>mb", "<Plug>(MarkdownPlusBold)", { buffer = true })
+  -- Note: vim.fn.hasmapto() returns 0 or 1, and in Lua 0 is truthy, so we must compare with == 0
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusBold)", "x") == 0 then
+    vim.keymap.set("x", "<leader>mb", "<Plug>(MarkdownPlusBold)", { buffer = true, desc = "Toggle bold" })
   end
-  if not vim.fn.hasmapto("<Plug>(MarkdownPlusItalic)", "x") then
-    vim.keymap.set("x", "<leader>mi", "<Plug>(MarkdownPlusItalic)", { buffer = true })
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusItalic)", "x") == 0 then
+    vim.keymap.set("x", "<leader>mi", "<Plug>(MarkdownPlusItalic)", { buffer = true, desc = "Toggle italic" })
   end
-  if not vim.fn.hasmapto("<Plug>(MarkdownPlusStrikethrough)", "x") then
-    vim.keymap.set("x", "<leader>ms", "<Plug>(MarkdownPlusStrikethrough)", { buffer = true })
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusStrikethrough)", "x") == 0 then
+    vim.keymap.set(
+      "x",
+      "<leader>ms",
+      "<Plug>(MarkdownPlusStrikethrough)",
+      { buffer = true, desc = "Toggle strikethrough" }
+    )
   end
-  if not vim.fn.hasmapto("<Plug>(MarkdownPlusCode)", "x") then
-    vim.keymap.set("x", "<leader>mc", "<Plug>(MarkdownPlusCode)", { buffer = true })
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusCode)", "x") == 0 then
+    vim.keymap.set("x", "<leader>mc", "<Plug>(MarkdownPlusCode)", { buffer = true, desc = "Toggle inline code" })
   end
-  if not vim.fn.hasmapto("<Plug>(MarkdownPlusClearFormatting)", "x") then
-    vim.keymap.set("x", "<leader>mC", "<Plug>(MarkdownPlusClearFormatting)", { buffer = true })
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusClearFormatting)", "x") == 0 then
+    vim.keymap.set(
+      "x",
+      "<leader>mC",
+      "<Plug>(MarkdownPlusClearFormatting)",
+      { buffer = true, desc = "Clear formatting" }
+    )
   end
 
-  if not vim.fn.hasmapto("<Plug>(MarkdownPlusBold)", "n") then
-    vim.keymap.set("n", "<leader>mb", "<Plug>(MarkdownPlusBold)", { buffer = true })
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusBold)", "n") == 0 then
+    vim.keymap.set("n", "<leader>mb", "<Plug>(MarkdownPlusBold)", { buffer = true, desc = "Toggle bold on word" })
   end
-  if not vim.fn.hasmapto("<Plug>(MarkdownPlusItalic)", "n") then
-    vim.keymap.set("n", "<leader>mi", "<Plug>(MarkdownPlusItalic)", { buffer = true })
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusItalic)", "n") == 0 then
+    vim.keymap.set("n", "<leader>mi", "<Plug>(MarkdownPlusItalic)", { buffer = true, desc = "Toggle italic on word" })
   end
-  if not vim.fn.hasmapto("<Plug>(MarkdownPlusStrikethrough)", "n") then
-    vim.keymap.set("n", "<leader>ms", "<Plug>(MarkdownPlusStrikethrough)", { buffer = true })
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusStrikethrough)", "n") == 0 then
+    vim.keymap.set(
+      "n",
+      "<leader>ms",
+      "<Plug>(MarkdownPlusStrikethrough)",
+      { buffer = true, desc = "Toggle strikethrough on word" }
+    )
   end
-  if not vim.fn.hasmapto("<Plug>(MarkdownPlusCode)", "n") then
-    vim.keymap.set("n", "<leader>mc", "<Plug>(MarkdownPlusCode)", { buffer = true })
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusCode)", "n") == 0 then
+    vim.keymap.set(
+      "n",
+      "<leader>mc",
+      "<Plug>(MarkdownPlusCode)",
+      { buffer = true, desc = "Toggle inline code on word" }
+    )
   end
-  if not vim.fn.hasmapto("<Plug>(MarkdownPlusClearFormatting)", "n") then
-    vim.keymap.set("n", "<leader>mC", "<Plug>(MarkdownPlusClearFormatting)", { buffer = true })
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusClearFormatting)", "n") == 0 then
+    vim.keymap.set(
+      "n",
+      "<leader>mC",
+      "<Plug>(MarkdownPlusClearFormatting)",
+      { buffer = true, desc = "Clear formatting on word" }
+    )
   end
 end
 

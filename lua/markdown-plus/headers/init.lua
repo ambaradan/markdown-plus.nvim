@@ -76,31 +76,37 @@ function M.setup_keymaps()
   end
 
   -- Set up default keymaps only if not already mapped
-  if not vim.fn.hasmapto("<Plug>(MarkdownPlusNextHeader)", "n") then
-    vim.keymap.set("n", "]]", "<Plug>(MarkdownPlusNextHeader)", { buffer = true })
+  -- Note: vim.fn.hasmapto() returns 0 or 1, and in Lua 0 is truthy, so we must compare with == 0
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusNextHeader)", "n") == 0 then
+    vim.keymap.set("n", "]]", "<Plug>(MarkdownPlusNextHeader)", { buffer = true, desc = "Next header" })
   end
-  if not vim.fn.hasmapto("<Plug>(MarkdownPlusPrevHeader)", "n") then
-    vim.keymap.set("n", "[[", "<Plug>(MarkdownPlusPrevHeader)", { buffer = true })
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusPrevHeader)", "n") == 0 then
+    vim.keymap.set("n", "[[", "<Plug>(MarkdownPlusPrevHeader)", { buffer = true, desc = "Previous header" })
   end
-  if not vim.fn.hasmapto("<Plug>(MarkdownPlusPromoteHeader)", "n") then
-    vim.keymap.set("n", "<leader>h+", "<Plug>(MarkdownPlusPromoteHeader)", { buffer = true })
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusPromoteHeader)", "n") == 0 then
+    vim.keymap.set("n", "<leader>h+", "<Plug>(MarkdownPlusPromoteHeader)", { buffer = true, desc = "Promote header" })
   end
-  if not vim.fn.hasmapto("<Plug>(MarkdownPlusDemoteHeader)", "n") then
-    vim.keymap.set("n", "<leader>h-", "<Plug>(MarkdownPlusDemoteHeader)", { buffer = true })
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusDemoteHeader)", "n") == 0 then
+    vim.keymap.set("n", "<leader>h-", "<Plug>(MarkdownPlusDemoteHeader)", { buffer = true, desc = "Demote header" })
   end
-  if not vim.fn.hasmapto("<Plug>(MarkdownPlusGenerateTOC)", "n") then
-    vim.keymap.set("n", "<leader>ht", "<Plug>(MarkdownPlusGenerateTOC)", { buffer = true })
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusGenerateTOC)", "n") == 0 then
+    vim.keymap.set("n", "<leader>ht", "<Plug>(MarkdownPlusGenerateTOC)", { buffer = true, desc = "Generate TOC" })
   end
-  if not vim.fn.hasmapto("<Plug>(MarkdownPlusUpdateTOC)", "n") then
-    vim.keymap.set("n", "<leader>hu", "<Plug>(MarkdownPlusUpdateTOC)", { buffer = true })
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusUpdateTOC)", "n") == 0 then
+    vim.keymap.set("n", "<leader>hu", "<Plug>(MarkdownPlusUpdateTOC)", { buffer = true, desc = "Update TOC" })
   end
-  if not vim.fn.hasmapto("<Plug>(MarkdownPlusFollowLink)", "n") then
-    vim.keymap.set("n", "gd", "<Plug>(MarkdownPlusFollowLink)", { buffer = true })
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusFollowLink)", "n") == 0 then
+    vim.keymap.set("n", "gd", "<Plug>(MarkdownPlusFollowLink)", { buffer = true, desc = "Follow link" })
   end
 
   for i = 1, 6 do
-    if not vim.fn.hasmapto("<Plug>(MarkdownPlusHeader" .. i .. ")", "n") then
-      vim.keymap.set("n", "<leader>h" .. i, "<Plug>(MarkdownPlusHeader" .. i .. ")", { buffer = true })
+    if vim.fn.hasmapto("<Plug>(MarkdownPlusHeader" .. i .. ")", "n") == 0 then
+      vim.keymap.set(
+        "n",
+        "<leader>h" .. i,
+        "<Plug>(MarkdownPlusHeader" .. i .. ")",
+        { buffer = true, desc = "Set header level " .. i }
+      )
     end
   end
 end
