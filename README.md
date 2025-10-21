@@ -1,55 +1,8 @@
 # markdown-plus.nvim
 
 A comprehensive Neovim plugin that provides modern markdown editing capabilities, implementing features found in popular editors like Typora, Mark Text, and Obsidian.
-<!-- TOC -->
-
 
 **Note:** While originally designed for Markdown, this plugin can be configured to work with any filetype (see [Configuration](#configuration)).
-<!-- TOC -->
-
-## Table of Contents
-
-- [Features](#features)
-- [Installation](#installation)
-- [Usage](#usage)
-  - [Auto-continue Lists](#auto-continue-lists)
-  - [Checkbox Lists](#checkbox-lists)
-  - [Smart Indentation](#smart-indentation)
-  - [List Breaking](#list-breaking)
-  - [Smart Backspace](#smart-backspace)
-  - [Normal Mode List Creation](#normal-mode-list-creation)
-  - [Toggle Bold](#toggle-bold)
-  - [Toggle Italic](#toggle-italic)
-  - [Toggle Strikethrough](#toggle-strikethrough)
-  - [Toggle Inline Code](#toggle-inline-code)
-  - [Clear All Formatting](#clear-all-formatting)
-  - [Smart Word Detection](#smart-word-detection)
-  - [Visual Mode Selection](#visual-mode-selection)
-  - [Header Navigation](#header-navigation)
-  - [Promote/Demote Headers](#promotedemote-headers)
-  - [Convert to Header](#convert-to-header)
-  - [Generate Table of Contents](#generate-table-of-contents)
-  - [Update TOC](#update-toc)
-  - [Follow TOC Links](#follow-toc-links)
-  - [TOC with Symbols (GitHub-Compatible)](#toc-with-symbols-github-compatible)
-  - [Code Blocks Ignored](#code-blocks-ignored)
-  - [Insert New Link](#insert-new-link)
-  - [Convert Selection to Link](#convert-selection-to-link)
-  - [Edit Existing Link](#edit-existing-link)
-  - [Open Link in Browser](#open-link-in-browser)
-  - [Convert URL to Link](#convert-url-to-link)
-  - [Reference-Style Links](#reference-style-links)
-  - [Reuse Existing References](#reuse-existing-references)
-- [Keymaps Reference](#keymaps-reference)
-  - [List Management (Insert Mode)](#list-management-insert-mode)
-  - [List Management (Normal Mode)](#list-management-normal-mode)
-  - [Text Formatting (Normal & Visual Mode)](#text-formatting-normal--visual-mode)
-  - [Headers & TOC (Normal Mode)](#headers--toc-normal-mode)
-  - [Links & References (Normal & Visual Mode)](#links--references-normal--visual-mode)
-- [Configuration](#configuration)
-  - [Using with Multiple Filetypes](#using-with-multiple-filetypes)
-
-<!-- /TOC -->
 
 ## Features
 
