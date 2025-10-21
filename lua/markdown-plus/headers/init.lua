@@ -29,97 +29,86 @@ end
 ---Set up keymaps for headers
 ---@return nil
 function M.setup_keymaps()
-  -- Header navigation
-  vim.keymap.set("n", "]]", M.next_header, {
-    buffer = true,
+  if not M.config.keymaps or not M.config.keymaps.enabled then
+    return
+  end
+
+  -- Create <Plug> mappings first
+  vim.keymap.set("n", "<Plug>(MarkdownPlusNextHeader)", M.next_header, {
     silent = true,
     desc = "Jump to next header",
   })
-  vim.keymap.set("n", "[[", M.prev_header, {
-    buffer = true,
+  vim.keymap.set("n", "<Plug>(MarkdownPlusPrevHeader)", M.prev_header, {
     silent = true,
     desc = "Jump to previous header",
   })
-
-  -- Promote/demote headers
-  vim.keymap.set("n", "<leader>h+", M.promote_header, {
-    buffer = true,
+  vim.keymap.set("n", "<Plug>(MarkdownPlusPromoteHeader)", M.promote_header, {
     silent = true,
     desc = "Promote header (increase level)",
   })
-  vim.keymap.set("n", "<leader>h-", M.demote_header, {
-    buffer = true,
+  vim.keymap.set("n", "<Plug>(MarkdownPlusDemoteHeader)", M.demote_header, {
     silent = true,
     desc = "Demote header (decrease level)",
   })
-
-  -- TOC generation
-  vim.keymap.set("n", "<leader>ht", M.generate_toc, {
-    buffer = true,
+  vim.keymap.set("n", "<Plug>(MarkdownPlusGenerateTOC)", M.generate_toc, {
     silent = true,
     desc = "Generate table of contents",
   })
-  vim.keymap.set("n", "<leader>hu", M.update_toc, {
-    buffer = true,
+  vim.keymap.set("n", "<Plug>(MarkdownPlusUpdateTOC)", M.update_toc, {
     silent = true,
     desc = "Update table of contents",
   })
-
-  -- Follow TOC link (jump to header from TOC) - use gd only, not CR
-  -- We don't map <CR> to avoid interfering with normal mode behavior
-  vim.keymap.set("n", "gd", function()
+  vim.keymap.set("n", "<Plug>(MarkdownPlusFollowLink)", function()
     M.follow_link()
-    -- If follow_link returns false, it means we're not on a TOC link
-    -- In that case, we let the default gd behavior work (handled by other plugins/LSP)
   end, {
-    buffer = true,
     silent = true,
     desc = "Follow TOC link to header",
   })
 
   -- Header level shortcuts
-  vim.keymap.set("n", "<leader>h1", function()
-    M.set_header_level(1)
-  end, {
-    buffer = true,
-    silent = true,
-    desc = "Set/convert to H1",
-  })
-  vim.keymap.set("n", "<leader>h2", function()
-    M.set_header_level(2)
-  end, {
-    buffer = true,
-    silent = true,
-    desc = "Set/convert to H2",
-  })
-  vim.keymap.set("n", "<leader>h3", function()
-    M.set_header_level(3)
-  end, {
-    buffer = true,
-    silent = true,
-    desc = "Set/convert to H3",
-  })
-  vim.keymap.set("n", "<leader>h4", function()
-    M.set_header_level(4)
-  end, {
-    buffer = true,
-    silent = true,
-    desc = "Set/convert to H4",
-  })
-  vim.keymap.set("n", "<leader>h5", function()
-    M.set_header_level(5)
-  end, {
-    buffer = true,
-    silent = true,
-    desc = "Set/convert to H5",
-  })
-  vim.keymap.set("n", "<leader>h6", function()
-    M.set_header_level(6)
-  end, {
-    buffer = true,
-    silent = true,
-    desc = "Set/convert to H6",
-  })
+  for i = 1, 6 do
+    vim.keymap.set("n", "<Plug>(MarkdownPlusHeader" .. i .. ")", function()
+      M.set_header_level(i)
+    end, {
+      silent = true,
+      desc = "Set/convert to H" .. i,
+    })
+  end
+
+  -- Set up default keymaps only if not already mapped
+  -- Note: vim.fn.hasmapto() returns 0 or 1, and in Lua 0 is truthy, so we must compare with == 0
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusNextHeader)", "n") == 0 then
+    vim.keymap.set("n", "]]", "<Plug>(MarkdownPlusNextHeader)", { buffer = true, desc = "Next header" })
+  end
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusPrevHeader)", "n") == 0 then
+    vim.keymap.set("n", "[[", "<Plug>(MarkdownPlusPrevHeader)", { buffer = true, desc = "Previous header" })
+  end
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusPromoteHeader)", "n") == 0 then
+    vim.keymap.set("n", "<leader>h+", "<Plug>(MarkdownPlusPromoteHeader)", { buffer = true, desc = "Promote header" })
+  end
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusDemoteHeader)", "n") == 0 then
+    vim.keymap.set("n", "<leader>h-", "<Plug>(MarkdownPlusDemoteHeader)", { buffer = true, desc = "Demote header" })
+  end
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusGenerateTOC)", "n") == 0 then
+    vim.keymap.set("n", "<leader>ht", "<Plug>(MarkdownPlusGenerateTOC)", { buffer = true, desc = "Generate TOC" })
+  end
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusUpdateTOC)", "n") == 0 then
+    vim.keymap.set("n", "<leader>hu", "<Plug>(MarkdownPlusUpdateTOC)", { buffer = true, desc = "Update TOC" })
+  end
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusFollowLink)", "n") == 0 then
+    vim.keymap.set("n", "gd", "<Plug>(MarkdownPlusFollowLink)", { buffer = true, desc = "Follow link" })
+  end
+
+  for i = 1, 6 do
+    if vim.fn.hasmapto("<Plug>(MarkdownPlusHeader" .. i .. ")", "n") == 0 then
+      vim.keymap.set(
+        "n",
+        "<leader>h" .. i,
+        "<Plug>(MarkdownPlusHeader" .. i .. ")",
+        { buffer = true, desc = "Set header level " .. i }
+      )
+    end
+  end
 end
 
 -- Parse a line to check if it's a header

@@ -35,47 +35,71 @@ end
 ---Set up keymaps for links
 ---@return nil
 function M.setup_keymaps()
-  -- Insert link
-  vim.keymap.set("n", "<leader>ml", M.insert_link, {
-    buffer = true,
+  if not M.config.keymaps or not M.config.keymaps.enabled then
+    return
+  end
+
+  -- Create <Plug> mappings first
+  vim.keymap.set("n", "<Plug>(MarkdownPlusInsertLink)", M.insert_link, {
     silent = true,
     desc = "Insert markdown link",
   })
-
-  -- Convert selection to link
-  vim.keymap.set("v", "<leader>ml", M.selection_to_link, {
-    buffer = true,
+  vim.keymap.set("v", "<Plug>(MarkdownPlusSelectionToLink)", M.selection_to_link, {
     silent = true,
     desc = "Convert selection to link",
   })
-
-  -- Edit link under cursor
-  vim.keymap.set("n", "<leader>me", M.edit_link, {
-    buffer = true,
+  vim.keymap.set("n", "<Plug>(MarkdownPlusEditLink)", M.edit_link, {
     silent = true,
     desc = "Edit link under cursor",
   })
-
-  -- Convert to reference-style link
-  vim.keymap.set("n", "<leader>mR", M.convert_to_reference, {
-    buffer = true,
+  vim.keymap.set("n", "<Plug>(MarkdownPlusConvertToReference)", M.convert_to_reference, {
     silent = true,
     desc = "Convert to reference-style link",
   })
-
-  -- Convert to inline link
-  vim.keymap.set("n", "<leader>mI", M.convert_to_inline, {
-    buffer = true,
+  vim.keymap.set("n", "<Plug>(MarkdownPlusConvertToInline)", M.convert_to_inline, {
     silent = true,
     desc = "Convert to inline link",
   })
-
-  -- Auto-convert URL to link
-  vim.keymap.set("n", "<leader>ma", M.auto_link_url, {
-    buffer = true,
+  vim.keymap.set("n", "<Plug>(MarkdownPlusAutoLinkURL)", M.auto_link_url, {
     silent = true,
     desc = "Convert URL to markdown link",
   })
+
+  -- Set up default keymaps only if not already mapped
+  -- Note: vim.fn.hasmapto() returns 0 or 1, and in Lua 0 is truthy, so we must compare with == 0
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusInsertLink)", "n") == 0 then
+    vim.keymap.set("n", "<leader>ml", "<Plug>(MarkdownPlusInsertLink)", { buffer = true, desc = "Insert link" })
+  end
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusSelectionToLink)", "v") == 0 then
+    vim.keymap.set(
+      "v",
+      "<leader>ml",
+      "<Plug>(MarkdownPlusSelectionToLink)",
+      { buffer = true, desc = "Selection to link" }
+    )
+  end
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusEditLink)", "n") == 0 then
+    vim.keymap.set("n", "<leader>me", "<Plug>(MarkdownPlusEditLink)", { buffer = true, desc = "Edit link" })
+  end
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusConvertToReference)", "n") == 0 then
+    vim.keymap.set(
+      "n",
+      "<leader>mR",
+      "<Plug>(MarkdownPlusConvertToReference)",
+      { buffer = true, desc = "Convert to reference link" }
+    )
+  end
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusConvertToInline)", "n") == 0 then
+    vim.keymap.set(
+      "n",
+      "<leader>mI",
+      "<Plug>(MarkdownPlusConvertToInline)",
+      { buffer = true, desc = "Convert to inline link" }
+    )
+  end
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusAutoLinkURL)", "n") == 0 then
+    vim.keymap.set("n", "<leader>ma", "<Plug>(MarkdownPlusAutoLinkURL)", { buffer = true, desc = "Auto-link URL" })
+  end
 end
 
 -- Parse link under cursor

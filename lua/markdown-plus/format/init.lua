@@ -41,68 +41,131 @@ end
 ---Set up keymaps for text formatting
 ---@return nil
 function M.setup_keymaps()
-  -- Visual mode keymaps for formatting selections
-  -- Using :<C-u> to clear command line and preserve visual selection
-  vim.keymap.set("x", "<leader>mb", ":<C-u>lua require('markdown-plus.format').toggle_format('bold')<CR>", {
-    buffer = true,
+  if not M.config.keymaps or not M.config.keymaps.enabled then
+    return
+  end
+
+  -- Create <Plug> mappings first
+  -- Visual mode <Plug> mappings
+  vim.keymap.set("x", "<Plug>(MarkdownPlusBold)", function()
+    M.toggle_format("bold")
+  end, {
     silent = true,
     desc = "Toggle bold formatting",
   })
-  vim.keymap.set("x", "<leader>mi", ":<C-u>lua require('markdown-plus.format').toggle_format('italic')<CR>", {
-    buffer = true,
+  vim.keymap.set("x", "<Plug>(MarkdownPlusItalic)", function()
+    M.toggle_format("italic")
+  end, {
     silent = true,
     desc = "Toggle italic formatting",
   })
-  vim.keymap.set("x", "<leader>ms", ":<C-u>lua require('markdown-plus.format').toggle_format('strikethrough')<CR>", {
-    buffer = true,
+  vim.keymap.set("x", "<Plug>(MarkdownPlusStrikethrough)", function()
+    M.toggle_format("strikethrough")
+  end, {
     silent = true,
     desc = "Toggle strikethrough formatting",
   })
-  vim.keymap.set("x", "<leader>mc", ":<C-u>lua require('markdown-plus.format').toggle_format('code')<CR>", {
-    buffer = true,
+  vim.keymap.set("x", "<Plug>(MarkdownPlusCode)", function()
+    M.toggle_format("code")
+  end, {
     silent = true,
     desc = "Toggle inline code formatting",
   })
-  vim.keymap.set("x", "<leader>mC", ":<C-u>lua require('markdown-plus.format').clear_formatting()<CR>", {
-    buffer = true,
+  vim.keymap.set("x", "<Plug>(MarkdownPlusClearFormatting)", function()
+    M.clear_formatting()
+  end, {
     silent = true,
     desc = "Clear all formatting",
   })
 
-  -- Normal mode keymaps for formatting current word
-  vim.keymap.set("n", "<leader>mb", function()
+  -- Normal mode <Plug> mappings
+  vim.keymap.set("n", "<Plug>(MarkdownPlusBold)", function()
     M.toggle_format_word("bold")
   end, {
-    buffer = true,
     silent = true,
     desc = "Toggle bold on word",
   })
-  vim.keymap.set("n", "<leader>mi", function()
+  vim.keymap.set("n", "<Plug>(MarkdownPlusItalic)", function()
     M.toggle_format_word("italic")
   end, {
-    buffer = true,
     silent = true,
     desc = "Toggle italic on word",
   })
-  vim.keymap.set("n", "<leader>ms", function()
+  vim.keymap.set("n", "<Plug>(MarkdownPlusStrikethrough)", function()
     M.toggle_format_word("strikethrough")
   end, {
-    buffer = true,
     silent = true,
     desc = "Toggle strikethrough on word",
   })
-  vim.keymap.set("n", "<leader>mc", function()
+  vim.keymap.set("n", "<Plug>(MarkdownPlusCode)", function()
     M.toggle_format_word("code")
   end, {
-    buffer = true,
     silent = true,
     desc = "Toggle inline code on word",
   })
-  vim.keymap.set("n", "<leader>mC", M.clear_formatting_word, {
-    buffer = true,
+  vim.keymap.set("n", "<Plug>(MarkdownPlusClearFormatting)", M.clear_formatting_word, {
     silent = true,
     desc = "Clear formatting on word",
   })
+
+  -- Set up default keymaps only if not already mapped
+  -- Note: vim.fn.hasmapto() returns 0 or 1, and in Lua 0 is truthy, so we must compare with == 0
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusBold)", "x") == 0 then
+    vim.keymap.set("x", "<leader>mb", "<Plug>(MarkdownPlusBold)", { buffer = true, desc = "Toggle bold" })
+  end
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusItalic)", "x") == 0 then
+    vim.keymap.set("x", "<leader>mi", "<Plug>(MarkdownPlusItalic)", { buffer = true, desc = "Toggle italic" })
+  end
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusStrikethrough)", "x") == 0 then
+    vim.keymap.set(
+      "x",
+      "<leader>ms",
+      "<Plug>(MarkdownPlusStrikethrough)",
+      { buffer = true, desc = "Toggle strikethrough" }
+    )
+  end
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusCode)", "x") == 0 then
+    vim.keymap.set("x", "<leader>mc", "<Plug>(MarkdownPlusCode)", { buffer = true, desc = "Toggle inline code" })
+  end
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusClearFormatting)", "x") == 0 then
+    vim.keymap.set(
+      "x",
+      "<leader>mC",
+      "<Plug>(MarkdownPlusClearFormatting)",
+      { buffer = true, desc = "Clear formatting" }
+    )
+  end
+
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusBold)", "n") == 0 then
+    vim.keymap.set("n", "<leader>mb", "<Plug>(MarkdownPlusBold)", { buffer = true, desc = "Toggle bold on word" })
+  end
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusItalic)", "n") == 0 then
+    vim.keymap.set("n", "<leader>mi", "<Plug>(MarkdownPlusItalic)", { buffer = true, desc = "Toggle italic on word" })
+  end
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusStrikethrough)", "n") == 0 then
+    vim.keymap.set(
+      "n",
+      "<leader>ms",
+      "<Plug>(MarkdownPlusStrikethrough)",
+      { buffer = true, desc = "Toggle strikethrough on word" }
+    )
+  end
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusCode)", "n") == 0 then
+    vim.keymap.set(
+      "n",
+      "<leader>mc",
+      "<Plug>(MarkdownPlusCode)",
+      { buffer = true, desc = "Toggle inline code on word" }
+    )
+  end
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusClearFormatting)", "n") == 0 then
+    vim.keymap.set(
+      "n",
+      "<leader>mC",
+      "<Plug>(MarkdownPlusClearFormatting)",
+      { buffer = true, desc = "Clear formatting on word" }
+    )
+  end
 end
 
 -- Get visual selection range

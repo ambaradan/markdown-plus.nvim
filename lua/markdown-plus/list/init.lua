@@ -41,57 +41,75 @@ end
 ---Set up keymaps for list management
 ---@return nil
 function M.setup_keymaps()
-  -- Enter key for auto-continuing lists
-  vim.keymap.set("i", "<CR>", M.handle_enter, {
-    buffer = true,
+  if not M.config.keymaps or not M.config.keymaps.enabled then
+    return
+  end
+
+  -- Create <Plug> mappings first
+  vim.keymap.set("i", "<Plug>(MarkdownPlusListEnter)", M.handle_enter, {
     silent = true,
     desc = "Auto-continue list or break out",
   })
-
-  -- Tab/Shift+Tab for indentation
-  vim.keymap.set("i", "<Tab>", M.handle_tab, {
-    buffer = true,
+  vim.keymap.set("i", "<Plug>(MarkdownPlusListIndent)", M.handle_tab, {
     silent = true,
     desc = "Indent list item",
   })
-  vim.keymap.set("i", "<S-Tab>", M.handle_shift_tab, {
-    buffer = true,
+  vim.keymap.set("i", "<Plug>(MarkdownPlusListOutdent)", M.handle_shift_tab, {
     silent = true,
     desc = "Outdent list item",
   })
-
-  -- Backspace for smart list removal
-  vim.keymap.set("i", "<BS>", M.handle_backspace, {
-    buffer = true,
+  vim.keymap.set("i", "<Plug>(MarkdownPlusListBackspace)", M.handle_backspace, {
     silent = true,
     desc = "Smart backspace (remove empty list)",
   })
-
-  -- Manual renumber command for testing
-  vim.keymap.set("n", "<leader>mr", M.renumber_ordered_lists, {
-    buffer = true,
+  vim.keymap.set("n", "<Plug>(MarkdownPlusRenumberLists)", M.renumber_ordered_lists, {
     silent = true,
     desc = "Renumber ordered lists",
   })
-
-  -- Debug command for testing
-  vim.keymap.set("n", "<leader>md", M.debug_list_groups, {
-    buffer = true,
+  vim.keymap.set("n", "<Plug>(MarkdownPlusDebugLists)", M.debug_list_groups, {
     silent = true,
     desc = "Debug list groups",
   })
-
-  -- Normal mode o/O for creating new list items
-  vim.keymap.set("n", "o", M.handle_normal_o, {
-    buffer = true,
+  vim.keymap.set("n", "<Plug>(MarkdownPlusNewListItemBelow)", M.handle_normal_o, {
     silent = true,
     desc = "New list item below",
   })
-  vim.keymap.set("n", "O", M.handle_normal_O, {
-    buffer = true,
+  vim.keymap.set("n", "<Plug>(MarkdownPlusNewListItemAbove)", M.handle_normal_O, {
     silent = true,
     desc = "New list item above",
   })
+
+  -- Set up default keymaps only if not already mapped
+  -- Note: vim.fn.hasmapto() returns 0 or 1, and in Lua 0 is truthy, so we must compare with == 0
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusListEnter)", "i") == 0 then
+    vim.keymap.set("i", "<CR>", "<Plug>(MarkdownPlusListEnter)", { buffer = true, desc = "Continue list item" })
+  end
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusListIndent)", "i") == 0 then
+    vim.keymap.set("i", "<Tab>", "<Plug>(MarkdownPlusListIndent)", { buffer = true, desc = "Indent list item" })
+  end
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusListOutdent)", "i") == 0 then
+    vim.keymap.set("i", "<S-Tab>", "<Plug>(MarkdownPlusListOutdent)", { buffer = true, desc = "Outdent list item" })
+  end
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusListBackspace)", "i") == 0 then
+    vim.keymap.set(
+      "i",
+      "<BS>",
+      "<Plug>(MarkdownPlusListBackspace)",
+      { buffer = true, desc = "Smart backspace in list" }
+    )
+  end
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusRenumberLists)", "n") == 0 then
+    vim.keymap.set("n", "<leader>mr", "<Plug>(MarkdownPlusRenumberLists)", { buffer = true, desc = "Renumber lists" })
+  end
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusDebugLists)", "n") == 0 then
+    vim.keymap.set("n", "<leader>md", "<Plug>(MarkdownPlusDebugLists)", { buffer = true, desc = "Debug lists" })
+  end
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusNewListItemBelow)", "n") == 0 then
+    vim.keymap.set("n", "o", "<Plug>(MarkdownPlusNewListItemBelow)", { buffer = true, desc = "New list item below" })
+  end
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusNewListItemAbove)", "n") == 0 then
+    vim.keymap.set("n", "O", "<Plug>(MarkdownPlusNewListItemAbove)", { buffer = true, desc = "New list item above" })
+  end
 
   -- Set up autocommands for auto-renumbering
   M.setup_renumber_autocmds()

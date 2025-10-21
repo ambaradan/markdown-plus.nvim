@@ -18,14 +18,15 @@ Thank you for your interest in contributing! 🎉
 
 ### Code Contributions
 
-1. **Fork the repository**
-2. **Create a branch**: `git checkout -b feature/your-feature`
-3. **Make your changes**
-4. **Write tests**: Add tests for new functionality (see [Testing](#testing))
-5. **Run quality checks**: `make test && make lint && make format`
-6. **Commit**: Use clear, descriptive commit messages (see [Commit Messages](#commit-messages))
-7. **Push**: `git push origin feature/your-feature`
-8. **Open a Pull Request**: Use the PR template
+1. **Create a branch**: `git checkout -b feature/your-feature`
+2. **Make your changes**
+3. **Write tests**: Add tests for new functionality (see [Testing](#testing))
+4. **Run quality checks**: `make test && make lint && make format`
+5. **Commit**: Use clear, descriptive commit messages (see [Commit Messages](#commit-messages))
+6. **Push**: `git push origin feature/your-feature`
+7. **Open a Pull Request**: Use the PR template
+
+**Note**: You can open issues and pull requests directly to this repository. No need to fork unless you prefer to work on your own copy first.
 
 ## Development Setup
 
