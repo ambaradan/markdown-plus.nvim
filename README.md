@@ -1,3 +1,7 @@
+<a href="https://dotfyle.com/plugins/yousefhadder/markdown-plus.nvim">
+	<img src="https://dotfyle.com/plugins/yousefhadder/markdown-plus.nvim/shield?style=flat" />
+</a>
+
 # markdown-plus.nvim
 
 A comprehensive Neovim plugin that provides modern markdown editing capabilities, implementing features found in popular editors like Typora, Mark Text, and Obsidian.
