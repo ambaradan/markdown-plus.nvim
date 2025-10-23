@@ -14,6 +14,7 @@
 ---@field text_formatting? boolean Enable text formatting (default: true)
 ---@field headers_toc? boolean Enable headers and TOC (default: true)
 ---@field links? boolean Enable link management (default: true)
+---@field quotes? boolean Enable quote management (default: true)
 
 ---Keymap configuration
 ---@class markdown-plus.KeymapConfig
@@ -31,6 +32,7 @@
 ---@field text_formatting boolean
 ---@field headers_toc boolean
 ---@field links boolean
+---@field quotes boolean
 
 ---Internal keymap configuration
 ---@class markdown-plus.InternalKeymapConfig
