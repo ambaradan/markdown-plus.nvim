@@ -104,10 +104,10 @@ jobs:
       - name: Create versioned rockspec
         run: |
           VERSION="${{ inputs.version }}"
-          ROCKSPEC_FILE="markdown-plus.nvim-${VERSION}-1.rockspec"
+          ROCKSPEC_FILE="rockspecs/markdown-plus.nvim-${VERSION}-1.rockspec"
           
           # Copy from scm rockspec and update version and tag
-          cp markdown-plus.nvim-scm-1.rockspec "$ROCKSPEC_FILE"
+          cp rockspecs/markdown-plus.nvim-scm-1.rockspec "$ROCKSPEC_FILE"
           
           # Update version
           sed -i "s/version = \"scm-1\"/version = \"${VERSION}-1\"/" "$ROCKSPEC_FILE"
@@ -131,7 +131,7 @@ jobs:
       - name: Commit and push changes
         run: |
           VERSION="${{ inputs.version }}"
-          ROCKSPEC_FILE="markdown-plus.nvim-${VERSION}-1.rockspec"
+          ROCKSPEC_FILE="rockspecs/markdown-plus.nvim-${VERSION}-1.rockspec"
           
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
