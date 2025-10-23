@@ -865,32 +865,6 @@ vim.keymap.set("n", "<C-b>", "<Plug>(MarkdownPlusBold)", { buffer = false })  --
 
 Note: The plugin uses `hasmapto()` to check if a `<Plug>` mapping is already mapped before setting defaults, so your custom mappings will take precedence.
 
-</details>
-
-
-### Workflow Examples
-```markdown
-# Quick formatting workflow
-1. Type your text normally
-2. Use hjkl to position cursor on any word
-3. Press <leader>mb to make it bold (or other formatting keys)
-4. Continue writing
-
-# Visual mode workflow
-1. Write a sentence or paragraph
-2. Select text with v, V, or Ctrl+v
-3. Press formatting key to apply to entire selection
-
-# List workflow
-1. Type - and space to start a list
-2. Press Enter to continue adding items
-3. Press Tab to nest items
-4. Press Enter twice on empty item to finish
-```
-
-</details>
-
-
 ## Contributing
 
 Contributions are welcome! We encourage direct collaboration - you can open issues and pull requests directly to this repository.
