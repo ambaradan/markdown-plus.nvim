@@ -865,6 +865,8 @@ vim.keymap.set("n", "<C-b>", "<Plug>(MarkdownPlusBold)", { buffer = false })  --
 
 Note: The plugin uses `hasmapto()` to check if a `<Plug>` mapping is already mapped before setting defaults, so your custom mappings will take precedence.
 
+</details>
+
 ## Contributing
 
 Contributions are welcome! We encourage direct collaboration - you can open issues and pull requests directly to this repository.
