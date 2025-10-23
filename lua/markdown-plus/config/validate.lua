@@ -23,9 +23,22 @@ function M.validate(opts)
     enabled = { opts.enabled, "boolean", true },
     features = { opts.features, "table", true },
     keymaps = { opts.keymaps, "table", true },
+    filetypes = { opts.filetypes, "table", true },
   })
   if not ok then
     return false, err
+  end
+
+  -- Validate filetypes array
+  if opts.filetypes then
+    if not vim.islist(opts.filetypes) then
+      return false, "config.filetypes: must be an array (list)"
+    end
+    for i, ft in ipairs(opts.filetypes) do
+      if type(ft) ~= "string" then
+        return false, string.format("config.filetypes[%d]: must be a string, got %s", i, type(ft))
+      end
+    end
   end
 
   -- Validate features
@@ -52,7 +65,7 @@ function M.validate(opts)
   end
 
   -- Check for unknown top-level fields
-  local known_fields = { enabled = true, features = true, keymaps = true }
+  local known_fields = { enabled = true, features = true, keymaps = true, filetypes = true }
   for key in pairs(opts) do
     if not known_fields[key] then
       return false,

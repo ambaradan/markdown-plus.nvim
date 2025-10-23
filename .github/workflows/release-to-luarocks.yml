@@ -1,0 +1,83 @@
+name: Release to LuaRocks
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  luarocks-release:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: main
+      
+      - name: Install LuaRocks
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y luarocks
+      
+      - name: Extract version from tag
+        id: version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Release version: $VERSION"
+      
+      - name: Verify rockspec exists
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          ROCKSPEC_FILE="markdown-plus.nvim-${VERSION}-1.rockspec"
+          
+          if [ ! -f "$ROCKSPEC_FILE" ]; then
+            echo "Error: Rockspec file $ROCKSPEC_FILE not found"
+            echo "Available rockspecs:"
+            ls -la *.rockspec
+            exit 1
+          fi
+          
+          echo "Found rockspec: $ROCKSPEC_FILE"
+          cat "$ROCKSPEC_FILE"
+      
+      - name: Validate rockspec
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          ROCKSPEC_FILE="markdown-plus.nvim-${VERSION}-1.rockspec"
+          
+          echo "Validating rockspec..."
+          luarocks lint "$ROCKSPEC_FILE"
+      
+      - name: Upload to LuaRocks
+        env:
+          LUAROCKS_API_KEY: ${{ secrets.LUAROCKS_API_KEY }}
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          ROCKSPEC_FILE="markdown-plus.nvim-${VERSION}-1.rockspec"
+          
+          if [ -z "$LUAROCKS_API_KEY" ]; then
+            echo "⚠️  Warning: LUAROCKS_API_KEY secret not configured"
+            echo "Please add your LuaRocks API key to GitHub Secrets:"
+            echo "https://github.com/${{ github.repository }}/settings/secrets/actions"
+            echo ""
+            echo "Skipping LuaRocks upload..."
+            exit 0
+          fi
+          
+          echo "Uploading to LuaRocks..."
+          luarocks upload "$ROCKSPEC_FILE" --api-key="$LUAROCKS_API_KEY"
+      
+      - name: Summary
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          echo "✅ Release v$VERSION processing complete!"
+          echo ""
+          if [ -n "$LUAROCKS_API_KEY" ]; then
+            echo "📦 Published to LuaRocks: https://luarocks.org/modules/yousefhadder/markdown-plus.nvim"
+            echo ""
+            echo "Users can now install with:"
+            echo "  luarocks install markdown-plus.nvim"
+          else
+            echo "⚠️  LuaRocks upload skipped (API key not configured)"
+          fi

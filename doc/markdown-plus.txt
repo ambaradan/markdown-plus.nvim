@@ -529,6 +529,77 @@ The plugin can be configured through the setup function:
     })
 <
 
+Alternative: vim.g Configuration           *markdown-plus-configuration-vim-g*
+
+For Vimscript compatibility or if you prefer not to call setup(), you can
+configure the plugin using |vim.g.markdown_plus|:
+
+Using a table (Lua): ~
+>lua?
+    vim.g.markdown_plus = {
+      enabled = true,
+      features = {
+        list_management = true,
+        text_formatting = false,
+      },
+      keymaps = {
+        enabled = false,
+      },
+      filetypes = { 'markdown', 'text' },
+    }
+<
+
+Using a table (Vimscript): ~
+>vim
+    let g:markdown_plus = #{
+      \ enabled: v:true,
+      \ features: #{
+      \   list_management: v:true,
+      \   text_formatting: v:false
+      \ },
+      \ keymaps: #{
+      \   enabled: v:false
+      \ },
+      \ filetypes: ['markdown', 'text']
+      \ }
+<
+
+Using a function (dynamic configuration): ~
+>lua
+    vim.g.markdown_plus = function()
+      return {
+        enabled = vim.fn.has('nvim-0.10') == 1,
+        features = {
+          text_formatting = not vim.g.vscode,  -- Disable in VSCode
+        },
+      }
+    end
+<
+
+Configuration Priority ~
+
+When both |vim.g.markdown_plus| and setup() are used, they are merged with
+the following priority:
+
+  1. Default configuration (lowest priority)
+  2. vim.g.markdown_plus configuration
+  3. setup(opts) parameter (highest priority)
+
+Example:
+>lua
+    vim.g.markdown_plus = {
+      features = { list_management = false },
+    }
+    
+    require('markdown-plus').setup({
+      features = { list_management = true },  -- Overrides vim.g
+    })
+    -- Result: list_management will be true
+<
+
+This allows you to set global defaults with vim.g and override specific
+settings with setup() for certain filetypes or conditions.
+
                                         *markdown-plus-configuration-filetypes*
 
 The plugin can be enabled for any filetype, not just markdown. This is useful

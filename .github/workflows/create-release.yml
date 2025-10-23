@@ -1,0 +1,169 @@
+name: Create Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., 1.3.0)'
+        required: true
+        type: string
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Validate version format
+        run: |
+          if ! [[ "${{ inputs.version }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Error: Version must be in format X.Y.Z (e.g., 1.3.0)"
+            exit 1
+          fi
+      
+      - name: Check if tag exists
+        run: |
+          if git rev-parse "v${{ inputs.version }}" >/dev/null 2>&1; then
+            echo "Error: Tag v${{ inputs.version }} already exists"
+            exit 1
+          fi
+      
+      - name: Extract changelog for version
+        id: changelog
+        run: |
+          VERSION="${{ inputs.version }}"
+          
+          # Extract the Unreleased section from CHANGELOG.md
+          # This assumes the next release content is in the Unreleased section
+          CHANGELOG_CONTENT=$(awk '/^## \[Unreleased\]$/,/^## \[/ {
+            if (/^## \[Unreleased\]$/) next
+            if (/^## \[/) exit
+            print
+          }' CHANGELOG.md | sed '/^$/d' | head -c 65000)
+          
+          if [ -z "$CHANGELOG_CONTENT" ]; then
+            echo "Warning: No unreleased changes found in CHANGELOG.md"
+            CHANGELOG_CONTENT="Release v${VERSION}"
+          fi
+          
+          # Save to file for multiline content
+          echo "$CHANGELOG_CONTENT" > /tmp/release_notes.txt
+      
+      - name: Update CHANGELOG.md
+        run: |
+          VERSION="${{ inputs.version }}"
+          DATE=$(date +%Y-%m-%d)
+          
+          # Create a temporary file
+          TMP_FILE=$(mktemp)
+          
+          # Read the changelog and update it
+          awk -v version="$VERSION" -v date="$DATE" '
+          /^## \[Unreleased\]$/ {
+            # Add new empty Unreleased section
+            print "## [Unreleased]\n"
+            print "---\n"
+            # Add the new version section
+            print "## [" version "] - " date
+            in_unreleased = 1
+            next
+          }
+          /^## \[/ && in_unreleased {
+            # End of unreleased section, continue normally
+            in_unreleased = 0
+          }
+          { print }
+          ' CHANGELOG.md > "$TMP_FILE"
+          
+          # Add version comparison link at the end if not already present
+          if ! grep -q "^\[${VERSION}\]:" CHANGELOG.md; then
+            # Get the previous version from changelog
+            PREV_VERSION=$(grep -oP '^\[\K[0-9]+\.[0-9]+\.[0-9]+(?=\]:)' CHANGELOG.md | head -1)
+            
+            if [ -n "$PREV_VERSION" ]; then
+              # Update the pattern to insert new link before the first existing version link
+              sed -i "/^\[${PREV_VERSION}\]:/i [${VERSION}]: https://github.com/YousefHadder/markdown-plus.nvim/compare/v${PREV_VERSION}...v${VERSION}" "$TMP_FILE"
+            else
+              # If no previous version found, just append
+              echo "[${VERSION}]: https://github.com/YousefHadder/markdown-plus.nvim/releases/tag/v${VERSION}" >> "$TMP_FILE"
+            fi
+          fi
+          
+          # Replace original file
+          mv "$TMP_FILE" CHANGELOG.md
+          
+          echo "Updated CHANGELOG.md:"
+          head -20 CHANGELOG.md
+      
+      - name: Create versioned rockspec
+        run: |
+          VERSION="${{ inputs.version }}"
+          ROCKSPEC_FILE="markdown-plus.nvim-${VERSION}-1.rockspec"
+          
+          # Copy from scm rockspec and update version and tag
+          cp markdown-plus.nvim-scm-1.rockspec "$ROCKSPEC_FILE"
+          
+          # Update version
+          sed -i "s/version = \"scm-1\"/version = \"${VERSION}-1\"/" "$ROCKSPEC_FILE"
+          
+          # Add tag field after url using awk for reliable multiline insertion
+          awk -v version="$VERSION" '
+          /^  url = "git:\/\/github.com\/yousefhadder\/markdown-plus.nvim.git",?$/ {
+            # Remove trailing comma if present and add it back with tag
+            gsub(/,$/, "")
+            print $0 ","
+            print "  tag = \"v" version "\","
+            next
+          }
+          { print }
+          ' "$ROCKSPEC_FILE" > "${ROCKSPEC_FILE}.tmp"
+          mv "${ROCKSPEC_FILE}.tmp" "$ROCKSPEC_FILE"
+          
+          echo "Created $ROCKSPEC_FILE"
+          cat "$ROCKSPEC_FILE"
+      
+      - name: Commit and push changes
+        run: |
+          VERSION="${{ inputs.version }}"
+          ROCKSPEC_FILE="markdown-plus.nvim-${VERSION}-1.rockspec"
+          
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add "$ROCKSPEC_FILE" CHANGELOG.md
+          git commit -m "chore: release v${VERSION}
+          
+          - Add rockspec for v${VERSION}
+          - Update CHANGELOG.md for v${VERSION} release"
+          git push origin main
+      
+      - name: Create and push tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Tag the latest commit (which includes CHANGELOG and rockspec)
+          git tag -a "v${{ inputs.version }}" -m "Release v${{ inputs.version }}"
+          git push origin "v${{ inputs.version }}"
+      
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "v${{ inputs.version }}" \
+            --title "v${{ inputs.version }}" \
+            --notes-file /tmp/release_notes.txt
+      
+      - name: Summary
+        run: |
+          echo "✅ Release v${{ inputs.version }} created successfully!"
+          echo "📦 Tag: v${{ inputs.version }}"
+          echo "🔗 Release URL: https://github.com/${{ github.repository }}/releases/tag/v${{ inputs.version }}"
+          echo "🪨 Rockspec: markdown-plus.nvim-${{ inputs.version }}-1.rockspec"
+          echo ""
+          echo "Next: The release-to-luarocks workflow will automatically publish to LuaRocks"

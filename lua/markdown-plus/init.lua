@@ -22,22 +22,66 @@ M.format = nil
 M.links = nil
 M.headers = nil
 
+---Get user configuration from vim.g.markdown_plus
+---Supports both table and function forms
+---@return markdown-plus.Config
+local function get_vim_g_config()
+  local vim_g = vim.g.markdown_plus
+
+  if vim_g == nil then
+    return {}
+  end
+
+  if type(vim_g) == "table" then
+    return vim_g
+  elseif type(vim_g) == "function" then
+    local ok, result = pcall(vim_g)
+    if ok and type(result) == "table" then
+      return result
+    elseif ok then
+      vim.notify(
+        string.format("markdown-plus.nvim: vim.g.markdown_plus function returned %s instead of a table", type(result)),
+        vim.log.levels.WARN
+      )
+      return {}
+    else
+      vim.notify(
+        string.format("markdown-plus.nvim: vim.g.markdown_plus function failed: %s", tostring(result)),
+        vim.log.levels.ERROR
+      )
+      return {}
+    end
+  else
+    vim.notify(
+      string.format("markdown-plus.nvim: vim.g.markdown_plus must be a table or function, got %s", type(vim_g)),
+      vim.log.levels.WARN
+    )
+    return {}
+  end
+end
+
 ---Setup markdown-plus.nvim with user configuration
+---Configuration priority: vim.g.markdown_plus < setup(opts)
 ---@param opts? markdown-plus.Config User configuration
 ---@return nil
 function M.setup(opts)
   opts = opts or {}
 
-  -- Validate configuration
+  -- Get vim.g config and merge with setup() parameter
+  -- setup() parameter takes precedence over vim.g
+  local vim_g_config = get_vim_g_config()
+  local merged_opts = vim.tbl_deep_extend("force", vim_g_config, opts)
+
+  -- Validate merged configuration
   local validator = require("markdown-plus.config.validate")
-  local ok, err = validator.validate(opts)
+  local ok, err = validator.validate(merged_opts)
   if not ok then
     vim.notify(string.format("markdown-plus.nvim: Invalid configuration\n%s", err), vim.log.levels.ERROR)
     return
   end
 
-  -- Merge user config with defaults
-  M.config = vim.tbl_deep_extend("force", M.config, opts)
+  -- Merge validated config with defaults
+  M.config = vim.tbl_deep_extend("force", M.config, merged_opts)
 
   -- Only load if enabled
   if not M.config.enabled then

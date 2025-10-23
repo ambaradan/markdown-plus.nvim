@@ -1,10 +1,12 @@
 ---@meta
 
 ---User configuration for markdown-plus.nvim
+---Can be provided via setup() or vim.g.markdown_plus (table or function)
 ---@class markdown-plus.Config
 ---@field enabled? boolean Enable the plugin (default: true)
 ---@field features? markdown-plus.FeatureConfig Feature toggles
 ---@field keymaps? markdown-plus.KeymapConfig Keymap configuration
+---@field filetypes? string[] Filetypes to enable plugin for (default: {"markdown"})
 
 ---Feature configuration
 ---@class markdown-plus.FeatureConfig
