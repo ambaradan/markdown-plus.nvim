@@ -124,9 +124,21 @@ jobs:
           # Copy from scm rockspec and update version and tag
           cp markdown-plus.nvim-scm-1.rockspec "$ROCKSPEC_FILE"
           
-          # Update version and tag in the new rockspec
+          # Update version
           sed -i "s/version = \"scm-1\"/version = \"${VERSION}-1\"/" "$ROCKSPEC_FILE"
-          sed -i "s|url = \"git://github.com/yousefhadder/markdown-plus.nvim.git\"|url = \"git://github.com/yousefhadder/markdown-plus.nvim.git\",\n  tag = \"v${VERSION}\"|" "$ROCKSPEC_FILE"
+          
+          # Add tag field after url using awk for reliable multiline insertion
+          awk -v version="$VERSION" '
+          /^  url = "git:\/\/github.com\/yousefhadder\/markdown-plus.nvim.git",?$/ {
+            # Remove trailing comma if present and add it back with tag
+            gsub(/,$/, "")
+            print $0 ","
+            print "  tag = \"v" version "\","
+            next
+          }
+          { print }
+          ' "$ROCKSPEC_FILE" > "${ROCKSPEC_FILE}.tmp"
+          mv "${ROCKSPEC_FILE}.tmp" "$ROCKSPEC_FILE"
           
           echo "Created $ROCKSPEC_FILE"
           cat "$ROCKSPEC_FILE"

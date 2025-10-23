@@ -41,7 +41,7 @@ local function get_vim_g_config()
     elseif ok then
       vim.notify(
         string.format("markdown-plus.nvim: vim.g.markdown_plus function returned %s instead of a table", type(result)),
-        vim.log.levels.ERROR
+        vim.log.levels.WARN
       )
       return {}
     else
