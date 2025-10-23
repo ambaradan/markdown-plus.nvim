@@ -67,6 +67,28 @@ A comprehensive Neovim plugin that provides modern markdown editing capabilities
 ## Installation
 
 <details>
+<summary>Using LuaRocks</summary>
+
+```bash
+# Install via LuaRocks
+luarocks install markdown-plus.nvim
+
+# Or install development version
+luarocks install --server=https://luarocks.org/dev markdown-plus.nvim
+```
+
+Then add to your Neovim configuration:
+
+```lua
+-- No plugin manager needed, already installed via LuaRocks
+require("markdown-plus").setup({
+  -- Your configuration here
+})
+```
+
+</details>
+
+<details>
 <summary>Using lazy.nvim</summary>
 
 ```lua
@@ -606,6 +628,100 @@ require("markdown-plus").setup({
 
 </details>
 
+### Alternative Configuration Methods
+
+<details>
+<summary>Using vim.g (for Vimscript compatibility)</summary>
+
+If you prefer not to call `setup()` or need Vimscript compatibility, you can configure the plugin using `vim.g.markdown_plus`:
+
+#### Using a Table (Lua)
+
+```lua
+-- Set before the plugin loads (e.g., in init.lua)
+vim.g.markdown_plus = {
+  enabled = true,
+  features = {
+    list_management = true,
+    text_formatting = true,
+  },
+  keymaps = {
+    enabled = false,  -- Disable default keymaps
+  },
+  filetypes = { "markdown", "text" },
+}
+
+-- No need to call setup() if you only use vim.g
+-- The plugin will automatically use vim.g configuration
+```
+
+#### Using a Table (Vimscript)
+
+```vim
+" Set before the plugin loads (e.g., in init.vim)
+let g:markdown_plus = #{
+  \ enabled: v:true,
+  \ features: #{
+  \   list_management: v:true,
+  \   text_formatting: v:false
+  \ },
+  \ keymaps: #{
+  \   enabled: v:true
+  \ },
+  \ filetypes: ['markdown', 'text']
+  \ }
+```
+
+#### Using a Function (Dynamic Configuration)
+
+For dynamic configuration based on runtime conditions:
+
+```lua
+vim.g.markdown_plus = function()
+  return {
+    enabled = vim.fn.has("nvim-0.10") == 1,  -- Only enable on Neovim 0.10+
+    features = {
+      list_management = true,
+      text_formatting = not vim.g.vscode,  -- Disable in VSCode
+    },
+  }
+end
+```
+
+#### Configuration Priority
+
+When both `vim.g.markdown_plus` and `setup()` are used, they are merged with the following priority:
+
+1. **Lowest**: Default configuration
+2. **Middle**: `vim.g.markdown_plus` configuration
+3. **Highest**: `setup(opts)` parameter
+
+Example:
+```lua
+-- This vim.g config sets list_management = false
+vim.g.markdown_plus = {
+  features = {
+    list_management = false,
+  },
+}
+
+-- But setup() overrides it to true
+require("markdown-plus").setup({
+  features = {
+    list_management = true,  -- Takes precedence over vim.g
+  },
+})
+
+-- Result: list_management will be true
+```
+
+This allows you to:
+- Set global defaults with `vim.g`
+- Override specific settings with `setup()` for certain filetypes or conditions
+- Mix both methods for maximum flexibility
+
+</details>
+
 ## Customizing Keymaps
 
 <details>
@@ -747,24 +863,6 @@ Note: The plugin uses `hasmapto()` to check if a `<Plug>` mapping is already map
 
 </details>
 
-## Tips & Best Practices
-
-<details>
-<summary>Helpful Tips</summary>
-
-### Text Formatting Behavior
-- **Toggle functionality**: Pressing the same keymap twice will add then remove formatting
-- **Word detection**: In normal mode, the cursor can be anywhere in the word - the entire word will be formatted
-- **Multi-word support**: Use visual mode to format phrases or multiple words
-- **Special characters**: Words with hyphens, dots, and underscores are treated as single words
-- **Clear formatting**: `<leader>mC` removes ALL formatting types in one go (bold, italic, code, strikethrough)
-
-### List Management Tips
-- **Auto-continuation**: Press Enter on a list item to automatically create the next one
-- **Breaking out**: Press Enter twice on an empty list item to exit the list
-- **Smart indentation**: Tab/Shift+Tab works on list items without breaking formatting
-- **Auto-renumbering**: Ordered lists automatically renumber when you add/remove items
-- **Mixed lists**: You can have nested ordered lists inside unordered lists and vice versa
 
 ### Workflow Examples
 ```markdown
