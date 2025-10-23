@@ -38,8 +38,20 @@ local function get_vim_g_config()
     local ok, result = pcall(vim_g)
     if ok and type(result) == "table" then
       return result
+    elseif ok then
+      vim.notify(
+        string.format(
+          "markdown-plus.nvim: vim.g.markdown_plus function returned %s instead of a table",
+          type(result)
+        ),
+        vim.log.levels.ERROR
+      )
+      return {}
     else
-      vim.notify("markdown-plus.nvim: vim.g.markdown_plus function must return a table", vim.log.levels.ERROR)
+      vim.notify(
+        string.format("markdown-plus.nvim: vim.g.markdown_plus function failed: %s", tostring(result)),
+        vim.log.levels.ERROR
+      )
       return {}
     end
   else
