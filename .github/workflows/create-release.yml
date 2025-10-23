@@ -101,21 +101,6 @@ jobs:
           echo "Updated CHANGELOG.md:"
           head -20 CHANGELOG.md
       
-      - name: Create and push tag
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag -a "v${{ inputs.version }}" -m "Release v${{ inputs.version }}"
-          git push origin "v${{ inputs.version }}"
-      
-      - name: Create GitHub Release
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh release create "v${{ inputs.version }}" \
-            --title "v${{ inputs.version }}" \
-            --notes-file /tmp/release_notes.txt
-      
       - name: Create versioned rockspec
         run: |
           VERSION="${{ inputs.version }}"
@@ -152,10 +137,27 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add "$ROCKSPEC_FILE" CHANGELOG.md
           git commit -m "chore: release v${VERSION}
-
-- Add rockspec for v${VERSION}
-- Update CHANGELOG.md for v${VERSION} release"
+          
+          - Add rockspec for v${VERSION}
+          - Update CHANGELOG.md for v${VERSION} release"
           git push origin main
+      
+      - name: Create and push tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Tag the latest commit (which includes CHANGELOG and rockspec)
+          git tag -a "v${{ inputs.version }}" -m "Release v${{ inputs.version }}"
+          git push origin "v${{ inputs.version }}"
+      
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "v${{ inputs.version }}" \
+            --title "v${{ inputs.version }}" \
+            --notes-file /tmp/release_notes.txt
       
       - name: Summary
         run: |
