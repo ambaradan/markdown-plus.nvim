@@ -28,16 +28,16 @@ M.patterns = {
   ordered = "^(%s*)(%d+)%.%s+",
   checkbox = "^(%s*)([%-%+%*])%s+%[(.?)%]%s+",
   ordered_checkbox = "^(%s*)(%d+)%.%s+%[(.?)%]%s+",
-  letter_lower = "^(%s*)([a-z]+)%.%s+",
-  letter_upper = "^(%s*)([A-Z]+)%.%s+",
-  letter_lower_checkbox = "^(%s*)([a-z]+)%.%s+%[(.?)%]%s+",
-  letter_upper_checkbox = "^(%s*)([A-Z]+)%.%s+%[(.?)%]%s+",
+  letter_lower = "^(%s*)([a-z])%.%s+",
+  letter_upper = "^(%s*)([A-Z])%.%s+",
+  letter_lower_checkbox = "^(%s*)([a-z])%.%s+%[(.?)%]%s+",
+  letter_upper_checkbox = "^(%s*)([A-Z])%.%s+%[(.?)%]%s+",
   ordered_paren = "^(%s*)(%d+)%)%s+",
-  letter_lower_paren = "^(%s*)([a-z]+)%)%s+",
-  letter_upper_paren = "^(%s*)([A-Z]+)%)%s+",
+  letter_lower_paren = "^(%s*)([a-z])%)%s+",
+  letter_upper_paren = "^(%s*)([A-Z])%)%s+",
   ordered_paren_checkbox = "^(%s*)(%d+)%)%s+%[(.?)%]%s+",
-  letter_lower_paren_checkbox = "^(%s*)([a-z]+)%)%s+%[(.?)%]%s+",
-  letter_upper_paren_checkbox = "^(%s*)([A-Z]+)%)%s+%[(.?)%]%s+",
+  letter_lower_paren_checkbox = "^(%s*)([a-z])%)%s+%[(.?)%]%s+",
+  letter_upper_paren_checkbox = "^(%s*)([A-Z])%)%s+%[(.?)%]%s+",
 }
 
 ---Setup list management module
@@ -381,45 +381,31 @@ function M.break_out_of_list(list_info)
   utils.set_cursor(row, #list_info.indent)
 end
 
----Convert index to letter sequence (1->a, 27->aa, etc.)
+---Convert index to single letter (1->a, 26->z, 27->a)
 ---@param idx number Index (1-based)
 ---@param is_upper boolean Whether to use uppercase
----@return string Letter sequence
+---@return string Single letter
 function M.index_to_letter(idx, is_upper)
   local base = is_upper and string.byte("A") or string.byte("a")
-  local result = ""
-  local n = idx
-
-  while n > 0 do
-    local remainder = (n - 1) % 26
-    result = string.char(base + remainder) .. result
-    n = math.floor((n - 1) / 26)
-  end
-
-  return result
+  -- Wrap around after 26 letters
+  local letter_idx = ((idx - 1) % 26)
+  return string.char(base + letter_idx)
 end
 
----Get next letter in sequence (a->b, z->aa, A->B, Z->AA)
----@param letter string Current letter
+---Get next letter in sequence (a->b, z->a)
+---@param letter string Current letter (single character)
 ---@param is_upper boolean Whether to use uppercase
 ---@return string Next letter in sequence
 function M.next_letter(letter, is_upper)
-  local byte = string.byte(letter, #letter)
+  local byte = string.byte(letter)
   local base = is_upper and string.byte("A") or string.byte("a")
   local max = is_upper and string.byte("Z") or string.byte("z")
 
   if byte < max then
-    -- Simple case: increment letter
-    return letter:sub(1, -2) .. string.char(byte + 1)
+    return string.char(byte + 1)
   else
-    -- Wrap around: z->aa, zz->aaa, Z->AA, ZZ->AAA
-    if #letter == 1 then
-      return string.char(base) .. string.char(base)
-    else
-      -- Increment previous letters and reset this one
-      local prev = M.next_letter(letter:sub(1, -2), is_upper)
-      return prev .. string.char(base)
-    end
+    -- Wrap around: z->a, Z->A
+    return string.char(base)
   end
 end
 
@@ -493,7 +479,10 @@ function M.handle_tab()
   local indent_size = vim.bo.shiftwidth
 
   local new_indent = list_info.indent .. string.rep(" ", indent_size)
-  local new_line = new_indent .. list_info.full_marker .. " " .. current_line:match(list_info.full_marker .. "%s*(.*)")
+  -- Extract content after the marker (position-based to avoid pattern issues with parentheses)
+  local marker_end = #list_info.indent + #list_info.full_marker
+  local content = current_line:sub(marker_end + 1):match("^%s*(.*)")
+  local new_line = new_indent .. list_info.full_marker .. " " .. content
 
   utils.set_line(row, new_line)
 
@@ -532,7 +521,9 @@ function M.handle_shift_tab()
   end
 
   local new_indent = list_info.indent:sub(1, -indent_size - 1)
-  local content = current_line:match(list_info.full_marker .. "%s*(.*)")
+  -- Extract content after the marker (position-based to avoid pattern issues with parentheses)
+  local marker_end = #list_info.indent + #list_info.full_marker
+  local content = current_line:sub(marker_end + 1):match("^%s*(.*)")
   local new_line = new_indent .. list_info.full_marker .. " " .. (content or "")
 
   utils.set_line(row, new_line)
