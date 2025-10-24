@@ -85,7 +85,9 @@ end
 ---@return nil
 function M.toggle_quote_on_line(line_num)
   local line = utils.get_line(line_num)
-  if line:match("^%s*>%s") then
+  if line == "" then
+    return -- Do nothing for empty lines
+  elseif line:match("^%s*>%s?") then
     -- Remove blockquote
     line = line:gsub("^%s*>%s?", "", 1)
   else
