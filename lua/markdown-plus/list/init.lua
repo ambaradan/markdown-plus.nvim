@@ -15,6 +15,12 @@ M.config = {}
 ---@field letter_upper string Pattern for uppercase letter lists (A., B., C.)
 ---@field letter_lower_checkbox string Pattern for lowercase letter checkbox lists (a. [ ])
 ---@field letter_upper_checkbox string Pattern for uppercase letter checkbox lists (A. [ ])
+---@field ordered_paren string Pattern for parenthesized ordered lists (1), 2), etc.)
+---@field letter_lower_paren string Pattern for parenthesized lowercase letter lists (a), b), c.)
+---@field letter_upper_paren string Pattern for parenthesized uppercase letter lists (A), B), C.)
+---@field ordered_paren_checkbox string Pattern for parenthesized ordered checkbox lists (1) [ ])
+---@field letter_lower_paren_checkbox string Pattern for parenthesized lowercase letter checkbox lists (a) [ ])
+---@field letter_upper_paren_checkbox string Pattern for parenthesized uppercase letter checkbox lists (A) [ ])
 
 ---@type markdown-plus.list.Patterns
 M.patterns = {
@@ -26,6 +32,12 @@ M.patterns = {
   letter_upper = "^(%s*)([A-Z])%.%s+",
   letter_lower_checkbox = "^(%s*)([a-z])%.%s+%[(.?)%]%s+",
   letter_upper_checkbox = "^(%s*)([A-Z])%.%s+%[(.?)%]%s+",
+  ordered_paren = "^(%s*)(%d+)%)%s+",
+  letter_lower_paren = "^(%s*)([a-z])%)%s+",
+  letter_upper_paren = "^(%s*)([A-Z])%)%s+",
+  ordered_paren_checkbox = "^(%s*)(%d+)%)%s+%[(.?)%]%s+",
+  letter_lower_paren_checkbox = "^(%s*)([a-z])%)%s+%[(.?)%]%s+",
+  letter_upper_paren_checkbox = "^(%s*)([A-Z])%)%s+%[(.?)%]%s+",
 }
 
 ---Setup list management module
@@ -224,6 +236,42 @@ function M.parse_list_line(line)
     }
   end
 
+  -- Try parenthesized ordered list with checkbox
+  local indent_op, number_op, checkbox_op = line:match(M.patterns.ordered_paren_checkbox)
+  if indent_op and number_op and checkbox_op then
+    return {
+      type = "ordered_paren",
+      indent = indent_op,
+      marker = number_op .. ")",
+      checkbox = checkbox_op,
+      full_marker = number_op .. ") [" .. checkbox_op .. "]",
+    }
+  end
+
+  -- Try parenthesized lowercase letter list with checkbox
+  local indent_lp, letter_lp, checkbox_lp = line:match(M.patterns.letter_lower_paren_checkbox)
+  if indent_lp and letter_lp and checkbox_lp then
+    return {
+      type = "letter_lower_paren",
+      indent = indent_lp,
+      marker = letter_lp .. ")",
+      checkbox = checkbox_lp,
+      full_marker = letter_lp .. ") [" .. checkbox_lp .. "]",
+    }
+  end
+
+  -- Try parenthesized uppercase letter list with checkbox
+  local indent_up, letter_up, checkbox_up = line:match(M.patterns.letter_upper_paren_checkbox)
+  if indent_up and letter_up and checkbox_up then
+    return {
+      type = "letter_upper_paren",
+      indent = indent_up,
+      marker = letter_up .. ")",
+      checkbox = checkbox_up,
+      full_marker = letter_up .. ") [" .. checkbox_up .. "]",
+    }
+  end
+
   -- Try ordered list
   local indent3, number2 = line:match(M.patterns.ordered)
   if indent3 and number2 then
@@ -257,6 +305,42 @@ function M.parse_list_line(line)
       marker = letter_u2 .. ".",
       checkbox = nil,
       full_marker = letter_u2 .. ".",
+    }
+  end
+
+  -- Try parenthesized ordered list
+  local indent_op2, number_op2 = line:match(M.patterns.ordered_paren)
+  if indent_op2 and number_op2 then
+    return {
+      type = "ordered_paren",
+      indent = indent_op2,
+      marker = number_op2 .. ")",
+      checkbox = nil,
+      full_marker = number_op2 .. ")",
+    }
+  end
+
+  -- Try parenthesized lowercase letter list
+  local indent_lp2, letter_lp2 = line:match(M.patterns.letter_lower_paren)
+  if indent_lp2 and letter_lp2 then
+    return {
+      type = "letter_lower_paren",
+      indent = indent_lp2,
+      marker = letter_lp2 .. ")",
+      checkbox = nil,
+      full_marker = letter_lp2 .. ")",
+    }
+  end
+
+  -- Try parenthesized uppercase letter list
+  local indent_up2, letter_up2 = line:match(M.patterns.letter_upper_paren)
+  if indent_up2 and letter_up2 then
+    return {
+      type = "letter_upper_paren",
+      indent = indent_up2,
+      marker = letter_up2 .. ")",
+      checkbox = nil,
+      full_marker = letter_up2 .. ")",
     }
   end
 
@@ -349,14 +433,26 @@ function M.create_next_list_item(list_info)
     -- Get next number
     local current_num = tonumber(list_info.marker:match("(%d+)"))
     next_marker = (current_num + 1) .. "."
+  elseif list_info.type == "ordered_paren" then
+    -- Get next number for parenthesized
+    local current_num = tonumber(list_info.marker:match("(%d+)"))
+    next_marker = (current_num + 1) .. ")"
   elseif list_info.type == "letter_lower" then
     -- Get next lowercase letter
     local current_letter = list_info.marker:match("([a-z]+)")
     next_marker = M.next_letter(current_letter, false) .. "."
+  elseif list_info.type == "letter_lower_paren" then
+    -- Get next lowercase letter for parenthesized
+    local current_letter = list_info.marker:match("([a-z]+)")
+    next_marker = M.next_letter(current_letter, false) .. ")"
   elseif list_info.type == "letter_upper" then
     -- Get next uppercase letter
     local current_letter = list_info.marker:match("([A-Z]+)")
     next_marker = M.next_letter(current_letter, true) .. "."
+  elseif list_info.type == "letter_upper_paren" then
+    -- Get next uppercase letter for parenthesized
+    local current_letter = list_info.marker:match("([A-Z]+)")
+    next_marker = M.next_letter(current_letter, true) .. ")"
   else
     -- Keep same bullet
     next_marker = list_info.marker
@@ -510,8 +606,12 @@ function M.handle_normal_o()
     -- Get next number
     local current_num = tonumber(list_info.marker:match("(%d+)"))
     next_marker = (current_num + 1) .. "."
+  elseif list_info.type == "ordered_paren" then
+    -- Get next number for parenthesized
+    local current_num = tonumber(list_info.marker:match("(%d+)"))
+    next_marker = (current_num + 1) .. ")"
   else
-    -- Keep same bullet
+    -- Keep same bullet/marker
     next_marker = list_info.marker
   end
 
@@ -550,26 +650,27 @@ function M.handle_normal_O()
   -- For 'O', we need to create a list item before the current one
   -- This means we need to determine what the previous number should be
   local prev_marker
-  if list_info.type == "ordered" then
+  if list_info.type == "ordered" or list_info.type == "ordered_paren" then
+    local delimiter = list_info.type == "ordered_paren" and ")" or "."
     -- Check if there's a previous line that might be a list item
     if row > 1 then
       local prev_line = utils.get_line(row - 1)
       local prev_list_info = M.parse_list_line(prev_line)
 
-      if prev_list_info and prev_list_info.type == "ordered" and #prev_list_info.indent == #list_info.indent then
+      if prev_list_info and prev_list_info.type == list_info.type and #prev_list_info.indent == #list_info.indent then
         -- There's a previous ordered list item at same indent, use its number + 1
         local prev_num_actual = tonumber(prev_list_info.marker:match("(%d+)"))
-        prev_marker = (prev_num_actual + 1) .. "."
+        prev_marker = (prev_num_actual + 1) .. delimiter
       else
         -- No previous list item, this will become item 1, current will be renumbered
-        prev_marker = "1."
+        prev_marker = "1" .. delimiter
       end
     else
       -- At top of document
-      prev_marker = "1."
+      prev_marker = "1" .. delimiter
     end
   else
-    -- Keep same bullet for unordered lists
+    -- Keep same bullet for unordered lists and letter lists
     prev_marker = list_info.marker
   end
 
@@ -625,7 +726,14 @@ function M.find_list_groups(lines)
 
     if
       list_info
-      and (list_info.type == "ordered" or list_info.type == "letter_lower" or list_info.type == "letter_upper")
+      and (
+        list_info.type == "ordered"
+        or list_info.type == "letter_lower"
+        or list_info.type == "letter_upper"
+        or list_info.type == "ordered_paren"
+        or list_info.type == "letter_lower_paren"
+        or list_info.type == "letter_upper_paren"
+      )
     then
       local indent_level = #list_info.indent
       local list_type = list_info.type
@@ -697,10 +805,16 @@ function M.renumber_list_group(group)
     -- Determine expected marker based on list type
     if group.list_type == "ordered" then
       expected_marker = idx .. "."
+    elseif group.list_type == "ordered_paren" then
+      expected_marker = idx .. ")"
     elseif group.list_type == "letter_lower" then
       expected_marker = M.index_to_letter(idx, false) .. "."
+    elseif group.list_type == "letter_lower_paren" then
+      expected_marker = M.index_to_letter(idx, false) .. ")"
     elseif group.list_type == "letter_upper" then
       expected_marker = M.index_to_letter(idx, true) .. "."
+    elseif group.list_type == "letter_upper_paren" then
+      expected_marker = M.index_to_letter(idx, true) .. ")"
     end
 
     local expected_line = item.indent .. expected_marker .. checkbox_part .. " " .. item.content
