@@ -677,27 +677,17 @@ function M.renumber_list_group(group)
     if group.list_type == "ordered" then
       expected_marker = idx .. "."
     elseif group.list_type == "letter_lower" then
-      -- Start with 'a' and increment
-      local letter = string.char(string.byte('a') + idx - 1)
-      if idx > 26 then
-        -- Handle multi-letter (aa, ab, etc.)
-        local letter_val = 'a'
-        for _ = 1, idx - 1 do
-          letter_val = M.next_letter(letter_val, false)
-        end
-        letter = letter_val
+      -- Start with 'a' and increment using next_letter()
+      local letter = 'a'
+      for _ = 1, idx - 1 do
+        letter = M.next_letter(letter, false)
       end
       expected_marker = letter .. "."
     elseif group.list_type == "letter_upper" then
-      -- Start with 'A' and increment
-      local letter = string.char(string.byte('A') + idx - 1)
-      if idx > 26 then
-        -- Handle multi-letter (AA, AB, etc.)
-        local letter_val = 'A'
-        for _ = 1, idx - 1 do
-          letter_val = M.next_letter(letter_val, true)
-        end
-        letter = letter_val
+      -- Start with 'A' and increment using next_letter()
+      local letter = 'A'
+      for _ = 1, idx - 1 do
+        letter = M.next_letter(letter, true)
       end
       expected_marker = letter .. "."
     end
