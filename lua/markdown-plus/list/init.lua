@@ -11,6 +11,10 @@ M.config = {}
 ---@field ordered string Pattern for ordered lists (1., 2., etc.)
 ---@field checkbox string Pattern for checkbox lists (- [ ], - [x], etc.)
 ---@field ordered_checkbox string Pattern for ordered checkbox lists (1. [ ], etc.)
+---@field letter_lower string Pattern for lowercase letter lists (a., b., c.)
+---@field letter_upper string Pattern for uppercase letter lists (A., B., C.)
+---@field letter_lower_checkbox string Pattern for lowercase letter checkbox lists (a. [ ])
+---@field letter_upper_checkbox string Pattern for uppercase letter checkbox lists (A. [ ])
 
 ---@type markdown-plus.list.Patterns
 M.patterns = {
@@ -18,6 +22,10 @@ M.patterns = {
   ordered = "^(%s*)(%d+)%.%s+",
   checkbox = "^(%s*)([%-%+%*])%s+%[(.?)%]%s+",
   ordered_checkbox = "^(%s*)(%d+)%.%s+%[(.?)%]%s+",
+  letter_lower = "^(%s*)([a-z])%.%s+",
+  letter_upper = "^(%s*)([A-Z])%.%s+",
+  letter_lower_checkbox = "^(%s*)([a-z])%.%s+%[(.?)%]%s+",
+  letter_upper_checkbox = "^(%s*)([A-Z])%.%s+%[(.?)%]%s+",
 }
 
 ---Setup list management module
@@ -180,6 +188,30 @@ function M.parse_list_line(line)
     }
   end
 
+  -- Try lowercase letter list with checkbox
+  local indent_ll, letter_l, checkbox_ll = line:match(M.patterns.letter_lower_checkbox)
+  if indent_ll and letter_l and checkbox_ll then
+    return {
+      type = "letter_lower",
+      indent = indent_ll,
+      marker = letter_l .. ".",
+      checkbox = checkbox_ll,
+      full_marker = letter_l .. ". [" .. checkbox_ll .. "]",
+    }
+  end
+
+  -- Try uppercase letter list with checkbox
+  local indent_lu, letter_u, checkbox_lu = line:match(M.patterns.letter_upper_checkbox)
+  if indent_lu and letter_u and checkbox_lu then
+    return {
+      type = "letter_upper",
+      indent = indent_lu,
+      marker = letter_u .. ".",
+      checkbox = checkbox_lu,
+      full_marker = letter_u .. ". [" .. checkbox_lu .. "]",
+    }
+  end
+
   -- Try unordered list with checkbox
   local indent2, bullet, checkbox2 = line:match(M.patterns.checkbox)
   if indent2 and bullet and checkbox2 then
@@ -201,6 +233,30 @@ function M.parse_list_line(line)
       marker = number2 .. ".",
       checkbox = nil,
       full_marker = number2 .. ".",
+    }
+  end
+
+  -- Try lowercase letter list
+  local indent_l2, letter_l2 = line:match(M.patterns.letter_lower)
+  if indent_l2 and letter_l2 then
+    return {
+      type = "letter_lower",
+      indent = indent_l2,
+      marker = letter_l2 .. ".",
+      checkbox = nil,
+      full_marker = letter_l2 .. ".",
+    }
+  end
+
+  -- Try uppercase letter list
+  local indent_u2, letter_u2 = line:match(M.patterns.letter_upper)
+  if indent_u2 and letter_u2 then
+    return {
+      type = "letter_upper",
+      indent = indent_u2,
+      marker = letter_u2 .. ".",
+      checkbox = nil,
+      full_marker = letter_u2 .. ".",
     }
   end
 
@@ -241,6 +297,30 @@ function M.break_out_of_list(list_info)
   utils.set_cursor(row, #list_info.indent)
 end
 
+---Get next letter in sequence (a->b, z->aa, A->B, Z->AA)
+---@param letter string Current letter
+---@param is_upper boolean Whether to use uppercase
+---@return string Next letter in sequence
+function M.next_letter(letter, is_upper)
+  local byte = string.byte(letter, #letter)
+  local base = is_upper and string.byte('A') or string.byte('a')
+  local max = is_upper and string.byte('Z') or string.byte('z')
+
+  if byte < max then
+    -- Simple case: increment letter
+    return letter:sub(1, -2) .. string.char(byte + 1)
+  else
+    -- Wrap around: z->aa, zz->aaa, Z->AA, ZZ->AAA
+    if #letter == 1 then
+      return string.char(base) .. string.char(base)
+    else
+      -- Increment previous letters and reset this one
+      local prev = M.next_letter(letter:sub(1, -2), is_upper)
+      return prev .. string.char(base)
+    end
+  end
+end
+
 -- Create next list item
 function M.create_next_list_item(list_info)
   local cursor = utils.get_cursor()
@@ -251,6 +331,14 @@ function M.create_next_list_item(list_info)
     -- Get next number
     local current_num = tonumber(list_info.marker:match("(%d+)"))
     next_marker = (current_num + 1) .. "."
+  elseif list_info.type == "letter_lower" then
+    -- Get next lowercase letter
+    local current_letter = list_info.marker:match("([a-z]+)")
+    next_marker = M.next_letter(current_letter, false) .. "."
+  elseif list_info.type == "letter_upper" then
+    -- Get next uppercase letter
+    local current_letter = list_info.marker:match("([A-Z]+)")
+    next_marker = M.next_letter(current_letter, true) .. "."
   else
     -- Keep same bullet
     next_marker = list_info.marker
@@ -517,20 +605,23 @@ function M.find_list_groups(lines)
   for i, line in ipairs(lines) do
     local list_info = M.parse_list_line(line)
 
-    if list_info and list_info.type == "ordered" then
+    if list_info and (list_info.type == "ordered" or list_info.type == "letter_lower" or list_info.type == "letter_upper") then
       local indent_level = #list_info.indent
+      local list_type = list_info.type
 
-      -- Check if we have an active group at this indentation level
-      local current_group = current_groups_by_indent[indent_level]
+      -- Check if we have an active group at this indentation level and type
+      local group_key = indent_level .. "_" .. list_type
+      local current_group = current_groups_by_indent[group_key]
 
       if not current_group then
-        -- Create new group for this indentation level
+        -- Create new group for this indentation level and type
         current_group = {
           indent = indent_level,
+          list_type = list_type,
           start_line = i,
           items = {},
         }
-        current_groups_by_indent[indent_level] = current_group
+        current_groups_by_indent[group_key] = current_group
         table.insert(groups, current_group)
       end
 
@@ -543,7 +634,7 @@ function M.find_list_groups(lines)
         original_line = line,
       })
     else
-      -- Not an ordered list item
+      -- Not an ordered/letter list item
       -- Check if this line breaks the list continuity
       if M.is_list_breaking_line(line) then
         -- Clear all active groups (lists are separated by non-list content)
@@ -574,15 +665,44 @@ function M.renumber_list_group(group)
   end
 
   local changes = {}
-  local expected_number = 1
+  local expected_marker
 
-  for _, item in ipairs(group.items) do
+  for idx, item in ipairs(group.items) do
     local checkbox_part = ""
     if item.checkbox then
       checkbox_part = " [" .. item.checkbox .. "]"
     end
 
-    local expected_line = item.indent .. expected_number .. "." .. checkbox_part .. " " .. item.content
+    -- Determine expected marker based on list type
+    if group.list_type == "ordered" then
+      expected_marker = idx .. "."
+    elseif group.list_type == "letter_lower" then
+      -- Start with 'a' and increment
+      local letter = string.char(string.byte('a') + idx - 1)
+      if idx > 26 then
+        -- Handle multi-letter (aa, ab, etc.)
+        local letter_val = 'a'
+        for _ = 1, idx - 1 do
+          letter_val = M.next_letter(letter_val, false)
+        end
+        letter = letter_val
+      end
+      expected_marker = letter .. "."
+    elseif group.list_type == "letter_upper" then
+      -- Start with 'A' and increment
+      local letter = string.char(string.byte('A') + idx - 1)
+      if idx > 26 then
+        -- Handle multi-letter (AA, AB, etc.)
+        local letter_val = 'A'
+        for _ = 1, idx - 1 do
+          letter_val = M.next_letter(letter_val, true)
+        end
+        letter = letter_val
+      end
+      expected_marker = letter .. "."
+    end
+
+    local expected_line = item.indent .. expected_marker .. checkbox_part .. " " .. item.content
 
     -- Only create change if line is different
     if expected_line ~= item.original_line then
@@ -591,8 +711,6 @@ function M.renumber_list_group(group)
         new_line = expected_line,
       })
     end
-
-    expected_number = expected_number + 1
   end
 
   return #changes > 0 and changes or nil
