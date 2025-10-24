@@ -759,7 +759,7 @@ function M.find_list_groups(lines)
         line_num = i,
         indent = list_info.indent,
         checkbox = list_info.checkbox,
-        content = line:match(list_info.full_marker .. "%s*(.*)") or "",
+        content = line:match(utils.escape_pattern(list_info.full_marker) .. "%s*(.*)") or "",
         original_line = line,
       })
     else
