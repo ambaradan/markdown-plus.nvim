@@ -297,6 +297,24 @@ function M.break_out_of_list(list_info)
   utils.set_cursor(row, #list_info.indent)
 end
 
+---Convert index to letter sequence (1->a, 27->aa, etc.)
+---@param idx number Index (1-based)
+---@param is_upper boolean Whether to use uppercase
+---@return string Letter sequence
+function M.index_to_letter(idx, is_upper)
+  local base = is_upper and string.byte("A") or string.byte("a")
+  local result = ""
+  local n = idx
+
+  while n > 0 do
+    local remainder = (n - 1) % 26
+    result = string.char(base + remainder) .. result
+    n = math.floor((n - 1) / 26)
+  end
+
+  return result
+end
+
 ---Get next letter in sequence (a->b, z->aa, A->B, Z->AA)
 ---@param letter string Current letter
 ---@param is_upper boolean Whether to use uppercase
@@ -680,19 +698,9 @@ function M.renumber_list_group(group)
     if group.list_type == "ordered" then
       expected_marker = idx .. "."
     elseif group.list_type == "letter_lower" then
-      -- Start with 'a' and increment using next_letter()
-      local letter = "a"
-      for _ = 1, idx - 1 do
-        letter = M.next_letter(letter, false)
-      end
-      expected_marker = letter .. "."
+      expected_marker = M.index_to_letter(idx, false) .. "."
     elseif group.list_type == "letter_upper" then
-      -- Start with 'A' and increment using next_letter()
-      local letter = "A"
-      for _ = 1, idx - 1 do
-        letter = M.next_letter(letter, true)
-      end
-      expected_marker = letter .. "."
+      expected_marker = M.index_to_letter(idx, true) .. "."
     end
 
     local expected_line = item.indent .. expected_marker .. checkbox_part .. " " .. item.content
