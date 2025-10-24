@@ -303,8 +303,8 @@ end
 ---@return string Next letter in sequence
 function M.next_letter(letter, is_upper)
   local byte = string.byte(letter, #letter)
-  local base = is_upper and string.byte('A') or string.byte('a')
-  local max = is_upper and string.byte('Z') or string.byte('z')
+  local base = is_upper and string.byte("A") or string.byte("a")
+  local max = is_upper and string.byte("Z") or string.byte("z")
 
   if byte < max then
     -- Simple case: increment letter
@@ -605,7 +605,10 @@ function M.find_list_groups(lines)
   for i, line in ipairs(lines) do
     local list_info = M.parse_list_line(line)
 
-    if list_info and (list_info.type == "ordered" or list_info.type == "letter_lower" or list_info.type == "letter_upper") then
+    if
+      list_info
+      and (list_info.type == "ordered" or list_info.type == "letter_lower" or list_info.type == "letter_upper")
+    then
       local indent_level = #list_info.indent
       local list_type = list_info.type
 
@@ -678,14 +681,14 @@ function M.renumber_list_group(group)
       expected_marker = idx .. "."
     elseif group.list_type == "letter_lower" then
       -- Start with 'a' and increment using next_letter()
-      local letter = 'a'
+      local letter = "a"
       for _ = 1, idx - 1 do
         letter = M.next_letter(letter, false)
       end
       expected_marker = letter .. "."
     elseif group.list_type == "letter_upper" then
       -- Start with 'A' and increment using next_letter()
-      local letter = 'A'
+      local letter = "A"
       for _ = 1, idx - 1 do
         letter = M.next_letter(letter, true)
       end
