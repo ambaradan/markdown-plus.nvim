@@ -1058,12 +1058,13 @@ cargo install stylua
 ```
 spec/
 ├── markdown-plus/
-│   ├── config_spec.lua      # Configuration tests
+│   ├── config_spec.lua       # Configuration tests
 │   ├── utils_spec.lua        # Utility function tests
 │   ├── list_spec.lua         # List management tests
 │   ├── headers_spec.lua      # Headers & TOC tests
-│   └── links_spec.lua        # Link management tests
-└── minimal_init.lua           # Test environment setup
+│   ├── links_spec.lua        # Link management tests
+│   └── quote_spec.lua        # Quote management tests
+└── minimal_init.lua          # Test environment setup
 ```
 
 ### Contributing
