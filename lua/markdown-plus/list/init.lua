@@ -648,7 +648,7 @@ function M.handle_normal_O()
   end
 
   -- For 'O', we need to create a list item before the current one
-  -- This means we need to determine what the previous number should be
+  -- This means we need to determine what the previous marker should be
   local prev_marker
   if list_info.type == "ordered" or list_info.type == "ordered_paren" then
     local delimiter = list_info.type == "ordered_paren" and ")" or "."
@@ -669,8 +669,46 @@ function M.handle_normal_O()
       -- At top of document
       prev_marker = "1" .. delimiter
     end
+  elseif list_info.type == "letter_lower" or list_info.type == "letter_lower_paren" then
+    local delimiter = list_info.type == "letter_lower_paren" and ")" or "."
+    -- Check if there's a previous line that might be a list item
+    if row > 1 then
+      local prev_line = utils.get_line(row - 1)
+      local prev_list_info = M.parse_list_line(prev_line)
+
+      if prev_list_info and prev_list_info.type == list_info.type and #prev_list_info.indent == #list_info.indent then
+        -- There's a previous letter list item at same indent, use its letter + 1
+        local prev_letter_actual = prev_list_info.marker:match("([a-z]+)")
+        prev_marker = M.next_letter(prev_letter_actual, false) .. delimiter
+      else
+        -- No previous list item, this will become item 'a', current will be renumbered
+        prev_marker = "a" .. delimiter
+      end
+    else
+      -- At top of document
+      prev_marker = "a" .. delimiter
+    end
+  elseif list_info.type == "letter_upper" or list_info.type == "letter_upper_paren" then
+    local delimiter = list_info.type == "letter_upper_paren" and ")" or "."
+    -- Check if there's a previous line that might be a list item
+    if row > 1 then
+      local prev_line = utils.get_line(row - 1)
+      local prev_list_info = M.parse_list_line(prev_line)
+
+      if prev_list_info and prev_list_info.type == list_info.type and #prev_list_info.indent == #list_info.indent then
+        -- There's a previous letter list item at same indent, use its letter + 1
+        local prev_letter_actual = prev_list_info.marker:match("([A-Z]+)")
+        prev_marker = M.next_letter(prev_letter_actual, true) .. delimiter
+      else
+        -- No previous list item, this will become item 'A', current will be renumbered
+        prev_marker = "A" .. delimiter
+      end
+    else
+      -- At top of document
+      prev_marker = "A" .. delimiter
+    end
   else
-    -- Keep same bullet for unordered lists and letter lists
+    -- Keep same bullet for unordered lists
     prev_marker = list_info.marker
   end
 
@@ -755,11 +793,15 @@ function M.find_list_groups(lines)
       end
 
       -- Add item to current group
+      -- Extract content after the full marker
+      local marker_end = #list_info.indent + #list_info.full_marker
+      local content = line:sub(marker_end + 1):match("^%s*(.*)") or ""
+
       table.insert(current_group.items, {
         line_num = i,
         indent = list_info.indent,
         checkbox = list_info.checkbox,
-        content = line:match(utils.escape_pattern(list_info.full_marker) .. "%s*(.*)") or "",
+        content = content,
         original_line = line,
       })
     else
