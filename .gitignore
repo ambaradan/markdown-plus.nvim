@@ -41,4 +41,5 @@ test_*.lua
 !CHANGELOG.md
 !CODE_OF_CONDUCT.md
 !CONTRIBUTING.md
+!.github/copilot-instructions.md
 !doc/markdown-plus.txt
