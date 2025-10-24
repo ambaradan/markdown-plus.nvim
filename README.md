@@ -19,8 +19,8 @@ A comprehensive Neovim plugin that provides modern markdown editing capabilities
 - **Auto-renumber ordered lists**: Automatically renumber when items are added/deleted
 - **Smart backspace**: Remove list markers when backspacing on empty items
 - **List breaking**: Press Enter twice on empty list items to break out of lists
-- **Checkbox support**: Works with both `- [ ]` and `1. [ ]` checkbox lists
-- **Mixed list types**: Supports unordered (`-`, `*`, `+`) and ordered (`1.`) lists
+- **Checkbox support**: Works with all list types (e.g., `- [ ]`, `1. [ ]`, `a. [x]`)
+- **Multiple list types**: Supports unordered (`-`, `*`, `+`), ordered (`1.`, `2.`), letter-based (`a.`, `A.`), and parenthesized variants (`1)`, `a)`, `A)`)
 - **Nested lists**: Full support for nested lists with proper renumbering
 
 </details>
@@ -216,6 +216,13 @@ Regular paragraph text continues here.
 1. Works with ordered lists too
 2. Press 'o' to create item 3 below ⬅️
 3. Press 'O' to create item between 2 and 3 ⬅️
+
+a. Letter-based lists supported
+b. Press 'o' for next letter ⬅️
+c. Press 'O' for previous letter ⬅️
+
+1) Parenthesized lists work too
+2) Auto-increments correctly ⬅️
 ```
 </details>
 
