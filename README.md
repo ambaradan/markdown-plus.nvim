@@ -91,6 +91,11 @@ A comprehensive Neovim plugin that provides modern markdown editing capabilities
 <details>
 <summary><b>Quotes Management</b></summary>
 
+  <img src="https://vhs.charm.sh/vhs-6scYF4Dxo7gAtsxEWXxOQU.gif" alt="Made with VHS">
+  <a href="https://vhs.charm.sh">
+    <img src="https://stuff.charm.sh/vhs/badge.svg">
+  </a>
+
 - **Toggle blockquote**: Use `<leader>mq` to toggle `>` blockquote formatting on the current line or visual selection.
 - **Visual and normal mode**: Works in both visual selection and normal mode.
 
