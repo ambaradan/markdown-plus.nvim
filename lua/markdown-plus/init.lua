@@ -10,8 +10,12 @@ M.config = {
     links = true,
     headers_toc = true,
     quotes = true,
+    code_block = true,
   },
   keymaps = {
+    enabled = true,
+  },
+  code_block = {
     enabled = true,
   },
   filetypes = { "markdown" },
@@ -23,6 +27,7 @@ M.format = nil
 M.links = nil
 M.headers = nil
 M.quotes = nil
+M.code_block = nil
 
 ---Get user configuration from vim.g.markdown_plus
 ---Supports both table and function forms
@@ -116,6 +121,11 @@ function M.setup(opts)
     M.quotes.setup(M.config)
   end
 
+  if M.config.features.code_block then
+    M.code_block = require("markdown-plus.code_block")
+    M.code_block.setup(M.config)
+  end
+
   -- Set up autocommands for markdown files
   M.setup_autocmds()
 end
@@ -144,6 +154,9 @@ function M.setup_autocmds()
       end
       if M.quotes then
         M.quotes.enable()
+      end
+      if M.code_block then
+        M.code_block.enable()
       end
     end,
   })

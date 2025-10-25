@@ -7,6 +7,7 @@
 ---@field features? markdown-plus.FeatureConfig Feature toggles
 ---@field keymaps? markdown-plus.KeymapConfig Keymap configuration
 ---@field filetypes? string[] Filetypes to enable plugin for (default: {"markdown"})
+---@field code_block? markdown-plus.CodeBlockConfig Code block configuration
 
 ---Feature configuration
 ---@class markdown-plus.FeatureConfig
@@ -15,6 +16,11 @@
 ---@field headers_toc? boolean Enable headers and TOC (default: true)
 ---@field links? boolean Enable link management (default: true)
 ---@field quotes? boolean Enable quote management (default: true)
+---@field code_block? boolean Enable code block management (default: true)
+
+---Code block configuration
+---@class markdown-plus.CodeBlockConfig
+---@field enabled? boolean Enable code block features (default: true)
 
 ---Keymap configuration
 ---@class markdown-plus.KeymapConfig
@@ -25,6 +31,7 @@
 ---@field enabled boolean
 ---@field features markdown-plus.InternalFeatureConfig
 ---@field keymaps markdown-plus.InternalKeymapConfig
+---@field code_block markdown-plus.InternalCodeBlockConfig
 
 ---Internal feature configuration
 ---@class markdown-plus.InternalFeatureConfig
@@ -33,6 +40,11 @@
 ---@field headers_toc boolean
 ---@field links boolean
 ---@field quotes boolean
+---@field code_block boolean
+
+---Internal code block configuration
+---@class markdown-plus.InternalCodeBlockConfig
+---@field enabled boolean
 
 ---Internal keymap configuration
 ---@class markdown-plus.InternalKeymapConfig
