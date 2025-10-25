@@ -1,4 +1,4 @@
-.PHONY: test test-file test-watch lint format format-check help
+.PHONY: test test-file test-watch lint format format-check demo help
 
 # Default target
 help:
@@ -10,6 +10,7 @@ help:
 	@echo "  make lint          - Run luacheck linter"
 	@echo "  make format        - Format all Lua files with stylua"
 	@echo "  make format-check  - Check formatting without modifying files"
+	@echo "  make demo          - Generate all demo GIFs (requires vhs)"
 	@echo "  make help          - Show this help message"
 	@echo ""
 
@@ -79,3 +80,16 @@ format-check:
 		 echo "Or on macOS: brew install stylua"; exit 1)
 	@echo "Checking Lua formatting..."
 	@stylua --check lua/ spec/ plugin/
+
+# Generate demo GIFs
+demo:
+	@command -v vhs >/dev/null 2>&1 || \
+		(echo "Error: 'vhs' not found"; \
+		 echo "Install with: brew install vhs (macOS)"; \
+		 echo "See: https://github.com/charmbracelet/vhs#installation"; exit 1)
+	@echo "Generating demo GIFs..."
+	@cd demo && for tape in *.tape; do \
+		echo "  Generating $${tape}..."; \
+		vhs "$${tape}"; \
+	done
+	@echo "Done! GIFs are in demo/ directory"

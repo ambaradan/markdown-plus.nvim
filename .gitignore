@@ -43,3 +43,4 @@ test_*.lua
 !CONTRIBUTING.md
 !.github/copilot-instructions.md
 !doc/markdown-plus.txt
+demo
