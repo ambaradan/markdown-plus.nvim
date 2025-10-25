@@ -13,6 +13,11 @@ A comprehensive Neovim plugin that provides modern markdown editing capabilities
 <details>
 <summary><b>List Management</b></summary>
 
+  <img src="https://vhs.charm.sh/vhs-4rvquCvWyeMiRnG4hrhLRN.gif" alt="Made with VHS">
+  <a href="https://vhs.charm.sh">
+    <img src="https://stuff.charm.sh/vhs/badge.svg">
+  </a>
+
 - **Auto-create next list item**: Press Enter to automatically continue lists
 - **Normal mode list creation**: Use `o`/`O` in normal mode to create new list items
 - **Smart list indentation**: Use Tab/Shift+Tab to indent/outdent list items
@@ -28,6 +33,11 @@ A comprehensive Neovim plugin that provides modern markdown editing capabilities
 <details>
 <summary><b>Text Formatting</b></summary>
 
+  <img src="https://vhs.charm.sh/vhs-7mDU5gzKSL21LMD4RztWtj.gif" alt="Made with VHS">
+  <a href="https://vhs.charm.sh">
+    <img src="https://stuff.charm.sh/vhs/badge.svg">
+  </a>
+
 - **Toggle bold**: `<leader>mb` to toggle `**bold**` formatting on selection or word
 - **Toggle italic**: `<leader>mi` to toggle `*italic*` formatting on selection or word
 - **Toggle strikethrough**: `<leader>ms` to toggle `~~strikethrough~~` formatting on selection or word
@@ -40,6 +50,11 @@ A comprehensive Neovim plugin that provides modern markdown editing capabilities
 
 <details>
 <summary><b>Headers & Table of Contents</b></summary>
+
+  <img src="https://vhs.charm.sh/vhs-2kFXE5F1L689BRBaCU6PHV.gif" alt="Made with VHS">
+  <a href="https://vhs.charm.sh">
+    <img src="https://stuff.charm.sh/vhs/badge.svg">
+  </a>
 
 - **Header navigation**: Jump between headers with `]]` (next) and `[[` (previous)
 - **Promote/demote headers**: Increase/decrease header importance with `<leader>h+` and `<leader>h-`
@@ -55,6 +70,11 @@ A comprehensive Neovim plugin that provides modern markdown editing capabilities
 
 <details>
 <summary><b>Links & References</b></summary>
+
+  <img src="https://vhs.charm.sh/vhs-7uCmx1XuPrxxP0jKpq8LFU.gif" alt="Made with VHS">
+  <a href="https://vhs.charm.sh">
+    <img src="https://stuff.charm.sh/vhs/badge.svg">
+  </a>
 
 - **Insert link**: `<leader>ml` to insert a new markdown link with text and URL
 - **Convert selection to link**: Select text and `<leader>ml` to convert it to a link
