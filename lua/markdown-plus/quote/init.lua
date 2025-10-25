@@ -38,17 +38,20 @@ function M.setup_keymaps()
     M.toggle_quote_line()
   end, { silent = true, desc = "Toggle blockquote on line" })
 
-  -- Set up default keymaps only if not already mapped
-  if vim.fn.hasmapto("<Plug>(MarkdownPlusToggleQuote)", "x") == 0 then
-    vim.keymap.set("x", "<leader>mq", "<Plug>(MarkdownPlusToggleQuote)", { buffer = true, desc = "Toggle blockquote" })
-  end
-
   if vim.fn.hasmapto("<Plug>(MarkdownPlusToggleQuote)", "n") == 0 then
     vim.keymap.set(
       "n",
       "<leader>mq",
       "<Plug>(MarkdownPlusToggleQuote)",
       { buffer = true, desc = "Toggle blockquote on line" }
+    )
+  end
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusToggleQuote)", "x") == 0 then
+    vim.keymap.set(
+      "x",
+      "<leader>mq",
+      ":lua vim.cmd('normal! gv')<CR>:lua require('markdown-plus.quote').toggle_quote()<CR>",
+      { buffer = true, desc = "Toggle blockquote", silent = true }
     )
   end
 end
@@ -70,6 +73,10 @@ end
 function M.toggle_quote()
   local start_row = vim.fn.line("'<")
   local end_row = vim.fn.line("'>")
+
+  if start_row == 0 or end_row == 0 then
+    return
+  end
 
   for row = start_row, end_row do
     M.toggle_quote_on_line(row)
