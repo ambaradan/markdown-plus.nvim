@@ -320,6 +320,7 @@ Normal line 2
 
 </details>
 
+<details>
 <summary>Text Formatting Examples</summary>
 
 ### Toggle Bold
