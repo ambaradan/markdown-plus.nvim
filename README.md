@@ -13,20 +13,30 @@ A comprehensive Neovim plugin that provides modern markdown editing capabilities
 <details>
 <summary><b>List Management</b></summary>
 
+  <img src="https://vhs.charm.sh/vhs-4rvquCvWyeMiRnG4hrhLRN.gif" alt="Made with VHS">
+  <a href="https://vhs.charm.sh">
+    <img src="https://stuff.charm.sh/vhs/badge.svg">
+  </a>
+
 - **Auto-create next list item**: Press Enter to automatically continue lists
 - **Normal mode list creation**: Use `o`/`O` in normal mode to create new list items
 - **Smart list indentation**: Use Tab/Shift+Tab to indent/outdent list items
 - **Auto-renumber ordered lists**: Automatically renumber when items are added/deleted
 - **Smart backspace**: Remove list markers when backspacing on empty items
 - **List breaking**: Press Enter twice on empty list items to break out of lists
-- **Checkbox support**: Works with both `- [ ]` and `1. [ ]` checkbox lists
-- **Mixed list types**: Supports unordered (`-`, `*`, `+`) and ordered (`1.`) lists
+- **Checkbox support**: Works with all list types (e.g., `- [ ]`, `1. [ ]`, `a. [x]`)
+- **Multiple list types**: Supports unordered (`-`, `*`, `+`), ordered (`1.`, `2.`), letter-based (`a.`, `A.`), and parenthesized variants (`1)`, `a)`, `A)`)
 - **Nested lists**: Full support for nested lists with proper renumbering
 
 </details>
 
 <details>
 <summary><b>Text Formatting</b></summary>
+
+  <img src="https://vhs.charm.sh/vhs-7mDU5gzKSL21LMD4RztWtj.gif" alt="Made with VHS">
+  <a href="https://vhs.charm.sh">
+    <img src="https://stuff.charm.sh/vhs/badge.svg">
+  </a>
 
 - **Toggle bold**: `<leader>mb` to toggle `**bold**` formatting on selection or word
 - **Toggle italic**: `<leader>mi` to toggle `*italic*` formatting on selection or word
@@ -40,6 +50,11 @@ A comprehensive Neovim plugin that provides modern markdown editing capabilities
 
 <details>
 <summary><b>Headers & Table of Contents</b></summary>
+
+  <img src="https://vhs.charm.sh/vhs-2kFXE5F1L689BRBaCU6PHV.gif" alt="Made with VHS">
+  <a href="https://vhs.charm.sh">
+    <img src="https://stuff.charm.sh/vhs/badge.svg">
+  </a>
 
 - **Header navigation**: Jump between headers with `]]` (next) and `[[` (previous)
 - **Promote/demote headers**: Increase/decrease header importance with `<leader>h+` and `<leader>h-`
@@ -55,6 +70,11 @@ A comprehensive Neovim plugin that provides modern markdown editing capabilities
 
 <details>
 <summary><b>Links & References</b></summary>
+
+  <img src="https://vhs.charm.sh/vhs-7uCmx1XuPrxxP0jKpq8LFU.gif" alt="Made with VHS">
+  <a href="https://vhs.charm.sh">
+    <img src="https://stuff.charm.sh/vhs/badge.svg">
+  </a>
 
 - **Insert link**: `<leader>ml` to insert a new markdown link with text and URL
 - **Convert selection to link**: Select text and `<leader>ml` to convert it to a link
@@ -235,6 +255,13 @@ Regular paragraph text continues here.
 1. Works with ordered lists too
 2. Press 'o' to create item 3 below ⬅️
 3. Press 'O' to create item between 2 and 3 ⬅️
+
+a. Letter-based lists supported
+b. Press 'o' for next letter ⬅️
+c. Press 'O' for previous letter ⬅️
+
+1) Parenthesized lists work too
+2) Auto-increments correctly ⬅️
 ```
 
 </details>

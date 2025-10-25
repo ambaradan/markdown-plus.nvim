@@ -5,12 +5,26 @@ local M = {}
 ---@type markdown-plus.InternalConfig
 M.config = {}
 
+-- Constants
+local DELIMITER_DOT = "."
+local DELIMITER_PAREN = ")"
+
 ---List patterns for detection
 ---@class markdown-plus.list.Patterns
 ---@field unordered string Pattern for unordered lists (-, +, *)
 ---@field ordered string Pattern for ordered lists (1., 2., etc.)
 ---@field checkbox string Pattern for checkbox lists (- [ ], - [x], etc.)
 ---@field ordered_checkbox string Pattern for ordered checkbox lists (1. [ ], etc.)
+---@field letter_lower string Pattern for lowercase letter lists (a., b., c.)
+---@field letter_upper string Pattern for uppercase letter lists (A., B., C.)
+---@field letter_lower_checkbox string Pattern for lowercase letter checkbox lists (a. [ ])
+---@field letter_upper_checkbox string Pattern for uppercase letter checkbox lists (A. [ ])
+---@field ordered_paren string Pattern for parenthesized ordered lists (1), 2), etc.)
+---@field letter_lower_paren string Pattern for parenthesized lowercase letter lists (a), b), c.)
+---@field letter_upper_paren string Pattern for parenthesized uppercase letter lists (A), B), C.)
+---@field ordered_paren_checkbox string Pattern for parenthesized ordered checkbox lists (1) [ ])
+---@field letter_lower_paren_checkbox string Pattern for parenthesized lowercase letter checkbox lists (a) [ ])
+---@field letter_upper_paren_checkbox string Pattern for parenthesized uppercase letter checkbox lists (A) [ ])
 
 ---@type markdown-plus.list.Patterns
 M.patterns = {
@@ -18,6 +32,44 @@ M.patterns = {
   ordered = "^(%s*)(%d+)%.%s+",
   checkbox = "^(%s*)([%-%+%*])%s+%[(.?)%]%s+",
   ordered_checkbox = "^(%s*)(%d+)%.%s+%[(.?)%]%s+",
+  letter_lower = "^(%s*)([a-z])%.%s+",
+  letter_upper = "^(%s*)([A-Z])%.%s+",
+  letter_lower_checkbox = "^(%s*)([a-z])%.%s+%[(.?)%]%s+",
+  letter_upper_checkbox = "^(%s*)([A-Z])%.%s+%[(.?)%]%s+",
+  ordered_paren = "^(%s*)(%d+)%)%s+",
+  letter_lower_paren = "^(%s*)([a-z])%)%s+",
+  letter_upper_paren = "^(%s*)([A-Z])%)%s+",
+  ordered_paren_checkbox = "^(%s*)(%d+)%)%s+%[(.?)%]%s+",
+  letter_lower_paren_checkbox = "^(%s*)([a-z])%)%s+%[(.?)%]%s+",
+  letter_upper_paren_checkbox = "^(%s*)([A-Z])%)%s+%[(.?)%]%s+",
+}
+
+-- Pattern configuration: defines order and metadata for pattern matching
+local PATTERN_CONFIG = {
+  { pattern = "ordered_checkbox", type = "ordered", delimiter = DELIMITER_DOT, has_checkbox = true },
+  { pattern = "letter_lower_checkbox", type = "letter_lower", delimiter = DELIMITER_DOT, has_checkbox = true },
+  { pattern = "letter_upper_checkbox", type = "letter_upper", delimiter = DELIMITER_DOT, has_checkbox = true },
+  { pattern = "checkbox", type = "unordered", delimiter = "", has_checkbox = true },
+  { pattern = "ordered_paren_checkbox", type = "ordered_paren", delimiter = DELIMITER_PAREN, has_checkbox = true },
+  {
+    pattern = "letter_lower_paren_checkbox",
+    type = "letter_lower_paren",
+    delimiter = DELIMITER_PAREN,
+    has_checkbox = true,
+  },
+  {
+    pattern = "letter_upper_paren_checkbox",
+    type = "letter_upper_paren",
+    delimiter = DELIMITER_PAREN,
+    has_checkbox = true,
+  },
+  { pattern = "ordered", type = "ordered", delimiter = DELIMITER_DOT, has_checkbox = false },
+  { pattern = "letter_lower", type = "letter_lower", delimiter = DELIMITER_DOT, has_checkbox = false },
+  { pattern = "letter_upper", type = "letter_upper", delimiter = DELIMITER_DOT, has_checkbox = false },
+  { pattern = "ordered_paren", type = "ordered_paren", delimiter = DELIMITER_PAREN, has_checkbox = false },
+  { pattern = "letter_lower_paren", type = "letter_lower_paren", delimiter = DELIMITER_PAREN, has_checkbox = false },
+  { pattern = "letter_upper_paren", type = "letter_upper_paren", delimiter = DELIMITER_PAREN, has_checkbox = false },
+  { pattern = "unordered", type = "unordered", delimiter = "", has_checkbox = false },
 }
 
 ---Setup list management module
@@ -162,58 +214,56 @@ function M.handle_enter()
   M.create_next_list_item(list_info)
 end
 
+---Extract content from a list line after the marker
+---@param line string The line to extract from
+---@param list_info table List information
+---@return string Content after the marker
+local function extract_list_content(line, list_info)
+  local marker_end = #list_info.indent + #list_info.full_marker
+  return line:sub(marker_end + 1):match("^%s*(.*)") or ""
+end
+
+---Build list info object from pattern matches
+---@param indent string Indentation
+---@param marker string The marker (number, letter, or bullet)
+---@param checkbox string|nil Checkbox state
+---@param config table Pattern config
+---@return table List info
+local function build_list_info(indent, marker, checkbox, config)
+  local full_marker = marker .. config.delimiter
+  if config.has_checkbox then
+    full_marker = full_marker .. " [" .. checkbox .. "]"
+  end
+
+  return {
+    type = config.type,
+    indent = indent,
+    marker = marker .. config.delimiter,
+    checkbox = config.has_checkbox and checkbox or nil,
+    full_marker = full_marker,
+  }
+end
+
 -- Parse a line to detect list information
 function M.parse_list_line(line)
   if not line then
     return nil
   end
 
-  -- Try ordered list with checkbox
-  local indent, number, checkbox = line:match(M.patterns.ordered_checkbox)
-  if indent and number and checkbox then
-    return {
-      type = "ordered",
-      indent = indent,
-      marker = number .. ".",
-      checkbox = checkbox,
-      full_marker = number .. ". [" .. checkbox .. "]",
-    }
-  end
-
-  -- Try unordered list with checkbox
-  local indent2, bullet, checkbox2 = line:match(M.patterns.checkbox)
-  if indent2 and bullet and checkbox2 then
-    return {
-      type = "unordered",
-      indent = indent2,
-      marker = bullet,
-      checkbox = checkbox2,
-      full_marker = bullet .. " [" .. checkbox2 .. "]",
-    }
-  end
-
-  -- Try ordered list
-  local indent3, number2 = line:match(M.patterns.ordered)
-  if indent3 and number2 then
-    return {
-      type = "ordered",
-      indent = indent3,
-      marker = number2 .. ".",
-      checkbox = nil,
-      full_marker = number2 .. ".",
-    }
-  end
-
-  -- Try unordered list
-  local indent4, bullet2 = line:match(M.patterns.unordered)
-  if indent4 and bullet2 then
-    return {
-      type = "unordered",
-      indent = indent4,
-      marker = bullet2,
-      checkbox = nil,
-      full_marker = bullet2,
-    }
+  -- Try each pattern in order (checkbox variants first, then regular)
+  for _, config in ipairs(PATTERN_CONFIG) do
+    local pattern = M.patterns[config.pattern]
+    if config.has_checkbox then
+      local indent, marker, checkbox = line:match(pattern)
+      if indent and marker and checkbox then
+        return build_list_info(indent, marker, checkbox, config)
+      end
+    else
+      local indent, marker = line:match(pattern)
+      if indent and marker then
+        return build_list_info(indent, marker, nil, config)
+      end
+    end
   end
 
   return nil
@@ -241,20 +291,115 @@ function M.break_out_of_list(list_info)
   utils.set_cursor(row, #list_info.indent)
 end
 
+---Convert index to single letter (1->a, 26->z, 27->a)
+---@param idx number Index (1-based)
+---@param is_upper boolean Whether to use uppercase
+---@return string Single letter
+function M.index_to_letter(idx, is_upper)
+  local base = is_upper and string.byte("A") or string.byte("a")
+  -- Wrap around after 26 letters
+  local letter_idx = ((idx - 1) % 26)
+  return string.char(base + letter_idx)
+end
+
+---Get next letter in sequence (a->b, z->a)
+---@param letter string Current letter (single character)
+---@param is_upper boolean Whether to use uppercase
+---@return string Next letter in sequence
+function M.next_letter(letter, is_upper)
+  local byte = string.byte(letter)
+  local base = is_upper and string.byte("A") or string.byte("a")
+  local max = is_upper and string.byte("Z") or string.byte("z")
+
+  if byte < max then
+    return string.char(byte + 1)
+  else
+    -- Wrap around: z->a, Z->A
+    return string.char(base)
+  end
+end
+
+---Get the next marker for a list item
+---@param list_info table List information
+---@return string Next marker
+local function get_next_marker(list_info)
+  if list_info.type == "ordered" then
+    local current_num = tonumber(list_info.marker:match("(%d+)"))
+    return (current_num + 1) .. DELIMITER_DOT
+  elseif list_info.type == "ordered_paren" then
+    local current_num = tonumber(list_info.marker:match("(%d+)"))
+    return (current_num + 1) .. DELIMITER_PAREN
+  elseif list_info.type == "letter_lower" then
+    local current_letter = list_info.marker:match("([a-z])")
+    return M.next_letter(current_letter, false) .. DELIMITER_DOT
+  elseif list_info.type == "letter_lower_paren" then
+    local current_letter = list_info.marker:match("([a-z])")
+    return M.next_letter(current_letter, false) .. DELIMITER_PAREN
+  elseif list_info.type == "letter_upper" then
+    local current_letter = list_info.marker:match("([A-Z])")
+    return M.next_letter(current_letter, true) .. DELIMITER_DOT
+  elseif list_info.type == "letter_upper_paren" then
+    local current_letter = list_info.marker:match("([A-Z])")
+    return M.next_letter(current_letter, true) .. DELIMITER_PAREN
+  else
+    -- Keep same bullet for unordered lists
+    return list_info.marker
+  end
+end
+
+---Get the previous/initial marker for inserting before current item
+---@param list_info table Current list information
+---@param row number Current row number
+---@return string Previous marker
+local function get_previous_marker(list_info, row)
+  local is_ordered = list_info.type == "ordered" or list_info.type == "ordered_paren"
+  local is_letter_lower = list_info.type == "letter_lower" or list_info.type == "letter_lower_paren"
+  local is_letter_upper = list_info.type == "letter_upper" or list_info.type == "letter_upper_paren"
+  local delimiter = list_info.marker:match("[%.%)]$")
+
+  if is_ordered then
+    -- Check for previous list item at same indent
+    if row > 1 then
+      local prev_line = utils.get_line(row - 1)
+      local prev_list_info = M.parse_list_line(prev_line)
+      if prev_list_info and prev_list_info.type == list_info.type and #prev_list_info.indent == #list_info.indent then
+        local prev_num = tonumber(prev_list_info.marker:match("(%d+)"))
+        return (prev_num + 1) .. delimiter
+      end
+    end
+    return "1" .. delimiter
+  elseif is_letter_lower then
+    if row > 1 then
+      local prev_line = utils.get_line(row - 1)
+      local prev_list_info = M.parse_list_line(prev_line)
+      if prev_list_info and prev_list_info.type == list_info.type and #prev_list_info.indent == #list_info.indent then
+        local prev_letter = prev_list_info.marker:match("([a-z])")
+        return M.next_letter(prev_letter, false) .. delimiter
+      end
+    end
+    return "a" .. delimiter
+  elseif is_letter_upper then
+    if row > 1 then
+      local prev_line = utils.get_line(row - 1)
+      local prev_list_info = M.parse_list_line(prev_line)
+      if prev_list_info and prev_list_info.type == list_info.type and #prev_list_info.indent == #list_info.indent then
+        local prev_letter = prev_list_info.marker:match("([A-Z])")
+        return M.next_letter(prev_letter, true) .. delimiter
+      end
+    end
+    return "A" .. delimiter
+  else
+    -- Keep same bullet for unordered lists
+    return list_info.marker
+  end
+end
+
 -- Create next list item
 function M.create_next_list_item(list_info)
   local cursor = utils.get_cursor()
   local row = cursor[1]
 
-  local next_marker
-  if list_info.type == "ordered" then
-    -- Get next number
-    local current_num = tonumber(list_info.marker:match("(%d+)"))
-    next_marker = (current_num + 1) .. "."
-  else
-    -- Keep same bullet
-    next_marker = list_info.marker
-  end
+  local next_marker = get_next_marker(list_info)
 
   -- Build next line
   local next_line = list_info.indent .. next_marker .. " "
@@ -291,7 +436,9 @@ function M.handle_tab()
   local indent_size = vim.bo.shiftwidth
 
   local new_indent = list_info.indent .. string.rep(" ", indent_size)
-  local new_line = new_indent .. list_info.full_marker .. " " .. current_line:match(list_info.full_marker .. "%s*(.*)")
+  -- Extract content after the marker (position-based to avoid pattern issues with parentheses)
+  local content = extract_list_content(current_line, list_info)
+  local new_line = new_indent .. list_info.full_marker .. " " .. content
 
   utils.set_line(row, new_line)
 
@@ -330,7 +477,8 @@ function M.handle_shift_tab()
   end
 
   local new_indent = list_info.indent:sub(1, -indent_size - 1)
-  local content = current_line:match(list_info.full_marker .. "%s*(.*)")
+  -- Extract content after the marker (position-based to avoid pattern issues with parentheses)
+  local content = extract_list_content(current_line, list_info)
   local new_line = new_indent .. list_info.full_marker .. " " .. (content or "")
 
   utils.set_line(row, new_line)
@@ -399,15 +547,7 @@ function M.handle_normal_o()
   end
 
   -- Create next list item and enter insert mode
-  local next_marker
-  if list_info.type == "ordered" then
-    -- Get next number
-    local current_num = tonumber(list_info.marker:match("(%d+)"))
-    next_marker = (current_num + 1) .. "."
-  else
-    -- Keep same bullet
-    next_marker = list_info.marker
-  end
+  local next_marker = get_next_marker(list_info)
 
   -- Build next line
   local next_line = list_info.indent .. next_marker .. " "
@@ -442,30 +582,8 @@ function M.handle_normal_O()
   end
 
   -- For 'O', we need to create a list item before the current one
-  -- This means we need to determine what the previous number should be
-  local prev_marker
-  if list_info.type == "ordered" then
-    -- Check if there's a previous line that might be a list item
-    if row > 1 then
-      local prev_line = utils.get_line(row - 1)
-      local prev_list_info = M.parse_list_line(prev_line)
-
-      if prev_list_info and prev_list_info.type == "ordered" and #prev_list_info.indent == #list_info.indent then
-        -- There's a previous ordered list item at same indent, use its number + 1
-        local prev_num_actual = tonumber(prev_list_info.marker:match("(%d+)"))
-        prev_marker = (prev_num_actual + 1) .. "."
-      else
-        -- No previous list item, this will become item 1, current will be renumbered
-        prev_marker = "1."
-      end
-    else
-      -- At top of document
-      prev_marker = "1."
-    end
-  else
-    -- Keep same bullet for unordered lists
-    prev_marker = list_info.marker
-  end
+  -- This means we need to determine what the previous marker should be
+  local prev_marker = get_previous_marker(list_info, row)
 
   -- Build previous line
   local prev_line = list_info.indent .. prev_marker .. " "
@@ -517,33 +635,49 @@ function M.find_list_groups(lines)
   for i, line in ipairs(lines) do
     local list_info = M.parse_list_line(line)
 
-    if list_info and list_info.type == "ordered" then
+    if
+      list_info
+      and (
+        list_info.type == "ordered"
+        or list_info.type == "letter_lower"
+        or list_info.type == "letter_upper"
+        or list_info.type == "ordered_paren"
+        or list_info.type == "letter_lower_paren"
+        or list_info.type == "letter_upper_paren"
+      )
+    then
       local indent_level = #list_info.indent
+      local list_type = list_info.type
 
-      -- Check if we have an active group at this indentation level
-      local current_group = current_groups_by_indent[indent_level]
+      -- Check if we have an active group at this indentation level and type
+      local group_key = indent_level .. "_" .. list_type
+      local current_group = current_groups_by_indent[group_key]
 
       if not current_group then
-        -- Create new group for this indentation level
+        -- Create new group for this indentation level and type
         current_group = {
           indent = indent_level,
+          list_type = list_type,
           start_line = i,
           items = {},
         }
-        current_groups_by_indent[indent_level] = current_group
+        current_groups_by_indent[group_key] = current_group
         table.insert(groups, current_group)
       end
 
       -- Add item to current group
+      -- Extract content after the full marker
+      local content = extract_list_content(line, list_info)
+
       table.insert(current_group.items, {
         line_num = i,
         indent = list_info.indent,
         checkbox = list_info.checkbox,
-        content = line:match(list_info.full_marker .. "%s*(.*)") or "",
+        content = content,
         original_line = line,
       })
     else
-      -- Not an ordered list item
+      -- Not an ordered/letter list item
       -- Check if this line breaks the list continuity
       if M.is_list_breaking_line(line) then
         -- Clear all active groups (lists are separated by non-list content)
@@ -574,15 +708,30 @@ function M.renumber_list_group(group)
   end
 
   local changes = {}
-  local expected_number = 1
 
-  for _, item in ipairs(group.items) do
+  for idx, item in ipairs(group.items) do
     local checkbox_part = ""
     if item.checkbox then
       checkbox_part = " [" .. item.checkbox .. "]"
     end
 
-    local expected_line = item.indent .. expected_number .. "." .. checkbox_part .. " " .. item.content
+    -- Determine expected marker based on list type
+    local expected_marker
+    if group.list_type == "ordered" then
+      expected_marker = idx .. DELIMITER_DOT
+    elseif group.list_type == "ordered_paren" then
+      expected_marker = idx .. DELIMITER_PAREN
+    elseif group.list_type == "letter_lower" then
+      expected_marker = M.index_to_letter(idx, false) .. DELIMITER_DOT
+    elseif group.list_type == "letter_lower_paren" then
+      expected_marker = M.index_to_letter(idx, false) .. DELIMITER_PAREN
+    elseif group.list_type == "letter_upper" then
+      expected_marker = M.index_to_letter(idx, true) .. DELIMITER_DOT
+    elseif group.list_type == "letter_upper_paren" then
+      expected_marker = M.index_to_letter(idx, true) .. DELIMITER_PAREN
+    end
+
+    local expected_line = item.indent .. expected_marker .. checkbox_part .. " " .. item.content
 
     -- Only create change if line is different
     if expected_line ~= item.original_line then
@@ -591,8 +740,6 @@ function M.renumber_list_group(group)
         new_line = expected_line,
       })
     end
-
-    expected_number = expected_number + 1
   end
 
   return #changes > 0 and changes or nil
