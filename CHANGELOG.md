@@ -8,13 +8,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-
 - **Quotes Management**: Added support for toggling blockquotes in markdown
   - Toggle blockquote on current line with `<leader>mq` in normal mode
   - Toggle blockquote on selected lines in visual mode with `<leader>mq`
   - `<Plug>` mapping: `<Plug>(MarkdownPlusToggleQuote)` for custom keymap configuration
   - Smart handling of existing blockquotes
 
+- **Additional list types support**:
+  - Letter-based lists: `a.`, `b.`, `c.`, ... `z.` (lowercase)
+  - Letter-based lists: `A.`, `B.`, `C.`, ... `Z.` (uppercase)
+  - Parenthesized ordered lists: `1)`, `2)`, `3)`
+  - Parenthesized letter lists: `a)`, `b)`, `c)` and `A)`, `B)`, `C)`
+  - All new list types support auto-continuation, indentation, renumbering, and checkboxes
+  - Single-letter support with wraparound (z→a, Z→A)
+
+### Changed
+- **List module refactoring**:
+  - Pattern-driven architecture with `PATTERN_CONFIG` table
+  - Extracted helper functions: `get_next_marker()`, `get_previous_marker()`, `extract_list_content()`
+  - Reduced code size from 878 to 763 lines (13% reduction)
+  - Simplified `parse_list_line()` from ~170 lines to ~30 lines
+  - Added module-level constants for delimiters
+
+### Fixed
+- Invalid pattern capture error when indenting parenthesized lists
+- Tab/Shift-Tab now work correctly with all list types including parenthesized variants
+- 'O' command (insert above) now correctly calculates markers for letter-based lists
+
+---
 ## [1.3.1] - 2025-10-25
 
 ### Fixed
