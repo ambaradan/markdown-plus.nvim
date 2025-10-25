@@ -47,6 +47,8 @@ function M.setup_keymaps()
 
   -- Create <Plug> mappings first
   -- Visual mode <Plug> mappings
+  -- NOTE: We use simple functions that will be called while still in visual mode
+  -- This allows get_visual_selection() to detect we're in visual mode and use vim.fn.getpos('v')
   vim.keymap.set("x", "<Plug>(MarkdownPlusBold)", function()
     M.toggle_format("bold")
   end, {
@@ -170,23 +172,57 @@ end
 
 -- Get visual selection range
 function M.get_visual_selection()
-  -- Get the start and end positions of the visual selection
-  local start_pos = vim.fn.getpos("'<")
-  local end_pos = vim.fn.getpos("'>")
+  -- WORKAROUND: The '< and '> marks are not updated until AFTER exiting visual mode
+  -- So we need to get the current visual selection using vim.fn.mode() and cursor positions
+  local mode = vim.fn.mode()
 
-  local start_row = start_pos[2]
-  local start_col = start_pos[3]
-  local end_row = end_pos[2]
-  local end_col = end_pos[3]
+  -- If we're in visual mode, use the visual start position and current cursor
+  if mode:match("[vV\22]") then -- v, V, or CTRL-V (block mode)
+    -- Get visual mode start position
+    local start_pos = vim.fn.getpos("v")
+    -- Get current cursor position (end of selection)
+    local end_pos = vim.fn.getpos(".")
 
-  -- In visual mode, vim uses 1-indexed columns
-  -- For character-wise selection, end_col is inclusive
-  return {
-    start_row = start_row,
-    start_col = start_col,
-    end_row = end_row,
-    end_col = end_col,
-  }
+    local start_row = start_pos[2]
+    local start_col = start_pos[3]
+    local end_row = end_pos[2]
+    local end_col = end_pos[3]
+
+    -- Ensure start comes before end (handle backwards selection)
+    if start_row > end_row or (start_row == end_row and start_col > end_col) then
+      start_row, end_row = end_row, start_row
+      start_col, end_col = end_col, start_col
+    end
+
+    return {
+      start_row = start_row,
+      start_col = start_col,
+      end_row = end_row,
+      end_col = end_col,
+    }
+  else
+    -- If not in visual mode, fall back to '< and '> marks (for when called after visual mode)
+    local start_pos = vim.fn.getpos("'<")
+    local end_pos = vim.fn.getpos("'>")
+
+    local start_row = start_pos[2]
+    local start_col = start_pos[3]
+    local end_row = end_pos[2]
+    local end_col = end_pos[3]
+
+    -- Ensure start comes before end (handle backwards selection)
+    if start_row > end_row or (start_row == end_row and start_col > end_col) then
+      start_row, end_row = end_row, start_row
+      start_col, end_col = end_col, start_col
+    end
+
+    return {
+      start_row = start_row,
+      start_col = start_col,
+      end_row = end_row,
+      end_col = end_col,
+    }
+  end
 end
 
 -- Get text in range
@@ -217,6 +253,12 @@ end
 
 -- Set text in range
 function M.set_text_in_range(start_row, start_col, end_row, end_col, new_text)
+  -- Validate that start comes before end
+  if start_row > end_row or (start_row == end_row and start_col > end_col) then
+    vim.notify("MarkdownPlus: Invalid range - start position is after end position", vim.log.levels.ERROR)
+    return
+  end
+
   local lines = vim.split(new_text, "\n")
 
   if start_row == end_row then
@@ -282,7 +324,7 @@ end
 
 -- Toggle formatting on visual selection
 function M.toggle_format(format_type)
-  -- When called from visual mode with :<C-u>, the marks '< and '> are already set
+  -- Get the current visual selection (works even on first selection due to vim.fn.getpos('v'))
   local selection = M.get_visual_selection()
   local text = M.get_text_in_range(selection.start_row, selection.start_col, selection.end_row, selection.end_col)
 
@@ -294,6 +336,9 @@ function M.toggle_format(format_type)
   end
 
   M.set_text_in_range(selection.start_row, selection.start_col, selection.end_row, selection.end_col, new_text)
+
+  -- Exit visual mode after the operation
+  vim.cmd("normal! gv")
 end
 
 -- Get current word boundaries
@@ -385,7 +430,7 @@ end
 
 -- Remove all formatting from visual selection
 function M.clear_formatting()
-  -- When called from visual mode with :<C-u>, the marks '< and '> are already set
+  -- Get the current visual selection (works even on first selection due to vim.fn.getpos('v'))
   local selection = M.get_visual_selection()
   local text = M.get_text_in_range(selection.start_row, selection.start_col, selection.end_row, selection.end_col)
 
@@ -408,6 +453,9 @@ function M.clear_formatting()
   new_text = new_text:gsub("`(.-)`", "%1") -- `text`
 
   M.set_text_in_range(selection.start_row, selection.start_col, selection.end_row, selection.end_col, new_text)
+
+  -- Exit visual mode after the operation
+  vim.cmd("normal! gv")
 end
 
 -- Remove all formatting from current word

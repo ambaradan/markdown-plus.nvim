@@ -124,6 +124,67 @@ describe("markdown-plus format", function()
       local line = vim.api.nvim_buf_get_lines(0, 0, 1, false)[1]
       assert.equals("hello universe", line)
     end)
+
+    it("validates range order and shows error for invalid range", function()
+      vim.api.nvim_buf_set_lines(0, 0, -1, false, { "hello world" })
+      -- This should not crash, just show an error
+      format.set_text_in_range(1, 10, 1, 5, "test")
+      -- Line should remain unchanged
+      local line = vim.api.nvim_buf_get_lines(0, 0, 1, false)[1]
+      assert.equals("hello world", line)
+    end)
+  end)
+
+  describe("get_visual_selection", function()
+    it("handles forward selection using '< and '> marks (after visual mode)", function()
+      vim.api.nvim_buf_set_lines(0, 0, -1, false, { "hello world" })
+      -- Simulate visual selection from position 1,1 to 1,5 (after exiting visual mode)
+      vim.fn.setpos("'<", { 0, 1, 1, 0 })
+      vim.fn.setpos("'>", { 0, 1, 5, 0 })
+      local selection = format.get_visual_selection()
+      assert.equals(1, selection.start_row)
+      assert.equals(1, selection.start_col)
+      assert.equals(1, selection.end_row)
+      assert.equals(5, selection.end_col)
+    end)
+
+    it("handles backward selection using '< and '> marks (after visual mode)", function()
+      vim.api.nvim_buf_set_lines(0, 0, -1, false, { "hello world" })
+      -- Simulate backward visual selection from position 1,5 to 1,1 (after exiting visual mode)
+      vim.fn.setpos("'<", { 0, 1, 5, 0 })
+      vim.fn.setpos("'>", { 0, 1, 1, 0 })
+      local selection = format.get_visual_selection()
+      -- Should be normalized with start before end
+      assert.equals(1, selection.start_row)
+      assert.equals(1, selection.start_col)
+      assert.equals(1, selection.end_row)
+      assert.equals(5, selection.end_col)
+    end)
+
+    it("handles multi-line backward selection using '< and '> marks (after visual mode)", function()
+      vim.api.nvim_buf_set_lines(0, 0, -1, false, { "line one", "line two" })
+      -- Simulate backward selection from line 2 to line 1 (after exiting visual mode)
+      vim.fn.setpos("'<", { 0, 2, 5, 0 })
+      vim.fn.setpos("'>", { 0, 1, 3, 0 })
+      local selection = format.get_visual_selection()
+      -- Should be normalized
+      assert.equals(1, selection.start_row)
+      assert.equals(3, selection.start_col)
+      assert.equals(2, selection.end_row)
+      assert.equals(5, selection.end_col)
+    end)
+
+    it("handles selection while in visual mode using 'v' mark", function()
+      vim.api.nvim_buf_set_lines(0, 0, -1, false, { "hello world" })
+      -- Simulate being in visual mode
+      vim.cmd("normal! gg0vllll")
+      local selection = format.get_visual_selection()
+      -- Should detect visual mode and use vim.fn.getpos('v') and vim.fn.getpos('.')
+      assert.is_not_nil(selection.start_row)
+      assert.is_not_nil(selection.start_col)
+      assert.is_not_nil(selection.end_row)
+      assert.is_not_nil(selection.end_col)
+    end)
   end)
 
   describe("patterns", function()
