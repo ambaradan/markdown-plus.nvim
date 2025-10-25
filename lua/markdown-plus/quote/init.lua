@@ -59,18 +59,19 @@ function M.get_visual_selection()
   local start_pos = vim.fn.getpos("v")
   -- Get current cursor position (end of selection)
   local end_pos = vim.fn.getpos(".")
-  local start_row = start_pos[2]
-  local end_row = end_pos[2]
+  local start_row = math.min(start_pos[2], end_pos[2])
+  local end_row = math.max(start_pos[2], end_pos[2])
   return {
     start_row = start_row,
     end_row = end_row,
   }
 end
 
--- Toggle blockquote on visual selection
 function M.toggle_quote()
-  local selection = M.get_visual_selection()
-  for row = selection.start_row, selection.end_row do
+  local start_row = vim.fn.line("'<")
+  local end_row = vim.fn.line("'>")
+
+  for row = start_row, end_row do
     M.toggle_quote_on_line(row)
   end
 end
@@ -89,8 +90,10 @@ function M.toggle_quote_on_line(line_num)
   local line = utils.get_line(line_num)
   if line == "" then
     return -- Do nothing for empty lines
-  elseif line:match("^%s*>%s?") then
-    -- Remove blockquote
+  end
+  -- Check if the line starts with '>'
+  if line:match("^%s*>") then
+    -- Remove blockquote and any following space
     line = line:gsub("^%s*>%s?", "", 1)
   else
     -- Add blockquote
