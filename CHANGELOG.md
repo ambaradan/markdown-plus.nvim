@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Quotes Management**: Added support for toggling blockquotes in markdown
+  - Toggle blockquote on current line with `<leader>mq` in normal mode
+  - Toggle blockquote on selected lines in visual mode with `<leader>mq`
+  - `<Plug>` mapping: `<Plug>(MarkdownPlusToggleQuote)` for custom keymap configuration
+  - Smart handling of existing blockquotes
+
 - **Additional list types support**:
   - Letter-based lists: `a.`, `b.`, `c.`, ... `z.` (lowercase)
   - Letter-based lists: `A.`, `B.`, `C.`, ... `Z.` (uppercase)
@@ -30,7 +36,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 'O' command (insert above) now correctly calculates markers for letter-based lists
 
 ---
-
 ## [1.3.1] - 2025-10-25
 
 ### Fixed
@@ -49,6 +54,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.3.0] - 2025-10-23
 
 ### Added
+
 - **vim.g configuration support**: Plugin can now be configured via `vim.g.markdown_plus` (table or function)
   - Supports both Lua and Vimscript configuration
   - Allows dynamic configuration via function
@@ -62,6 +68,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Comprehensive vim.g documentation in README and vimdoc
 
 ### Changed
+
 - Configuration priority: Default < vim.g < setup() parameter
 - Enhanced type annotations for configuration system
 - Updated installation documentation with LuaRocks method
@@ -69,6 +76,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.2.0] - 2025-01-20
 
 ### Added
+
 - Complete test coverage for format and links modules (35 new tests)
 - `<Plug>` mappings for all features (35+ mappings)
   - Full keymap customization support
@@ -78,10 +86,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Complete `<Plug>` mapping reference in README
 
 ### Changed
+
 - Default keymaps now check for existing mappings before setting
 - Updated contribution guidelines to allow direct collaboration
 
 ### Fixed
+
 - Critical keymap bug in visual mode mappings
 - Visual mode `<Plug>` mappings now use Lua functions instead of string commands
 - Added proper keymap descriptions for better discoverability
@@ -89,6 +99,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.1.0] - 2025-01-19
 
 ### Added
+
 - Links and References management module
   - Insert and edit markdown links
   - Convert text selection to links
@@ -100,10 +111,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Configurable via `filetypes` option in setup
 
 ### Changed
+
 - Plugin now enables for configured filetypes instead of just markdown
 - Updated documentation for multi-filetype support
 
 ### Fixed
+
 - Corrected documentation keymaps to match implementation
 - Fixed link detection edge cases
 - Removed unimplemented features from config and docs
@@ -113,6 +126,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 #### Headers Module
+
 - Header promotion/demotion with `<leader>h+` and `<leader>h-`
 - Jump between headers with `]]` and `[[`
 - Set specific header levels with `<leader>h1` through `<leader>h6`
@@ -123,6 +137,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - GitHub-style slug generation for anchors
 
 #### List Module
+
 - Auto-continuation of list items on `<CR>` in insert mode
 - Context-aware `o` and `O` in normal mode for list items
 - Intelligent list indentation with `<Tab>` and `<S-Tab>` (insert mode)
@@ -134,6 +149,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Empty list item removal (press `<CR>` twice to exit list)
 
 #### Format Module
+
 - Toggle bold formatting with `<leader>mb` (normal + visual mode)
 - Toggle italic formatting with `<leader>mi` (normal + visual mode)
 - Toggle strikethrough with `<leader>ms` (normal + visual mode)
@@ -142,12 +158,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Smart word boundary detection for formatting operations
 
 #### Documentation
+
 - Comprehensive help file accessible via `:help markdown-plus`
 - Complete API documentation for all modules
 - Usage examples and troubleshooting guide
 - Installation instructions for lazy.nvim
 
 ### Technical Details
+
 - Context-aware keymaps that only activate when appropriate
 - Proper fallback to default Vim behavior outside of lists
 - No interference with normal mode operations
@@ -155,9 +173,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Automatic feature enablement via FileType autocmd
 
 ### Changed
+
 - Initial stable release
 
 ### Fixed
+
 - List operations now properly enter insert mode on non-list lines
 - Fixed `<CR>` behavior to work correctly on regular text
 - Removed global `<CR>` mapping that interfered with normal mode

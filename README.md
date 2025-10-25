@@ -1,5 +1,5 @@
 <a href="https://dotfyle.com/plugins/yousefhadder/markdown-plus.nvim">
-	<img src="https://dotfyle.com/plugins/yousefhadder/markdown-plus.nvim/shield?style=flat" />
+ <img src="https://dotfyle.com/plugins/yousefhadder/markdown-plus.nvim/shield?style=flat" />
 </a>
 
 # markdown-plus.nvim
@@ -88,6 +88,14 @@ A comprehensive Neovim plugin that provides modern markdown editing capabilities
 
 </details>
 
+<details>
+<summary><b>Quotes Management</b></summary>
+
+- **Toggle blockquote**: Use `<leader>mq` to toggle `>` blockquote formatting on the current line or visual selection.
+- **Visual and normal mode**: Works in both visual selection and normal mode.
+
+</details>
+
 ## Installation
 
 <details>
@@ -151,6 +159,7 @@ require("markdown-plus").setup({
   end,
 }
 ```
+
 </details>
 
 <details>
@@ -165,21 +174,25 @@ use {
   end,
 }
 ```
+
 </details>
 
 <details>
 <summary>Manual Installation</summary>
 
 1. Clone this repository to your Neovim configuration directory:
+
 ```bash
 cd ~/.config/nvim
 git clone https://github.com/yousefhadder/markdown-plus.nvim
 ```
 
 1. Add to your `init.lua`:
+
 ```lua
 require("markdown-plus").setup()
 ```
+
 </details>
 
 ## Usage
@@ -190,12 +203,14 @@ The plugin automatically activates when you open a markdown file (`.md` extensio
 <summary>List Management Examples</summary>
 
 ### Auto-continue Lists
+
 ```markdown
 - Type your first item and press Enter
 - The next item is automatically created ⬅️ (cursor here)
 ```
 
 ### Checkbox Lists
+
 ```markdown
 - [ ] Press Enter after this unchecked item
 - [ ] Next checkbox item is created ⬅️ (cursor here)
@@ -205,6 +220,7 @@ The plugin automatically activates when you open a markdown file (`.md` extensio
 ```
 
 ### Smart Indentation
+
 ```markdown
 - Top level item
   - Press Tab to indent ⬅️ (cursor here)
@@ -213,6 +229,7 @@ The plugin automatically activates when you open a markdown file (`.md` extensio
 ```
 
 ### List Breaking
+
 ```markdown
 - Type your item
 -
@@ -222,12 +239,14 @@ Regular paragraph text continues here.
 ```
 
 ### Smart Backspace
+
 ```markdown
 - Type some text, then delete it all
 - ⬅️ Press Backspace here to remove the bullet entirely
 ```
 
 ### Normal Mode List Creation
+
 ```markdown
 - Position cursor on this list item
 - Press 'o' to create next item ⬅️ (new item appears below)
@@ -244,12 +263,44 @@ c. Press 'O' for previous letter ⬅️
 1) Parenthesized lists work too
 2) Auto-increments correctly ⬅️
 ```
+
 </details>
 
 <details>
+<summary>Quotes Management Examples</summary>
+
+### Toggle Blockquote
+
+```markdown
+Position cursor on a line and press `<leader>mq`:
+This is a normal line → `> This is a normal line`
+`> This is a quoted line` → This is a normal line (toggle off)
+```
+
+### Visual Mode Selection
+
+```markdown
+Select multiple lines in visual mode and press `<leader>mq`:
+1. Enter visual mode with `V` (line-wise visual mode)
+2. Select the lines you want to quote
+3. Press `<leader>mq`
+
+Example:
+Normal line 1
+Normal line 2
+
+→
+
+> Normal line 1
+> Normal line 2
+```
+
+</details>
+
 <summary>Text Formatting Examples</summary>
 
 ### Toggle Bold
+
 ```markdown
 Position cursor on word and press <leader>mb:
 text → **text**
@@ -260,6 +311,7 @@ Select "this text" → **this text**
 ```
 
 ### Toggle Italic
+
 ```markdown
 Position cursor on word and press <leader>mi:
 text → *text*
@@ -267,6 +319,7 @@ text → *text*
 ```
 
 ### Toggle Strikethrough
+
 ```markdown
 Position cursor on word and press <leader>ms:
 text → ~~text~~
@@ -274,6 +327,7 @@ text → ~~text~~
 ```
 
 ### Toggle Inline Code
+
 ```markdown
 Position cursor on word and press <leader>mc:
 text → `text`
@@ -281,6 +335,7 @@ text → `text`
 ```
 
 ### Clear All Formatting
+
 ```markdown
 Position cursor on formatted word and press <leader>mC:
 **bold** *italic* `code` → bold italic code
@@ -290,6 +345,7 @@ This **bold** and *italic* text → This bold and italic text
 ```
 
 ### Smart Word Detection
+
 ```markdown
 Works with special characters in words:
 test-with-hyphens → **test-with-hyphens** (entire word formatted)
@@ -298,6 +354,7 @@ snake_case_word → `snake_case_word` (entire word formatted)
 ```
 
 ### Visual Mode Selection
+
 ```markdown
 Select any text in visual mode and format it:
 1. Enter visual mode with 'v'
@@ -307,12 +364,14 @@ Select any text in visual mode and format it:
 
 Example: Select "multiple words here" → **multiple words here**
 ```
+
 </details>
 
 <details>
 <summary>Headers & TOC Examples</summary>
 
 ### Header Navigation
+
 ```markdown
 Use ]] and [[ to jump between headers quickly:
 # Main Title       ← Press ]] to jump here
@@ -325,6 +384,7 @@ Press [[ to jump backwards
 ```
 
 ### Promote/Demote Headers
+
 ```markdown
 Position cursor on any header and adjust its level:
 ### Subsection    ← Press <leader>h+ → ## Subsection (promoted)
@@ -332,6 +392,7 @@ Position cursor on any header and adjust its level:
 ```
 
 ### Convert to Header
+
 ```markdown
 Position cursor on any line:
 Regular text      ← Press <leader>h2 → ## Regular text
@@ -339,6 +400,7 @@ Already header    ← Press <leader>h4 → #### Already header
 ```
 
 ### Generate Table of Contents
+
 ```markdown
 # My Document
 
@@ -361,6 +423,7 @@ Press <leader>ht to generate TOC:
 **Note:** The TOC is wrapped in HTML comment markers `<!-- TOC -->` and `<!-- /TOC -->`. This prevents duplicate TOCs from being created if you press `<leader>ht` again. To update an existing TOC, use `<leader>hu` instead.
 
 ### Update TOC
+
 ```markdown
 After adding/removing/renaming headers:
 1. Press <leader>hu to update the TOC
@@ -369,6 +432,7 @@ After adding/removing/renaming headers:
 ```
 
 ### Follow TOC Links
+
 ```markdown
 ## Table of Contents
 
@@ -382,6 +446,7 @@ Press gd to jump directly to that header!
 ```
 
 ### TOC with Symbols (GitHub-Compatible)
+
 ```markdown
 # API Documentation
 
@@ -394,6 +459,7 @@ All links work correctly on GitHub! ✓
 ```
 
 ### Code Blocks Ignored
+
 ```markdown
 # Document
 
@@ -413,6 +479,7 @@ Press <leader>ht → Only "Real Section" appears in TOC ✓
 <summary>Links & References Examples</summary>
 
 ### Insert New Link
+
 ```markdown
 In normal mode, press <leader>ml:
 1. You'll be prompted: "Link text: "
@@ -423,6 +490,7 @@ In normal mode, press <leader>ml:
 ```
 
 ### Convert Selection to Link
+
 ```markdown
 Select text in visual mode:
 Visit my website  ← Select "my website" with visual mode
@@ -434,6 +502,7 @@ Press <leader>ml:
 ```
 
 ### Edit Existing Link
+
 ```markdown
 Position cursor anywhere on a link and press <leader>me:
 
@@ -447,6 +516,7 @@ Result: [New Text](https://new-url.com)
 ```
 
 ### Open Link in Browser
+
 ```markdown
 Use native Neovim functionality:
 [Google](https://google.com)  ← Position cursor here
@@ -457,6 +527,7 @@ Press gx to open
 ```
 
 ### Convert URL to Link
+
 ```markdown
 Position cursor on a URL and press <leader>ma:
 
@@ -471,6 +542,7 @@ Result: [https://github.com/yousefhadder/markdown-plus.nvim](https://github.com/
 ```
 
 ### Reference-Style Links
+
 ```markdown
 Convert inline link to reference-style with <leader>mR:
 
@@ -497,6 +569,7 @@ Result: [My Link](https://myref.com)
 ```
 
 ### Reuse Existing References
+
 ```markdown
 When converting links with the same text and URL to reference-style,
 the reference is reused:
@@ -535,6 +608,7 @@ Result:
 <summary>Default Keymaps</summary>
 
 ### List Management (Insert Mode)
+
 | Keymap | Mode | Description |
 |--------|------|-------------|
 | `<CR>` | Insert | Auto-continue lists or break out of lists |
@@ -543,6 +617,7 @@ Result:
 | `<BS>` | Insert | Smart backspace (removes empty list markers) |
 
 ### List Management (Normal Mode)
+
 | Keymap | Mode | Description |
 |--------|------|-------------|
 | `o` | Normal | Create next list item |
@@ -551,6 +626,7 @@ Result:
 | `<leader>md` | Normal | Debug list groups (development) |
 
 ### Text Formatting (Normal & Visual Mode)
+
 | Keymap | Mode | Description |
 |--------|------|-------------|
 | `<leader>mb` | Normal/Visual | Toggle **bold** formatting |
@@ -560,6 +636,7 @@ Result:
 | `<leader>mC` | Normal/Visual | Clear all formatting |
 
 ### Headers & TOC (Normal Mode)
+
 | Keymap | Mode | Description |
 |--------|------|-------------|
 | `]]` | Normal | Jump to next header |
@@ -577,6 +654,7 @@ Result:
 | `gd` | Normal | Follow TOC link (jump to header) |
 
 ### Links & References (Normal & Visual Mode)
+
 | Keymap | Mode | Description |
 |--------|------|-------------|
 | `<leader>ml` | Normal | Insert new markdown link |
@@ -586,6 +664,13 @@ Result:
 | `<leader>mR` | Normal | Convert to reference-style link |
 | `<leader>mI` | Normal | Convert to inline link |
 | `gx` | Normal | Open link in browser (native Neovim) |
+
+### Quotes Management (Normal & Visual Mode)
+
+ | Keymap       | Mode       | Description                          |
+ |--------------|------------|--------------------------------------|
+ | `<leader>mq` | Normal     | Toggle blockquote on current line    |
+ | `<leader>mq` | Visual     | Toggle blockquote on selected lines  |
 
 **Note**: In normal mode, these commands operate on the word under cursor. In visual mode, they operate on the selected text.
 
@@ -624,12 +709,14 @@ require("markdown-plus").setup({
 ### Using with Multiple Filetypes
 
 The plugin can be enabled for any filetype, not just markdown. This is useful for:
+
 - Plain text files (`.txt`, `.text`)
 - Note-taking formats (`.note`, `.org`)
 - Documentation files
 - Any text-based format where you want markdown-style formatting
 
 **Example: Enable for markdown and plain text files**
+
 ```lua
 require("markdown-plus").setup({
   filetypes = { "markdown", "text", "txt" },
@@ -637,6 +724,7 @@ require("markdown-plus").setup({
 ```
 
 **Example: Enable for custom note-taking setup**
+
 ```lua
 require("markdown-plus").setup({
   filetypes = { "markdown", "note", "org", "wiki" },
@@ -644,6 +732,7 @@ require("markdown-plus").setup({
 ```
 
 **Important:** Make sure your plugin manager also loads the plugin for these filetypes:
+
 ```lua
 -- For lazy.nvim
 {
@@ -728,6 +817,7 @@ When both `vim.g.markdown_plus` and `setup()` are used, they are merged with the
 3. **Highest**: `setup(opts)` parameter
 
 Example:
+
 ```lua
 -- This vim.g config sets list_management = false
 vim.g.markdown_plus = {
@@ -747,6 +837,7 @@ require("markdown-plus").setup({
 ```
 
 This allows you to:
+
 - Set global defaults with `vim.g`
 - Override specific settings with `setup()` for certain filetypes or conditions
 - Mix both methods for maximum flexibility
@@ -838,9 +929,19 @@ vim.keymap.set("n", "o", "<Plug>(MarkdownPlusNewListItemBelow)")
 vim.keymap.set("n", "O", "<Plug>(MarkdownPlusNewListItemAbove)")
 ```
 
+#### Quotes
+
+```lua
+-- Normal mode
+vim.keymap.set("n", "<C-q>", "<Plug>(MarkdownPlusToggleQuote)")
+-- Visual mode
+vim.keymap.set("x", "<C-q>", "<Plug>(MarkdownPlusToggleQuote)")
+```
+
 ### Available <Plug> Mappings
 
 #### Text Formatting
+
 - `<Plug>(MarkdownPlusBold)` - Toggle bold (n, x)
 - `<Plug>(MarkdownPlusItalic)` - Toggle italic (n, x)
 - `<Plug>(MarkdownPlusStrikethrough)` - Toggle strikethrough (n, x)
@@ -848,6 +949,7 @@ vim.keymap.set("n", "O", "<Plug>(MarkdownPlusNewListItemAbove)")
 - `<Plug>(MarkdownPlusClearFormatting)` - Clear all formatting (n, x)
 
 #### Headers & TOC
+
 - `<Plug>(MarkdownPlusNextHeader)` - Jump to next header (n)
 - `<Plug>(MarkdownPlusPrevHeader)` - Jump to previous header (n)
 - `<Plug>(MarkdownPlusPromoteHeader)` - Promote header (n)
@@ -858,6 +960,7 @@ vim.keymap.set("n", "O", "<Plug>(MarkdownPlusNewListItemAbove)")
 - `<Plug>(MarkdownPlusHeader1)` through `<Plug>(MarkdownPlusHeader6)` - Set header level (n)
 
 #### Links
+
 - `<Plug>(MarkdownPlusInsertLink)` - Insert new link (n)
 - `<Plug>(MarkdownPlusSelectionToLink)` - Convert selection to link (v)
 - `<Plug>(MarkdownPlusEditLink)` - Edit link under cursor (n)
@@ -866,6 +969,7 @@ vim.keymap.set("n", "O", "<Plug>(MarkdownPlusNewListItemAbove)")
 - `<Plug>(MarkdownPlusAutoLinkURL)` - Auto-convert URL to link (n)
 
 #### List Management
+
 - `<Plug>(MarkdownPlusListEnter)` - Auto-continue list (i)
 - `<Plug>(MarkdownPlusListIndent)` - Indent list item (i)
 - `<Plug>(MarkdownPlusListOutdent)` - Outdent list item (i)
@@ -874,6 +978,10 @@ vim.keymap.set("n", "O", "<Plug>(MarkdownPlusNewListItemAbove)")
 - `<Plug>(MarkdownPlusDebugLists)` - Debug list groups (n)
 - `<Plug>(MarkdownPlusNewListItemBelow)` - New item below (n)
 - `<Plug>(MarkdownPlusNewListItemAbove)` - New item above (n)
+
+#### Quotes
+
+- `<Plug>(MarkdownPlusToggleQuote)` - Toggle blockquote (n, x)
 
 ### Mixing Default and Custom Keymaps
 
@@ -912,7 +1020,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed development guidelines.
 ## License
 
 MIT License - see [LICENSE](./LICENSE) file for details.
-
 
 ## Development
 
@@ -957,12 +1064,14 @@ make format-check
 #### Code Quality Tools
 
 **Linter**: [luacheck](https://github.com/mpeterv/luacheck)
+
 ```bash
 # Install via LuaRocks
 luarocks install luacheck
 ```
 
 **Formatter**: [stylua](https://github.com/JohnnyMorganz/StyLua)
+
 ```bash
 # Install via Homebrew (macOS)
 brew install stylua
@@ -976,12 +1085,13 @@ cargo install stylua
 ```
 spec/
 ├── markdown-plus/
-│   ├── config_spec.lua      # Configuration tests
+│   ├── config_spec.lua       # Configuration tests
 │   ├── utils_spec.lua        # Utility function tests
 │   ├── list_spec.lua         # List management tests
 │   ├── headers_spec.lua      # Headers & TOC tests
-│   └── links_spec.lua        # Link management tests
-└── minimal_init.lua           # Test environment setup
+│   ├── links_spec.lua        # Link management tests
+│   └── quote_spec.lua        # Quote management tests
+└── minimal_init.lua          # Test environment setup
 ```
 
 ### Contributing
@@ -994,4 +1104,3 @@ spec/
 6. Submit a pull request
 
 **Note**: You can contribute directly by opening issues or pull requests to this repository. See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.
-

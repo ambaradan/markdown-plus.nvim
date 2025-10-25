@@ -13,6 +13,7 @@ Table of Contents                            *markdown-plus-table-of-contents*
   - Lists                                            |markdown-plus-usage-lists|
   - Formatting                                  |markdown-plus-usage-formatting|
   - Links                                            |markdown-plus-usage-links|
+  - Quotes                                          |markdown-plus-usage-quotes|
 4. Configuration                                     |markdown-plus-configuration|
   - Keymaps                                  |markdown-plus-configuration-keymaps|
   - Options                                  |markdown-plus-configuration-options|
@@ -68,6 +69,9 @@ FEATURES                                     *markdown-plus-introduction-feature
   - Convert between inline and reference-style links
   - Smart reference ID generation and reuse
   - Open links with native Neovim (gx)
+
+- Quotes Management:
+  - Toggle blockquote on current line or visual selection
 
 - Context-aware keymaps:
   - List operations only active within lists
@@ -465,6 +469,27 @@ Links with different text create separate references even with same URL:
     [dotfiles]: https://github.com/yousefhadder/dotfiles
     [my-dotfiles]: https://github.com/yousefhadder/dotfiles
 <
+QUOTES                                            *markdown-plus-usage-quotes*
+
+Toggle blockquote on current line or visual selection with `<leader>mq`.
+
+NORMAL MODE ~
+
+Place cursor on a line and press `<leader>mq`:
+>markdown
+    This is a normal line -> > This is a normal line
+    > This is a quoted line -> This is a normal line
+<
+VISUAL MODE ~
+
+Select multiple lines in visual mode and press `<leader>mq`:
+>markdown
+    Normal line 1
+    Normal line 2
+    ->
+    > Normal line 1
+    > Normal line 2
+<
 
 
 ==============================================================================
@@ -523,6 +548,9 @@ Default keymaps:
         to_inline = '<leader>mI',          -- Convert to inline
         follow_link = 'gd',                -- Follow TOC link
         open_link = 'gx',                  -- Open link in browser (native)
+
+        -- Quotes operations
+        toggle_quote = '<leader>mq',       -- Toggle blockquote
       }
     }
 <
@@ -540,6 +568,7 @@ The plugin can be configured through the setup function:
         text_formatting = true,  -- Bold, italic, strikethrough, code
         headers_toc = true,      -- Header manipulation and TOC generation
         links = true,            -- Link management and references
+        quote = true,            -- Quote management
       },
       keymaps = {
         enabled = true,          -- Enable/disable default keymaps
@@ -676,6 +705,7 @@ However, you can call the Lua API functions directly if needed:
     :lua require('markdown-plus').list.renumber_ordered_lists()
     :lua require('markdown-plus').format.toggle_format('bold')
     :lua require('markdown-plus').links.insert_link()
+    :lua require('markdown-plus').quote.toggle_quote()
 <
 
 See |markdown-plus-api| for a complete list of available functions.
@@ -825,6 +855,11 @@ markdown-plus.links.find_reference_url(ref)
     Returns: ~
         (string|nil) The URL if found, nil otherwise
 
+QUOTES MODULE                                           *markdown-plus.quote*
+
+                                               *markdown-plus.quote.toggle_quote*
+markdown-plus.quote.toggle_quote()
+    Toggles blockquote on the current line or visual selection.
 
 Example usage:
 >lua
@@ -835,6 +870,7 @@ Example usage:
     require('markdown-plus').headers.set_header_level(2)
     require('markdown-plus').links.insert_link()
     require('markdown-plus').links.convert_to_reference()
+    require('markdown-plus').quote.toggle_quote()
 <
 
 
@@ -885,6 +921,7 @@ Ensure you're using the correct keymap. By default:
 - `<leader>ms` for strikethrough
 - `<leader>mc` for inline code
 - `<leader>mC` for clearing formatting
+- `<leader>mq` for toggling blockquote
 
 These work in both normal mode (on word under cursor) and visual mode
 (on selection).

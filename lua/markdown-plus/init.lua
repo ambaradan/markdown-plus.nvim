@@ -9,6 +9,7 @@ M.config = {
     text_formatting = true,
     links = true,
     headers_toc = true,
+    quotes = true,
   },
   keymaps = {
     enabled = true,
@@ -21,6 +22,7 @@ M.list = nil
 M.format = nil
 M.links = nil
 M.headers = nil
+M.quotes = nil
 
 ---Get user configuration from vim.g.markdown_plus
 ---Supports both table and function forms
@@ -109,6 +111,11 @@ function M.setup(opts)
     M.links.setup(M.config)
   end
 
+  if M.config.features.quotes then
+    M.quotes = require("markdown-plus.quote")
+    M.quotes.setup(M.config)
+  end
+
   -- Set up autocommands for markdown files
   M.setup_autocmds()
 end
@@ -134,6 +141,9 @@ function M.setup_autocmds()
       end
       if M.links then
         M.links.enable()
+      end
+      if M.quotes then
+        M.quotes.enable()
       end
     end,
   })
