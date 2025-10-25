@@ -55,8 +55,10 @@ end
 
 -- Get visual selection range
 function M.get_visual_selection()
-  local start_pos = vim.fn.getpos("'<")
-  local end_pos = vim.fn.getpos("'>")
+  -- Get visual mode start position
+  local start_pos = vim.fn.getpos("v")
+  -- Get current cursor position (end of selection)
+  local end_pos = vim.fn.getpos(".")
   local start_row = start_pos[2]
   local end_row = end_pos[2]
   return {
