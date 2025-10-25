@@ -41,7 +41,8 @@ FEATURES                                     *markdown-plus-introduction-feature
 
 - Smart list management:
   - Auto-continuation with proper markers and indentation
-  - Intelligent renumbering for ordered lists
+  - Intelligent renumbering for ordered and letter-based lists
+  - Support for multiple list types (unordered, ordered, letter-based, parenthesized)
   - Context-aware Tab/Shift-Tab for indentation
   - Automatic empty item removal
   - Smart backspace to remove list markers
@@ -196,7 +197,14 @@ Follow TOC links with `gd` when cursor is on a link to jump to that header.
 LISTS                                                *markdown-plus-usage-lists*
 
 markdown-plus.nvim provides intelligent list management with context-aware
-behavior.
+behavior for multiple list types:
+
+  - Unordered: `-`, `*`, `+`
+  - Ordered: `1.`, `2.`, `3.`
+  - Letter-based: `a.`, `b.`, `c.` and `A.`, `B.`, `C.`
+  - Parenthesized: `1)`, `2)` and `a)`, `b)` and `A)`, `B)`
+
+All list types support checkboxes (e.g., `- [ ]`, `1. [x]`, `a. [ ]`).
 
 
 AUTO-CONTINUATION ~
@@ -212,6 +220,10 @@ create a new item:
     1. First item
     2. Second item|        ->    2. Second item
                                  3. |
+
+    a. First letter
+    b. Second letter|      ->    b. Second letter
+                                 c. |
 <
 
 Empty items are automatically removed when you press `<CR>` again:
@@ -229,7 +241,8 @@ items when you're actually in a list. Outside of lists, it behaves normally.
 
 INDENTATION ~
 
-Use `<Tab>` and `<S-Tab>` in insert mode to indent/dedent list items:
+Use `<Tab>` and `<S-Tab>` in insert mode to indent/dedent list items.
+All list types maintain their marker style when indented:
 
 >markdown
     - Item
@@ -240,6 +253,12 @@ Use `<Tab>` and `<S-Tab>` in insert mode to indent/dedent list items:
 <
 
 Outside of lists, `<Tab>` and `<S-Tab>` insert/remove indentation normally.
+
+
+RENUMBERING ~
+
+Ordered and letter-based lists are automatically renumbered as you edit.
+Manual renumbering is available with `<leader>mr`.
 
 
 SMART BACKSPACE ~
