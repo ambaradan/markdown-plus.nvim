@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Visual mode selection issue**: Fixed error when formatting text on first visual selection
+  - Implemented workaround for Neovim's visual mode marks (`'<` and `'>`) not updating until after exiting visual mode
+  - Now uses `vim.fn.getpos('v')` and `vim.fn.getpos('.')` when in active visual mode
+  - Falls back to marks when called after visual mode for compatibility
+  - Added position normalization to handle backward selections (right-to-left, bottom-to-top)
+  - Added visual selection restoration with `gv` to keep selection active after formatting
+  - Added range validation to prevent API crashes with helpful error messages
+  - Formatting now works correctly on the first selection without needing to reselect text
+  - Expanded test coverage with 4 new visual mode selection tests (27 format tests total)
+
 ---
 
 ## [1.3.0] - 2025-10-23
