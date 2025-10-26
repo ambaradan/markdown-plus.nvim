@@ -35,9 +35,9 @@ awk -v version="$VERSION" -v date="$DATE" '
 ' CHANGELOG.md > "$TMP_FILE"
 
 # Add version comparison link if not already present
-if ! grep -q "^\[${VERSION}\]:" CHANGELOG.md; then
+if ! grep -q "^\[${VERSION}\]:" "$TMP_FILE"; then
   # Get the previous version from changelog
-  PREV_VERSION=$(grep -oP '^\[\K[0-9]+\.[0-9]+\.[0-9]+(?=\]:)' CHANGELOG.md | head -1)
+  PREV_VERSION=$(grep -oP '^\[\K[0-9]+\.[0-9]+\.[0-9]+(?=\]:)' "$TMP_FILE" | head -1)
   
   if [ -n "$PREV_VERSION" ]; then
     # Insert new link before the first existing version link

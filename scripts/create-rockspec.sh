@@ -5,26 +5,34 @@ set -euo pipefail
 
 VERSION="${1:-}"
 
+# Extract repository info from git remote or use defaults
+REPO_OWNER=$(git remote get-url origin 2>/dev/null | grep -oP 'github\.com[:/]\K[^/]+(?=/[^/]+(\.git)?$)' || echo "yousefhadder")
+REPO_NAME=$(git remote get-url origin 2>/dev/null | grep -oP 'github\.com[:/][^/]+/\K[^/]+' | sed 's/\.git$//' || echo "markdown-plus.nvim")
+
 if [ -z "$VERSION" ]; then
   echo "Error: Version argument required"
   echo "Usage: $0 <version>"
   exit 1
 fi
 
-ROCKSPEC_FILE="rockspecs/markdown-plus.nvim-${VERSION}-1.rockspec"
+ROCKSPEC_FILE="rockspecs/${REPO_NAME}-${VERSION}-1.rockspec"
 
 echo "Creating rockspec for version $VERSION..."
 
 # Use awk for reliable rockspec creation
-awk -v version="$VERSION" '
+awk -v version="$VERSION" -v owner="$REPO_OWNER" -v repo="$REPO_NAME" '
 /^version = / { 
   print "version = \"" version "-1\""
   next 
 }
-/^  url = "git:\/\/github.com\/yousefhadder\/markdown-plus.nvim.git",?$/ {
-  gsub(/,$/, "")
-  print $0 ","
-  print "  tag = \"v" version "\","
+/^  url = "git:\/\/github.com\/.*\.git",?$/ {
+  has_comma = /,$/
+  print "  url = \"git://github.com/" owner "/" repo ".git\"" (has_comma ? "," : "")
+  next
+}
+/^  tag = "v.*",?$/ {
+  has_comma = /,$/
+  print "  tag = \"v" version "\"" (has_comma ? "," : "")
   next
 }
 { print }

@@ -297,8 +297,11 @@ jobs:
           echo "3. After merge, re-run this workflow without dry_run to create the tag and release" >> $GITHUB_STEP_SUMMARY
       
       - name: Cleanup on failure
-        if: failure() && inputs.dry_run != true
+        if: failure()
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          ./scripts/cleanup-failed-release.sh \\\n            "${{ inputs.version }}" \\\n            "${{ steps.branch.outputs.branch }}" \\\n            "${{ steps.pr.outputs.pr_number }}"
+          ./scripts/cleanup-failed-release.sh \
+            "${{ inputs.version }}" \
+            "${{ steps.branch.outputs.branch }}" \
+            "${{ steps.pr.outputs.pr_number }}"

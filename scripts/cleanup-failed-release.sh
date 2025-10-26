@@ -23,15 +23,30 @@ if git rev-parse "v${VERSION}" >/dev/null 2>&1; then
 fi
 
 # Close the PR if it was created
-if [ -n "$PR_NUMBER" ]; then
+if [ -n "$PR_NUMBER" ] && [ "$PR_NUMBER" != "null" ] && [ "$PR_NUMBER" != "" ]; then
   echo "Closing PR #${PR_NUMBER}..."
-  gh pr close "$PR_NUMBER" --comment "Closing due to workflow failure. Please check logs and retry." 2>/dev/null || true
+  if gh pr close "$PR_NUMBER" --comment "Closing due to workflow failure. Please check logs and retry." 2>/dev/null; then
+    echo "✓ Closed PR #${PR_NUMBER}"
+  else
+    echo "⚠️  Could not close PR #${PR_NUMBER} (may already be closed)"
+  fi
 fi
 
 # Delete the branch if it was created
-if [ -n "$BRANCH" ]; then
+if [ -n "$BRANCH" ] && [ "$BRANCH" != "null" ] && [ "$BRANCH" != "" ]; then
   echo "Deleting branch ${BRANCH}..."
-  git push --delete origin "$BRANCH" 2>/dev/null || true
+  if git push --delete origin "$BRANCH" 2>/dev/null; then
+    echo "✓ Deleted remote branch ${BRANCH}"
+  else
+    echo "⚠️  Could not delete remote branch ${BRANCH} (may not exist)"
+  fi
+  
+  # Also delete local branch if we're not currently on it
+  CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+  if [ "$CURRENT_BRANCH" != "$BRANCH" ]; then
+    git branch -D "$BRANCH" 2>/dev/null || true
+    echo "✓ Deleted local branch ${BRANCH}"
+  fi
 fi
 
 # Delete the GitHub release if it was created
