@@ -59,6 +59,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           version: latest
+          args: --version
       
       - name: Run tests
         run: make test
