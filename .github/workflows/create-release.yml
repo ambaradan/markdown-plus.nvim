@@ -7,12 +7,81 @@ on:
         description: 'Release version (e.g., 1.3.0)'
         required: true
         type: string
+      publish_to_luarocks:
+        description: 'Publish to LuaRocks immediately after release'
+        required: false
+        type: boolean
+        default: false
+      dry_run:
+        description: 'Dry run (create PR but do not auto-merge)'
+        required: false
+        type: boolean
+        default: false
+      target_branch:
+        description: 'Target branch for PR (for testing, use current branch)'
+        required: false
+        type: string
+        default: 'main'
 
 jobs:
+  # First verify tests pass before creating release
+  verify:
+    name: Pre-release verification
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Install Neovim
+        uses: rhysd/action-setup-vim@v1
+        with:
+          neovim: true
+          version: stable
+      
+      - name: Install plenary.nvim
+        run: |
+          mkdir -p ~/.local/share/nvim/site/pack/vendor/start
+          git clone --depth 1 https://github.com/nvim-lua/plenary.nvim \
+            ~/.local/share/nvim/site/pack/vendor/start/plenary.nvim
+      
+      - name: Install luacheck
+        run: |
+          echo "Installing luacheck..."
+          sudo apt-get update
+          sudo apt-get install -y luarocks
+          sudo luarocks install luacheck
+          
+          echo "✓ luacheck installed"
+          luacheck --version
+      
+      - name: Install StyLua
+        uses: JohnnyMorganz/stylua-action@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          version: latest
+          args: --version
+      
+      - name: Run tests
+        run: make test
+      
+      - name: Run lint
+        run: make lint
+      
+      - name: Check formatting
+        run: make format-check
+  
   create-release:
+    name: Create release
+    needs: verify
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      pull-requests: write
+    
+    outputs:
+      version: ${{ inputs.version }}
+      pr_number: ${{ steps.pr.outputs.pr_number }}
+      pr_url: ${{ steps.pr.outputs.pr_url }}
     
     steps:
       - name: Checkout code
@@ -20,154 +89,253 @@ jobs:
         with:
           fetch-depth: 0
       
-      - name: Validate version format
+      - name: Verify scripts exist
         run: |
-          if ! [[ "${{ inputs.version }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Error: Version must be in format X.Y.Z (e.g., 1.3.0)"
+          if [ ! -d "scripts" ]; then
+            echo "Error: scripts/ directory not found"
             exit 1
           fi
-      
-      - name: Check if tag exists
-        run: |
-          if git rev-parse "v${{ inputs.version }}" >/dev/null 2>&1; then
-            echo "Error: Tag v${{ inputs.version }} already exists"
-            exit 1
-          fi
-      
-      - name: Extract changelog for version
-        id: changelog
-        run: |
-          VERSION="${{ inputs.version }}"
           
-          # Extract the Unreleased section from CHANGELOG.md
-          # This assumes the next release content is in the Unreleased section
-          CHANGELOG_CONTENT=$(awk '/^## \[Unreleased\]$/,/^## \[/ {
-            if (/^## \[Unreleased\]$/) next
-            if (/^## \[/) exit
-            print
-          }' CHANGELOG.md | sed '/^$/d' | head -c 65000)
+          REQUIRED_SCRIPTS=(
+            "validate-version.sh"
+            "extract-changelog.py"
+            "update-changelog.sh"
+            "create-rockspec.sh"
+            "create-release-notes.sh"
+            "create-release-pr.sh"
+            "cleanup-failed-release.sh"
+          )
           
-          if [ -z "$CHANGELOG_CONTENT" ]; then
-            echo "Warning: No unreleased changes found in CHANGELOG.md"
-            CHANGELOG_CONTENT="Release v${VERSION}"
-          fi
-          
-          # Save to file for multiline content
-          echo "$CHANGELOG_CONTENT" > /tmp/release_notes.txt
-      
-      - name: Update CHANGELOG.md
-        run: |
-          VERSION="${{ inputs.version }}"
-          DATE=$(date +%Y-%m-%d)
-          
-          # Create a temporary file
-          TMP_FILE=$(mktemp)
-          
-          # Read the changelog and update it
-          awk -v version="$VERSION" -v date="$DATE" '
-          /^## \[Unreleased\]$/ {
-            # Add new empty Unreleased section
-            print "## [Unreleased]\n"
-            print "---\n"
-            # Add the new version section
-            print "## [" version "] - " date
-            in_unreleased = 1
-            next
-          }
-          /^## \[/ && in_unreleased {
-            # End of unreleased section, continue normally
-            in_unreleased = 0
-          }
-          { print }
-          ' CHANGELOG.md > "$TMP_FILE"
-          
-          # Add version comparison link at the end if not already present
-          if ! grep -q "^\[${VERSION}\]:" CHANGELOG.md; then
-            # Get the previous version from changelog
-            PREV_VERSION=$(grep -oP '^\[\K[0-9]+\.[0-9]+\.[0-9]+(?=\]:)' CHANGELOG.md | head -1)
-            
-            if [ -n "$PREV_VERSION" ]; then
-              # Update the pattern to insert new link before the first existing version link
-              sed -i "/^\[${PREV_VERSION}\]:/i [${VERSION}]: https://github.com/YousefHadder/markdown-plus.nvim/compare/v${PREV_VERSION}...v${VERSION}" "$TMP_FILE"
-            else
-              # If no previous version found, just append
-              echo "[${VERSION}]: https://github.com/YousefHadder/markdown-plus.nvim/releases/tag/v${VERSION}" >> "$TMP_FILE"
+          for script in "${REQUIRED_SCRIPTS[@]}"; do
+            if [ ! -f "scripts/$script" ]; then
+              echo "Error: Required script scripts/$script not found"
+              exit 1
             fi
-          fi
+            if [ ! -x "scripts/$script" ]; then
+              echo "Warning: Script scripts/$script is not executable, making it executable"
+              chmod +x "scripts/$script"
+            fi
+          done
           
-          # Replace original file
-          mv "$TMP_FILE" CHANGELOG.md
-          
-          echo "Updated CHANGELOG.md:"
-          head -20 CHANGELOG.md
+          echo "✓ All required scripts found and executable"
+      
+      - name: Validate version format
+        run: ./scripts/validate-version.sh "${{ inputs.version }}"
+      
+      - name: Extract changelog
+        run: |
+          ./scripts/extract-changelog.py "${{ inputs.version }}" > /tmp/changelog_content.txt
+          echo "Extracted changelog:"
+          cat /tmp/changelog_content.txt
+      
+      - name: Update CHANGELOG
+        run: ./scripts/update-changelog.sh "${{ inputs.version }}"
       
       - name: Create versioned rockspec
-        run: |
-          VERSION="${{ inputs.version }}"
-          ROCKSPEC_FILE="rockspecs/markdown-plus.nvim-${VERSION}-1.rockspec"
-          
-          # Copy from scm rockspec and update version and tag
-          cp rockspecs/markdown-plus.nvim-scm-1.rockspec "$ROCKSPEC_FILE"
-          
-          # Update version
-          sed -i "s/version = \"scm-1\"/version = \"${VERSION}-1\"/" "$ROCKSPEC_FILE"
-          
-          # Add tag field after url using awk for reliable multiline insertion
-          awk -v version="$VERSION" '
-          /^  url = "git:\/\/github.com\/yousefhadder\/markdown-plus.nvim.git",?$/ {
-            # Remove trailing comma if present and add it back with tag
-            gsub(/,$/, "")
-            print $0 ","
-            print "  tag = \"v" version "\","
-            next
-          }
-          { print }
-          ' "$ROCKSPEC_FILE" > "${ROCKSPEC_FILE}.tmp"
-          mv "${ROCKSPEC_FILE}.tmp" "$ROCKSPEC_FILE"
-          
-          echo "Created $ROCKSPEC_FILE"
-          cat "$ROCKSPEC_FILE"
+        run: ./scripts/create-rockspec.sh "${{ inputs.version }}"
       
-      - name: Commit and push changes
+      - name: Create release branch
+        id: branch
         run: |
           VERSION="${{ inputs.version }}"
-          ROCKSPEC_FILE="rockspecs/markdown-plus.nvim-${VERSION}-1.rockspec"
+          BRANCH="release/v${VERSION}"
           
+          git checkout -b "$BRANCH"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          ROCKSPEC_FILE="rockspecs/markdown-plus.nvim-${VERSION}-1.rockspec"
           git add "$ROCKSPEC_FILE" CHANGELOG.md
           git commit -m "chore: release v${VERSION}
           
           - Add rockspec for v${VERSION}
           - Update CHANGELOG.md for v${VERSION} release"
-          git push origin main
-      
-      - name: Create and push tag
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
           
-          # Tag the latest commit (which includes CHANGELOG and rockspec)
-          git tag -a "v${{ inputs.version }}" -m "Release v${{ inputs.version }}"
-          git push origin "v${{ inputs.version }}"
+          git push origin "$BRANCH"
+          
+          echo "branch=$BRANCH" >> $GITHUB_OUTPUT
+          echo "✓ Created and pushed branch: $BRANCH"
       
-      - name: Create GitHub Release
+      - name: Create enhanced release notes
+        run: |
+          ./scripts/create-release-notes.sh "${{ inputs.version }}" /tmp/changelog_content.txt > /tmp/release_notes.txt
+          echo "Enhanced release notes:"
+          cat /tmp/release_notes.txt
+      
+      - name: Create Pull Request
+        id: pr
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "v${{ inputs.version }}" \
-            --title "v${{ inputs.version }}" \
+          OUTPUT=$(./scripts/create-release-pr.sh \
+            "${{ inputs.version }}" \
+            "${{ steps.branch.outputs.branch }}" \
+            "${{ inputs.target_branch }}" \
+            "${{ inputs.dry_run }}" \
+            "${{ inputs.publish_to_luarocks }}")
+          
+          # Parse output and set step outputs
+          echo "$OUTPUT" | grep "^pr_number=" >> $GITHUB_OUTPUT
+          echo "$OUTPUT" | grep "^pr_url=" >> $GITHUB_OUTPUT
+      
+      - name: Enable auto-merge
+        if: inputs.dry_run != true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PR_NUMBER="${{ steps.pr.outputs.pr_number }}"
+          
+          echo "Enabling auto-merge for PR #${PR_NUMBER}..."
+          gh pr merge "$PR_NUMBER" --auto --squash --delete-branch
+          
+          echo "✓ Auto-merge enabled"
+      
+      - name: Wait for PR to merge
+        if: inputs.dry_run != true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PR_NUMBER="${{ steps.pr.outputs.pr_number }}"
+          
+          echo "Waiting for PR #${PR_NUMBER} to merge (max 10 minutes)..."
+          
+          # Poll until merged (max 10 minutes = 120 iterations * 5 seconds)
+          for i in $(seq 1 120); do
+            STATE=$(gh pr view "$PR_NUMBER" --json state --jq '.state')
+            
+            if [ "$STATE" = "MERGED" ]; then
+              echo "✓ PR merged successfully!"
+              break
+            fi
+            
+            if [ "$STATE" = "CLOSED" ]; then
+              echo "✗ PR was closed without merging"
+              exit 1
+            fi
+            
+            # Check for timeout before sleeping (avoid unnecessary final sleep)
+            if [ $i -ge 120 ]; then
+              echo "✗ Timeout waiting for PR to merge (10 minutes)"
+              echo "Please check: ${{ steps.pr.outputs.pr_url }}"
+              exit 1
+            fi
+            
+            # Show progress every minute (12 iterations * 5 seconds = 60 seconds)
+            if [ $i -eq 1 ] || [ $((i % 12)) -eq 0 ]; then
+              echo "Still waiting... ($i/120) - Check status: ${{ steps.pr.outputs.pr_url }}"
+            fi
+            
+            sleep 5
+          done
+      
+      - name: Fetch merged commit
+        if: inputs.dry_run != true
+        run: |
+          TARGET_BRANCH="${{ inputs.target_branch }}"
+          
+          echo "Fetching merged changes from $TARGET_BRANCH..."
+          git fetch origin "$TARGET_BRANCH"
+          git checkout "$TARGET_BRANCH"
+          git pull origin "$TARGET_BRANCH"
+          
+          echo "✓ Updated to latest $TARGET_BRANCH branch"
+      
+      - name: Create and push tag
+        if: inputs.dry_run != true
+        id: tag
+        run: |
+          VERSION="${{ inputs.version }}"
+          
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Tag the current commit on main (which includes our merged changes)
+          COMMIT_SHA=$(git rev-parse HEAD)
+          git tag -a "v${VERSION}" "$COMMIT_SHA" -m "Release v${VERSION}"
+          git push origin "v${VERSION}"
+          
+          echo "commit_sha=$COMMIT_SHA" >> $GITHUB_OUTPUT
+          echo "✓ Created and pushed tag v${VERSION} at commit ${COMMIT_SHA:0:7}"
+      
+      - name: Create GitHub Release
+        if: inputs.dry_run != true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="${{ inputs.version }}"
+          
+          gh release create "v${VERSION}" \
+            --title "v${VERSION}" \
             --notes-file /tmp/release_notes.txt
+          
+          echo "✓ Created GitHub release: https://github.com/${{ github.repository }}/releases/tag/v${VERSION}"
+      
+      - name: Trigger LuaRocks publish
+        if: inputs.dry_run != true && inputs.publish_to_luarocks == true
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'release-to-luarocks.yml',
+              ref: '${{ inputs.target_branch }}',
+              inputs: {
+                version: '${{ inputs.version }}'
+              }
+            });
+            console.log('✓ Triggered LuaRocks publish workflow');
       
       - name: Summary
+        if: inputs.dry_run != true
         run: |
-          echo "✅ Release v${{ inputs.version }} created successfully!"
-          echo "📦 Tag: v${{ inputs.version }}"
-          echo "🔗 Release URL: https://github.com/${{ github.repository }}/releases/tag/v${{ inputs.version }}"
-          echo "🪨 Rockspec: markdown-plus.nvim-${{ inputs.version }}-1.rockspec"
-          echo ""
-          echo "📋 Next steps:"
-          echo "1. Go to Actions → 'Release to LuaRocks'"
-          echo "2. Click 'Run workflow'"
-          echo "3. Enter version: ${{ inputs.version }}"
-          echo "4. Click 'Run workflow' to publish to LuaRocks"
+          VERSION="${{ inputs.version }}"
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "# ✅ Release v${VERSION} Created Successfully!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Release Information" >> $GITHUB_STEP_SUMMARY
+          echo "- 📦 **Tag**: v${VERSION}" >> $GITHUB_STEP_SUMMARY
+          echo "- 🔗 **Release URL**: https://github.com/${{ github.repository }}/releases/tag/v${VERSION}" >> $GITHUB_STEP_SUMMARY
+          echo "- 🪨 **Rockspec**: markdown-plus.nvim-${VERSION}-1.rockspec" >> $GITHUB_STEP_SUMMARY
+          echo "- 📝 **PR**: ${{ steps.pr.outputs.pr_url }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ inputs.publish_to_luarocks }}" = "true" ]; then
+            echo "## Next Steps" >> $GITHUB_STEP_SUMMARY
+            echo "✅ LuaRocks publish workflow has been triggered automatically" >> $GITHUB_STEP_SUMMARY
+            echo "Check the Actions tab to monitor the publish status" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "## Next Steps" >> $GITHUB_STEP_SUMMARY
+            echo "To publish to LuaRocks:" >> $GITHUB_STEP_SUMMARY
+            echo "1. Go to Actions → 'Release to LuaRocks'" >> $GITHUB_STEP_SUMMARY
+            echo "2. Click 'Run workflow'" >> $GITHUB_STEP_SUMMARY
+            echo "3. Enter version: ${VERSION}" >> $GITHUB_STEP_SUMMARY
+            echo "4. Click 'Run workflow'" >> $GITHUB_STEP_SUMMARY
+          fi
+      
+      - name: Dry run summary
+        if: inputs.dry_run == true
+        run: |
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "# 🔍 Dry Run Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Release PR created but NOT auto-merged (dry run mode)." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Created PR" >> $GITHUB_STEP_SUMMARY
+          echo "- 📝 **PR URL**: ${{ steps.pr.outputs.pr_url }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Next Steps" >> $GITHUB_STEP_SUMMARY
+          echo "1. Review the PR changes" >> $GITHUB_STEP_SUMMARY
+          echo "2. If everything looks good, merge the PR manually" >> $GITHUB_STEP_SUMMARY
+          echo "3. After merge, re-run this workflow without dry_run to create the tag and release" >> $GITHUB_STEP_SUMMARY
+      
+      - name: Cleanup on failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ./scripts/cleanup-failed-release.sh \
+            "${{ inputs.version }}" \
+            "${{ steps.branch.outputs.branch }}" \
+            "${{ steps.pr.outputs.pr_number }}"
