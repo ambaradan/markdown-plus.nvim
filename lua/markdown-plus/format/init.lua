@@ -18,6 +18,7 @@ M.patterns = {
   italic = { start = "%*", end_pat = "%*", wrap = "*" },
   strikethrough = { start = "~~", end_pat = "~~", wrap = "~~" },
   code = { start = "`", end_pat = "`", wrap = "`" },
+  code_block = {},
 }
 
 ---Setup text formatting module
@@ -105,6 +106,10 @@ function M.setup_keymaps()
     silent = true,
     desc = "Toggle inline code on word",
   })
+  -- Keymap for code blocks
+  vim.keymap.set("x", "<Plug>(MarkdownPlusCodeBlock)", function()
+    M.convert_to_code_block()
+  end, { silent = true, desc = "Convert selection to code block" })
   vim.keymap.set("n", "<Plug>(MarkdownPlusClearFormatting)", M.clear_formatting_word, {
     silent = true,
     desc = "Clear formatting on word",
@@ -159,6 +164,12 @@ function M.setup_keymaps()
       "<Plug>(MarkdownPlusCode)",
       { buffer = true, desc = "Toggle inline code on word" }
     )
+  end
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusCodeBlock)", "x") == 0 then
+    vim.keymap.set("x", "<leader>mw", "<Plug>(MarkdownPlusCodeBlock)", {
+      buffer = true,
+      desc = "Convert selection to code block",
+    })
   end
   if vim.fn.hasmapto("<Plug>(MarkdownPlusClearFormatting)", "n") == 0 then
     vim.keymap.set(
@@ -251,7 +262,21 @@ function M.get_text_in_range(start_row, start_col, end_row, end_col)
   end
 end
 
--- Set text in range
+---Get text within a specified range.
+---@param start_row number Start row
+---@param end_row number End row
+---@return string[] Lines in the specified range
+function M.get_lines_in_range(start_row, end_row)
+  return vim.api.nvim_buf_get_lines(0, start_row - 1, end_row, false)
+end
+
+---Set text within a specified range.
+---@param start_row number Start row (1-indexed)
+---@param start_col number Start column (1-indexed)
+---@param end_row number End row (1-indexed)
+---@param end_col number End column (1-indexed)
+---@param new_text string New text to set
+---@return nil
 function M.set_text_in_range(start_row, start_col, end_row, end_col, new_text)
   -- Validate that start comes before end
   if start_row > end_row or (start_row == end_row and start_col > end_col) then
@@ -262,23 +287,28 @@ function M.set_text_in_range(start_row, start_col, end_row, end_col, new_text)
   local lines = vim.split(new_text, "\n")
 
   if start_row == end_row then
-    -- Single line replacement
+    -- Get the current line
     local line = utils.get_line(start_row)
+
+    -- Extract parts before and after the range to replace
     local before = line:sub(1, start_col - 1)
     local after = line:sub(end_col + 1)
+
+    -- Create the new line
     local new_line = before .. new_text .. after
+
+    -- Set the new line in the buffer
     utils.set_line(start_row, new_line)
+
+    -- Debug print to verify buffer content after modification
   else
-    -- Multi-line replacement
+    -- Multi-line replacement logic
     local first_line = utils.get_line(start_row)
     local last_line = utils.get_line(end_row)
-
     local before = first_line:sub(1, start_col - 1)
     local after = last_line:sub(end_col + 1)
-
     lines[1] = before .. lines[1]
     lines[#lines] = lines[#lines] .. after
-
     vim.api.nvim_buf_set_lines(0, start_row - 1, end_row, false, lines)
   end
 end
@@ -456,6 +486,37 @@ function M.clear_formatting()
 
   -- Exit visual mode after the operation
   vim.cmd("normal! gv")
+end
+
+-- Convert visual selection to a code block
+function M.convert_to_code_block()
+  local selection = M.get_visual_selection()
+  local start_row, end_row = selection.start_row, selection.end_row
+  local start_col, end_col = selection.start_col, selection.end_col
+
+  -- Normalize start and end positions to ensure start_row <= end_row and start_col <= end_col
+  if start_row > end_row or (start_row == end_row and start_col > end_col) then
+    start_row, end_row = end_row, start_row
+    start_col, end_col = end_col, start_col
+  end
+
+  -- Prompt for the language of the code block
+  local lang = vim.fn.input("Language for code block: ")
+  if lang == "" then
+    vim.notify("MarkdownPlus: No language specified for code block.", vim.log.levels.WARN)
+    return
+  end
+
+  -- Define code block markers
+  local code_block_start = string.format("```%s", lang)
+  local code_block_end = "```"
+
+  -- Insert code block markers at the start and end of the selection
+  vim.api.nvim_buf_set_lines(0, start_row - 1, start_row - 1, false, { code_block_start })
+  vim.api.nvim_buf_set_lines(0, end_row + 1, end_row + 1, false, { code_block_end })
+
+  -- Exit visual mode and clear the selection
+  vim.cmd("normal! \033")
 end
 
 -- Remove all formatting from current word
