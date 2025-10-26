@@ -27,8 +27,14 @@ fi
 
 PREV_VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
 
+# Output changelog content or fallback
+if [ -n "$CHANGELOG_CONTENT" ] && [ -f "$CHANGELOG_CONTENT" ]; then
+  cat "$CHANGELOG_CONTENT"
+else
+  echo "Release v${VERSION}"
+fi
+
 cat << EOF
-$(cat "$CHANGELOG_CONTENT" 2>/dev/null || echo "Release v${VERSION}")
 
 ---
 

@@ -52,8 +52,11 @@ if [ -n "$BRANCH" ] && [ "$BRANCH" != "null" ] && [ "$BRANCH" != "" ]; then
   # Also delete local branch if we're not currently on it
   CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
   if [ "$CURRENT_BRANCH" != "$BRANCH" ]; then
-    git branch -D "$BRANCH" 2>/dev/null || true
-    echo "✓ Deleted local branch ${BRANCH}"
+    if git branch -D "$BRANCH" 2>/dev/null; then
+      echo "✓ Deleted local branch ${BRANCH}"
+    else
+      echo "⚠️  Could not delete local branch ${BRANCH} (may not exist or is checked out)"
+    fi
   fi
 fi
 
