@@ -44,26 +44,21 @@ jobs:
           git clone --depth 1 https://github.com/nvim-lua/plenary.nvim \
             ~/.local/share/nvim/site/pack/vendor/start/plenary.nvim
       
-      - name: Install required tools
+      - name: Install luacheck
         run: |
           echo "Installing luacheck..."
           sudo apt-get update
           sudo apt-get install -y luarocks
           sudo luarocks install luacheck
           
-          echo "Installing stylua..."
-          STYLUA_VERSION="v0.20.0"
-          wget -q https://github.com/JohnnyMorganz/StyLua/releases/download/${STYLUA_VERSION}/stylua-linux-x86_64.zip -O /tmp/stylua.zip
-          wget -q https://github.com/JohnnyMorganz/StyLua/releases/download/${STYLUA_VERSION}/stylua-linux-x86_64.zip.sha256 -O /tmp/stylua.zip.sha256
-          cd /tmp
-          sha256sum -c stylua.zip.sha256
-          sudo busybox unzip -d /usr/local/bin stylua.zip
-          sudo chmod +x /usr/local/bin/stylua
-          cd -
-          
-          echo "✓ Tools installed"
+          echo "✓ luacheck installed"
           luacheck --version
-          stylua --version
+      
+      - name: Install StyLua
+        uses: JohnnyMorganz/stylua-action@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          version: latest
       
       - name: Run tests
         run: make test
@@ -251,7 +246,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               workflow_id: 'release-to-luarocks.yml',
-              ref: 'main',
+              ref: '${{ inputs.target_branch }}',
               inputs: {
                 version: '${{ inputs.version }}'
               }

@@ -45,6 +45,12 @@ PR_URL=$(gh pr create \
   --head "$BRANCH" \
   --label "release")
 
+# Check that PR_URL is non-empty and looks like a GitHub PR URL
+if [[ -z "$PR_URL" || ! "$PR_URL" =~ ^https://github\.com/.*/pull/[0-9]+$ ]]; then
+  echo "Error: Failed to create PR or unexpected output from gh pr create: '$PR_URL'"
+  exit 1
+fi
+
 PR_NUMBER=$(echo "$PR_URL" | grep -oP '\d+$')
 
 echo "pr_number=$PR_NUMBER"

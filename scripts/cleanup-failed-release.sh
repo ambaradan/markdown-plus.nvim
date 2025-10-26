@@ -23,7 +23,7 @@ if git rev-parse "v${VERSION}" >/dev/null 2>&1; then
 fi
 
 # Close the PR if it was created
-if [ -n "$PR_NUMBER" ] && [ "$PR_NUMBER" != "null" ] && [ "$PR_NUMBER" != "" ]; then
+if [ -n "$PR_NUMBER" ] && [ "$PR_NUMBER" != "null" ]; then
   echo "Closing PR #${PR_NUMBER}..."
   if gh pr close "$PR_NUMBER" --comment "Closing due to workflow failure. Please check logs and retry." 2>/dev/null; then
     echo "✓ Closed PR #${PR_NUMBER}"
