@@ -28,7 +28,7 @@ fi
 echo "✓ Tag v${VERSION} does not exist yet"
 
 # Validate version progression
-LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "0.0.0")
 LATEST_VERSION=${LATEST_TAG#v}
 
 echo "Latest version: $LATEST_VERSION"

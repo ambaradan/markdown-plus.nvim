@@ -15,6 +15,13 @@ if [ -z "$VERSION" ] || [ -z "$BRANCH" ]; then
   exit 1
 fi
 
+# Verify GitHub CLI is authenticated
+if ! gh auth status >/dev/null 2>&1; then
+  echo "Error: GitHub CLI is not authenticated"
+  echo "Please run 'gh auth login' or set GH_TOKEN environment variable"
+  exit 1
+fi
+
 PR_BODY="Automated release PR for v${VERSION}
 
 ## Changes
@@ -46,7 +53,7 @@ PR_URL=$(gh pr create \
   --label "release")
 
 # Check that PR_URL is non-empty and looks like a GitHub PR URL
-if [[ -z "$PR_URL" || ! "$PR_URL" =~ ^https://github\.com/.*/pull/[0-9]+$ ]]; then
+if [[ -z "$PR_URL" || ! "$PR_URL" =~ ^https://github\.com/[^/]+/[^/]+/pull/[0-9]+$ ]]; then
   echo "Error: Failed to create PR or unexpected output from gh pr create: '$PR_URL'"
   exit 1
 fi

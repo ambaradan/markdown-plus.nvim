@@ -14,6 +14,14 @@ fi
 DATE=$(date +%Y-%m-%d)
 TMP_FILE=$(mktemp)
 
+# Extract repository path from git remote
+REMOTE_URL=$(git remote get-url origin 2>/dev/null || echo "")
+if [ -n "$REMOTE_URL" ]; then
+  REPO_PATH=$(echo "$REMOTE_URL" | grep -oP 'github\.com[:/]\K[^/]+/[^/]+' | sed 's/\.git$//' || echo "YousefHadder/markdown-plus.nvim")
+else
+  REPO_PATH="YousefHadder/markdown-plus.nvim"
+fi
+
 echo "Updating CHANGELOG.md for version $VERSION..."
 
 # Update the changelog
@@ -41,10 +49,10 @@ if ! grep -q "^\[${VERSION}\]:" "$TMP_FILE"; then
   
   if [ -n "$PREV_VERSION" ]; then
     # Insert new link before the first existing version link
-    sed -i "/^\[${PREV_VERSION}\]:/i [${VERSION}]: https://github.com/YousefHadder/markdown-plus.nvim/compare/v${PREV_VERSION}...v${VERSION}" "$TMP_FILE"
+    sed -i "/^\[${PREV_VERSION}\]:/i [${VERSION}]: https://github.com/${REPO_PATH}/compare/v${PREV_VERSION}...v${VERSION}" "$TMP_FILE"
   else
     # If no previous version found, just append
-    echo "[${VERSION}]: https://github.com/YousefHadder/markdown-plus.nvim/releases/tag/v${VERSION}" >> "$TMP_FILE"
+    echo "[${VERSION}]: https://github.com/${REPO_PATH}/releases/tag/v${VERSION}" >> "$TMP_FILE"
   fi
 fi
 

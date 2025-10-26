@@ -107,6 +107,8 @@ jobs:
           
           # Run lint and capture output
           LINT_OUTPUT_FILE="$(mktemp)"
+          trap 'rm -f "$LINT_OUTPUT_FILE"' EXIT INT TERM
+          
           if luarocks lint "$ROCKSPEC_FILE" 2>&1 | tee "$LINT_OUTPUT_FILE"; then
             echo "✓ Rockspec validation passed"
           else
@@ -115,7 +117,6 @@ jobs:
             echo ""
             echo "Continuing anyway (some warnings are acceptable)..."
           fi
-          rm -f "$LINT_OUTPUT_FILE"
       
       - name: Check if already published
         id: check_published
@@ -158,6 +159,8 @@ jobs:
           
           # Upload with detailed output
           UPLOAD_OUTPUT_FILE="$(mktemp)"
+          trap 'rm -f "$UPLOAD_OUTPUT_FILE"' EXIT INT TERM
+          
           if luarocks upload "$ROCKSPEC_FILE" --api-key="$LUAROCKS_API_KEY" 2>&1 | tee "$UPLOAD_OUTPUT_FILE"; then
             echo ""
             echo "✓ Successfully uploaded to LuaRocks!"
@@ -165,18 +168,19 @@ jobs:
             echo ""
             echo "✗ Upload failed. Output:"
             cat "$UPLOAD_OUTPUT_FILE"
-            rm -f "$UPLOAD_OUTPUT_FILE"
             exit 1
           fi
-          rm -f "$UPLOAD_OUTPUT_FILE"
       
       - name: Verify upload
         if: steps.check_published.outputs.already_published != 'true' && steps.check_api_key.outputs.has_api_key == 'true'
         run: |
           VERSION="${{ steps.version.outputs.version }}"
           
-          echo "Waiting for LuaRocks to index the package (30 seconds)..."
-          sleep 30
+          # Wait for LuaRocks to index the newly uploaded package
+          # Typical propagation time is 10-30 seconds
+          PROPAGATION_WAIT=30
+          echo "Waiting for LuaRocks to index the package ($PROPAGATION_WAIT seconds)..."
+          sleep $PROPAGATION_WAIT
           
           echo "Verifying package is available on LuaRocks..."
           if luarocks search markdown-plus.nvim "${VERSION}" 2>/dev/null | grep -q "${VERSION}"; then

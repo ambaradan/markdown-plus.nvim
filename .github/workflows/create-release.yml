@@ -89,6 +89,36 @@ jobs:
         with:
           fetch-depth: 0
       
+      - name: Verify scripts exist
+        run: |
+          if [ ! -d "scripts" ]; then
+            echo "Error: scripts/ directory not found"
+            exit 1
+          fi
+          
+          REQUIRED_SCRIPTS=(
+            "validate-version.sh"
+            "extract-changelog.py"
+            "update-changelog.sh"
+            "create-rockspec.sh"
+            "create-release-notes.sh"
+            "create-release-pr.sh"
+            "cleanup-failed-release.sh"
+          )
+          
+          for script in "${REQUIRED_SCRIPTS[@]}"; do
+            if [ ! -f "scripts/$script" ]; then
+              echo "Error: Required script scripts/$script not found"
+              exit 1
+            fi
+            if [ ! -x "scripts/$script" ]; then
+              echo "Warning: Script scripts/$script is not executable, making it executable"
+              chmod +x "scripts/$script"
+            fi
+          done
+          
+          echo "✓ All required scripts found and executable"
+      
       - name: Validate version format
         run: ./scripts/validate-version.sh "${{ inputs.version }}"
       
@@ -183,13 +213,15 @@ jobs:
               exit 1
             fi
             
-            if [ $i -eq 120 ]; then
+            # Check for timeout before sleeping (avoid unnecessary final sleep)
+            if [ $i -ge 120 ]; then
               echo "✗ Timeout waiting for PR to merge (10 minutes)"
               echo "Please check: ${{ steps.pr.outputs.pr_url }}"
               exit 1
             fi
             
-            if [ $((i % 12)) -eq 0 ]; then
+            # Show progress every minute (12 iterations * 5 seconds = 60 seconds)
+            if [ $i -eq 1 ] || [ $((i % 12)) -eq 0 ]; then
               echo "Still waiting... ($i/120) - Check status: ${{ steps.pr.outputs.pr_url }}"
             fi
             

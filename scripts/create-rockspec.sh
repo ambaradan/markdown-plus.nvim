@@ -7,8 +7,13 @@ VERSION="${1:-}"
 
 # Extract repository info from git remote or use defaults
 REMOTE_URL=$(git remote get-url origin 2>/dev/null || echo "")
-REPO_OWNER=$(echo "$REMOTE_URL" | grep -oP 'github\.com[:/]\K[^/]+(?=/[^/]+(\.git)?$)' || echo "yousefhadder")
-REPO_NAME=$(echo "$REMOTE_URL" | grep -oP 'github\.com[:/][^/]+/\K[^/]+' | sed 's/\.git$//' || echo "markdown-plus.nvim")
+if [ -n "$REMOTE_URL" ]; then
+  REPO_OWNER=$(echo "$REMOTE_URL" | grep -oP 'github\.com[:/]\K[^/]+(?=/[^/]+(\.git)?$)' || echo "yousefhadder")
+  REPO_NAME=$(echo "$REMOTE_URL" | grep -oP 'github\.com[:/][^/]+/\K[^/]+' | sed 's/\.git$//' || echo "markdown-plus.nvim")
+else
+  REPO_OWNER="yousefhadder"
+  REPO_NAME="markdown-plus.nvim"
+fi
 
 if [ -z "$VERSION" ]; then
   echo "Error: Version argument required"
@@ -27,13 +32,13 @@ awk -v version="$VERSION" -v owner="$REPO_OWNER" -v repo="$REPO_NAME" '
   next 
 }
 /^  url = "git:\/\/github.com\/.*\.git",?$/ {
-  has_comma = /,$/
-  print "  url = \"git://github.com/" owner "/" repo ".git\"" (has_comma ? "," : "")
+  # Update URL and add tag on the next line
+  print "  url = \"git://github.com/" owner "/" repo ".git\","
+  print "  tag = \"v" version "\","
   next
 }
 /^  tag = "v.*",?$/ {
-  has_comma = /,$/
-  print "  tag = \"v" version "\"" (has_comma ? "," : "")
+  # Skip existing tag line since we already added it above
   next
 }
 { print }

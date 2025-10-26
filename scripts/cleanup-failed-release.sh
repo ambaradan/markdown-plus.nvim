@@ -13,6 +13,14 @@ if [ -z "$VERSION" ]; then
   exit 1
 fi
 
+# Verify GitHub CLI is authenticated (for PR and release operations)
+if [ -n "$PR_NUMBER" ] || [ -n "$BRANCH" ]; then
+  if ! gh auth status >/dev/null 2>&1; then
+    echo "⚠️  Warning: GitHub CLI is not authenticated"
+    echo "Some cleanup operations may fail (PR close, release delete)"
+  fi
+fi
+
 echo "⚠️  Cleaning up failed release for v${VERSION}..."
 
 # Delete the tag if it was created
@@ -42,7 +50,7 @@ if [ -n "$BRANCH" ] && [ "$BRANCH" != "null" ] && [ "$BRANCH" != "" ]; then
   fi
   
   # Also delete local branch if we're not currently on it
-  CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+  CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
   if [ "$CURRENT_BRANCH" != "$BRANCH" ]; then
     git branch -D "$BRANCH" 2>/dev/null || true
     echo "✓ Deleted local branch ${BRANCH}"

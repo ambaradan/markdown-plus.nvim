@@ -7,7 +7,17 @@ VERSION="${1:-}"
 CHANGELOG_CONTENT="${2:-}"
 
 # Extract repository info from git remote or use defaults
-REPO_PATH=$(git remote get-url origin 2>/dev/null | grep -oP 'github\.com[:/]\K[^/]+/[^/]+' | sed 's/\.git$//' || echo "YousefHadder/markdown-plus.nvim")
+REMOTE_URL=$(git remote get-url origin 2>/dev/null || echo "")
+if [ -n "$REMOTE_URL" ]; then
+  REPO_PATH=$(echo "$REMOTE_URL" | grep -oP 'github\.com[:/]\K[^/]+/[^/]+' | sed 's/\.git$//')
+  if [ -z "$REPO_PATH" ]; then
+    echo "⚠️  Could not extract repository path from git remote, using default" >&2
+    REPO_PATH="YousefHadder/markdown-plus.nvim"
+  fi
+else
+  echo "⚠️  No git remote found, using default repository path" >&2
+  REPO_PATH="YousefHadder/markdown-plus.nvim"
+fi
 
 if [ -z "$VERSION" ]; then
   echo "Error: Version argument required"
@@ -52,5 +62,5 @@ use {
 
 ---
 
-**Full Changelog**: https://github.com/YousefHadder/markdown-plus.nvim/compare/${PREV_VERSION}...v${VERSION}
+**Full Changelog**: https://github.com/${REPO_PATH}/compare/${PREV_VERSION}...v${VERSION}
 EOF
