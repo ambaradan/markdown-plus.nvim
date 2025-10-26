@@ -40,7 +40,7 @@ if [ "$VERSION" = "$LATEST_VERSION" ]; then
 fi
 
 # Use sort -V to check version ordering
-HIGHER=$(echo -e "$LATEST_VERSION\n$VERSION" | sort -V | tail -1)
+HIGHER=$(printf "%s\n%s\n" "$LATEST_VERSION" "$VERSION" | sort -V | tail -1)
 if [ "$HIGHER" != "$VERSION" ]; then
   echo "⚠️  Warning: New version ($VERSION) is not higher than latest ($LATEST_VERSION)"
   echo "This might be intentional for hotfixes, but please verify."

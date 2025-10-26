@@ -52,8 +52,14 @@ jobs:
           sudo luarocks install luacheck
           
           echo "Installing stylua..."
-          wget -qO- https://github.com/JohnnyMorganz/StyLua/releases/latest/download/stylua-linux-x86_64.zip | sudo busybox unzip -d /usr/local/bin -
+          STYLUA_VERSION="v0.20.0"
+          wget -q https://github.com/JohnnyMorganz/StyLua/releases/download/${STYLUA_VERSION}/stylua-linux-x86_64.zip -O /tmp/stylua.zip
+          wget -q https://github.com/JohnnyMorganz/StyLua/releases/download/${STYLUA_VERSION}/stylua-linux-x86_64.zip.sha256 -O /tmp/stylua.zip.sha256
+          cd /tmp
+          sha256sum -c stylua.zip.sha256
+          sudo busybox unzip -d /usr/local/bin stylua.zip
           sudo chmod +x /usr/local/bin/stylua
+          cd -
           
           echo "✓ Tools installed"
           luacheck --version
@@ -168,7 +174,7 @@ jobs:
           echo "Waiting for PR #${PR_NUMBER} to merge (max 10 minutes)..."
           
           # Poll until merged (max 10 minutes = 120 iterations * 5 seconds)
-          for i in {1..120}; do
+          for i in $(seq 1 120); do
             STATE=$(gh pr view "$PR_NUMBER" --json state --jq '.state')
             
             if [ "$STATE" = "MERGED" ]; then

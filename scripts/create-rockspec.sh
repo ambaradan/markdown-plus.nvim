@@ -6,8 +6,9 @@ set -euo pipefail
 VERSION="${1:-}"
 
 # Extract repository info from git remote or use defaults
-REPO_OWNER=$(git remote get-url origin 2>/dev/null | grep -oP 'github\.com[:/]\K[^/]+(?=/[^/]+(\.git)?$)' || echo "yousefhadder")
-REPO_NAME=$(git remote get-url origin 2>/dev/null | grep -oP 'github\.com[:/][^/]+/\K[^/]+' | sed 's/\.git$//' || echo "markdown-plus.nvim")
+REMOTE_URL=$(git remote get-url origin 2>/dev/null || echo "")
+REPO_OWNER=$(echo "$REMOTE_URL" | grep -oP 'github\.com[:/]\K[^/]+(?=/[^/]+(\.git)?$)' || echo "yousefhadder")
+REPO_NAME=$(echo "$REMOTE_URL" | grep -oP 'github\.com[:/][^/]+/\K[^/]+' | sed 's/\.git$//' || echo "markdown-plus.nvim")
 
 if [ -z "$VERSION" ]; then
   echo "Error: Version argument required"

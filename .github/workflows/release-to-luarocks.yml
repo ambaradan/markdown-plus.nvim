@@ -106,14 +106,16 @@ jobs:
           echo "Validating rockspec with luarocks lint..."
           
           # Run lint and capture output
-          if luarocks lint "$ROCKSPEC_FILE" 2>&1 | tee /tmp/lint_output.txt; then
+          LINT_OUTPUT_FILE="$(mktemp)"
+          if luarocks lint "$ROCKSPEC_FILE" 2>&1 | tee "$LINT_OUTPUT_FILE"; then
             echo "✓ Rockspec validation passed"
           else
             echo "⚠️  Rockspec has warnings/errors:"
-            cat /tmp/lint_output.txt
+            cat "$LINT_OUTPUT_FILE"
             echo ""
             echo "Continuing anyway (some warnings are acceptable)..."
           fi
+          rm -f "$LINT_OUTPUT_FILE"
       
       - name: Check if already published
         id: check_published
@@ -155,15 +157,18 @@ jobs:
           echo ""
           
           # Upload with detailed output
-          if luarocks upload "$ROCKSPEC_FILE" --api-key="$LUAROCKS_API_KEY" 2>&1 | tee /tmp/upload_output.txt; then
+          UPLOAD_OUTPUT_FILE="$(mktemp)"
+          if luarocks upload "$ROCKSPEC_FILE" --api-key="$LUAROCKS_API_KEY" 2>&1 | tee "$UPLOAD_OUTPUT_FILE"; then
             echo ""
             echo "✓ Successfully uploaded to LuaRocks!"
           else
             echo ""
             echo "✗ Upload failed. Output:"
-            cat /tmp/upload_output.txt
+            cat "$UPLOAD_OUTPUT_FILE"
+            rm -f "$UPLOAD_OUTPUT_FILE"
             exit 1
           fi
+          rm -f "$UPLOAD_OUTPUT_FILE"
       
       - name: Verify upload
         if: steps.check_published.outputs.already_published != 'true' && steps.check_api_key.outputs.has_api_key == 'true'
