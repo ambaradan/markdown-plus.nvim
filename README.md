@@ -1,12 +1,84 @@
-<a href="https://dotfyle.com/plugins/yousefhadder/markdown-plus.nvim">
- <img src="https://dotfyle.com/plugins/yousefhadder/markdown-plus.nvim/shield?style=flat" />
-</a>
 
-# markdown-plus.nvim
+<img width="1340" height="413" alt="Screenshot 2025-10-25 at 2 47 19 PM" src="https://github.com/user-attachments/assets/8a44f9f7-5ca5-4c3f-8298-6a55e16a3f3c" />
+
+
+<div align="center">
+
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/yousefhadder/markdown-plus.nvim?style=flat-square&logo=github&color=blue)](https://github.com/yousefhadder/markdown-plus.nvim/releases)
+[![LuaRocks](https://img.shields.io/luarocks/v/yousefhadder/markdown-plus.nvim?style=flat-square&logo=lua&color=purple)](https://luarocks.org/modules/yousefhadder/markdown-plus.nvim)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
+
+[![Tests](https://img.shields.io/github/actions/workflow/status/yousefhadder/markdown-plus.nvim/tests.yml?branch=main&style=flat-square&logo=github&label=Tests)](https://github.com/yousefhadder/markdown-plus.nvim/actions/workflows/tests.yml)
+[![Neovim](https://img.shields.io/badge/Neovim%200.11+-green.svg?style=flat-square&logo=neovim)](https://neovim.io)
+[![Lua](https://img.shields.io/badge/Lua%205.1+-blue.svg?style=flat-square&logo=lua)](https://www.lua.org/)
+
+[![GitHub stars](https://img.shields.io/github/stars/yousefhadder/markdown-plus.nvim?style=flat-square&logo=github)](https://github.com/yousefhadder/markdown-plus.nvim/stargazers)
+[![GitHub issues](https://img.shields.io/github/issues/yousefhadder/markdown-plus.nvim?style=flat-square&logo=github)](https://github.com/yousefhadder/markdown-plus.nvim/issues)
+[![GitHub contributors](https://img.shields.io/github/contributors/yousefhadder/markdown-plus.nvim?style=flat-square&logo=github)](https://github.com/yousefhadder/markdown-plus.nvim/graphs/contributors)
+[![Dotfyle](https://dotfyle.com/plugins/yousefhadder/markdown-plus.nvim/shield?style=flat-square)](https://dotfyle.com/plugins/yousefhadder/markdown-plus.nvim)
+
+</div>
+
 
 A comprehensive Neovim plugin that provides modern markdown editing capabilities, implementing features found in popular editors like Typora, Mark Text, and Obsidian.
 
-**Note:** While originally designed for Markdown, this plugin can be configured to work with any filetype (see [Configuration](#configuration)).
+**Key Features:** Zero dependencies • Works with any filetype • Full test coverage (85%+) • Extensively documented
+
+## Table of Contents
+
+- [Why markdown-plus.nvim?](#why-markdown-plusnvim)
+- [Quick Start](#quick-start)
+- [Features](#features)
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Keymaps Reference](#keymaps-reference)
+- [Configuration](#configuration)
+- [Customizing Keymaps](#customizing-keymaps)
+- [Contributing & Development](#contributing--development)
+- [License](#license)
+
+## Why markdown-plus.nvim?
+
+markdown-plus.nvim brings the best markdown editing experience to Neovim with several key advantages:
+
+- **Zero Dependencies**: No external dependencies required - just install and go
+- **Universal Compatibility**: Works with any filetype, not just markdown (great for plain text, notes, org files, etc.)
+- **Battle-Tested**: 85%+ test coverage ensures reliability and stability
+- **Modern Features**: Implements features from popular editors like Typora, Mark Text, and Obsidian
+- **Extensively Documented**: Comprehensive documentation with examples for every feature
+- **Actively Maintained**: Regular updates, quick bug fixes, and responsive to community feedback
+- **Flexible Configuration**: Modular feature system - enable only what you need
+- **Smart Defaults**: Works out of the box with sensible keymaps that respect your existing configuration
+
+## Quick Start
+
+**Using lazy.nvim:**
+
+```lua
+{
+  "yousefhadder/markdown-plus.nvim",
+  ft = "markdown",
+}
+```
+
+That's it! The plugin will automatically activate with default keymaps when you open a markdown file.
+
+**Want to customize?**
+
+```lua
+{
+  "yousefhadder/markdown-plus.nvim",
+  ft = "markdown",
+  config = function()
+    require("markdown-plus").setup({
+      -- Your custom configuration here
+    })
+  end,
+}
+```
+
+See [Configuration](#configuration) for all available options.
 
 ## Features
 
@@ -91,37 +163,27 @@ A comprehensive Neovim plugin that provides modern markdown editing capabilities
 <details>
 <summary><b>Quotes Management</b></summary>
 
+  <img src="https://vhs.charm.sh/vhs-6scYF4Dxo7gAtsxEWXxOQU.gif" alt="Made with VHS">
+  <a href="https://vhs.charm.sh">
+    <img src="https://stuff.charm.sh/vhs/badge.svg">
+  </a>
+
 - **Toggle blockquote**: Use `<leader>mq` to toggle `>` blockquote formatting on the current line or visual selection.
 - **Visual and normal mode**: Works in both visual selection and normal mode.
 
 </details>
 
+
+## Requirements
+
+- Neovim 0.11+ (uses modern Lua APIs)
+- No external dependencies
+
+
 ## Installation
 
-<details>
-<summary>Using LuaRocks</summary>
-
-```bash
-# Install via LuaRocks
-luarocks install markdown-plus.nvim
-
-# Or install development version
-luarocks install --server=https://luarocks.org/dev markdown-plus.nvim
-```
-
-Then add to your Neovim configuration:
-
-```lua
--- No plugin manager needed, already installed via LuaRocks
-require("markdown-plus").setup({
-  -- Your configuration here
-})
-```
-
-</details>
-
-<details>
-<summary>Using lazy.nvim</summary>
+<details open>
+<summary><b>Using lazy.nvim (Recommended)</b></summary>
 
 ```lua
 {
@@ -163,6 +225,28 @@ require("markdown-plus").setup({
 </details>
 
 <details>
+<summary>Using LuaRocks</summary>
+
+```bash
+# Install via LuaRocks
+luarocks install markdown-plus.nvim
+
+# Or install development version
+luarocks install --server=https://luarocks.org/dev markdown-plus.nvim
+```
+
+Then add to your Neovim configuration:
+
+```lua
+-- No plugin manager needed, already installed via LuaRocks
+require("markdown-plus").setup({
+  -- Your configuration here
+})
+```
+
+</details>
+
+<details>
 <summary>Using packer.nvim</summary>
 
 ```lua
@@ -194,6 +278,7 @@ require("markdown-plus").setup()
 ```
 
 </details>
+
 
 ## Usage
 
@@ -267,36 +352,6 @@ c. Press 'O' for previous letter ⬅️
 </details>
 
 <details>
-<summary>Quotes Management Examples</summary>
-
-### Toggle Blockquote
-
-```markdown
-Position cursor on a line and press `<leader>mq`:
-This is a normal line → `> This is a normal line`
-`> This is a quoted line` → This is a normal line (toggle off)
-```
-
-### Visual Mode Selection
-
-```markdown
-Select multiple lines in visual mode and press `<leader>mq`:
-1. Enter visual mode with `V` (line-wise visual mode)
-2. Select the lines you want to quote
-3. Press `<leader>mq`
-
-Example:
-Normal line 1
-Normal line 2
-
-→
-
-> Normal line 1
-> Normal line 2
-```
-
-</details>
-
 <summary>Text Formatting Examples</summary>
 
 ### Toggle Bold
@@ -602,10 +657,84 @@ Result:
 
 </details>
 
+<details>
+<summary>Quotes Management Examples</summary>
+
+### Toggle Blockquote
+
+```markdown
+Position cursor on a line and press `<leader>mq`:
+This is a normal line → `> This is a normal line`
+`> This is a quoted line` → This is a normal line (toggle off)
+```
+
+### Visual Mode Selection
+
+```markdown
+Select multiple lines in visual mode and press `<leader>mq`:
+1. Enter visual mode with `V` (line-wise visual mode)
+2. Select the lines you want to quote
+3. Press `<leader>mq`
+
+Example:
+Normal line 1
+Normal line 2
+
+→
+
+> Normal line 1
+> Normal line 2
+```
+
+</details>
+
 ## Keymaps Reference
 
+<details open>
+<summary><b>Quick Reference - All Keymaps</b></summary>
+
+| Feature | Keymap | Mode | Description |
+|---------|--------|------|-------------|
+| **List Management** |
+| | `<CR>` | Insert | Auto-continue lists or break out |
+| | `<Tab>` | Insert | Indent list item |
+| | `<S-Tab>` | Insert | Outdent list item |
+| | `<BS>` | Insert | Smart backspace |
+| | `o` | Normal | Create next list item |
+| | `O` | Normal | Create previous list item |
+| | `<leader>mr` | Normal | Manual renumber lists |
+| **Text Formatting** |
+| | `<leader>mb` | Normal/Visual | Toggle **bold** |
+| | `<leader>mi` | Normal/Visual | Toggle *italic* |
+| | `<leader>ms` | Normal/Visual | Toggle ~~strikethrough~~ |
+| | `<leader>mc` | Normal/Visual | Toggle `code` |
+| | `<leader>mC` | Normal/Visual | Clear all formatting |
+| **Headers & TOC** |
+| | `]]` | Normal | Jump to next header |
+| | `[[` | Normal | Jump to previous header |
+| | `<leader>h+` | Normal | Promote header |
+| | `<leader>h-` | Normal | Demote header |
+| | `<leader>h1` to `h6` | Normal | Set header level |
+| | `<leader>ht` | Normal | Generate TOC |
+| | `<leader>hu` | Normal | Update TOC |
+| | `gd` | Normal | Follow TOC link |
+| **Links** |
+| | `<leader>ml` | Normal | Insert new link |
+| | `<leader>ml` | Visual | Convert selection to link |
+| | `<leader>me` | Normal | Edit link |
+| | `<leader>ma` | Normal | Auto-convert URL |
+| | `<leader>mR` | Normal | Convert to reference |
+| | `<leader>mI` | Normal | Convert to inline |
+| | `gx` | Normal | Open link in browser |
+| **Quotes** |
+| | `<leader>mq` | Normal/Visual | Toggle blockquote |
+
+</details>
+
 <details>
-<summary>Default Keymaps</summary>
+<summary><b>Detailed Keymaps by Category</b></summary>
+
+
 
 ### List Management (Insert Mode)
 
@@ -844,6 +973,7 @@ This allows you to:
 
 </details>
 
+
 ## Customizing Keymaps
 
 <details>
@@ -1002,7 +1132,8 @@ Note: The plugin uses `hasmapto()` to check if a `<Plug>` mapping is already map
 
 </details>
 
-## Contributing
+
+## Contributing & Development
 
 Contributions are welcome! We encourage direct collaboration - you can open issues and pull requests directly to this repository.
 
@@ -1011,17 +1142,6 @@ Contributions are welcome! We encourage direct collaboration - you can open issu
 - 🔧 **Pull Requests**: Focus on single features and include appropriate tests and documentation
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed development guidelines.
-
-## Requirements
-
-- Neovim 0.11+ (uses modern Lua APIs)
-- No external dependencies
-
-## License
-
-MIT License - see [LICENSE](./LICENSE) file for details.
-
-## Development
 
 ### Running Tests
 
@@ -1094,7 +1214,7 @@ spec/
 └── minimal_init.lua          # Test environment setup
 ```
 
-### Contributing
+### Development Workflow
 
 1. Create a feature branch: `git checkout -b feature/your-feature`
 2. Add tests for new features
@@ -1103,4 +1223,6 @@ spec/
 5. Format code: `make format`
 6. Submit a pull request
 
-**Note**: You can contribute directly by opening issues or pull requests to this repository. See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.
+## License
+
+MIT License - see [LICENSE](./LICENSE) file for details.
