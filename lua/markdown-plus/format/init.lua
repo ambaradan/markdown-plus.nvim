@@ -492,12 +492,10 @@ end
 function M.convert_to_code_block()
   local selection = M.get_visual_selection()
   local start_row, end_row = selection.start_row, selection.end_row
-  local start_col, end_col = selection.start_col, selection.end_col
 
-  -- Normalize start and end positions to ensure start_row <= end_row and start_col <= end_col
-  if start_row > end_row or (start_row == end_row and start_col > end_col) then
+  -- Normalize start and end positions to ensure start_row <= end_row
+  if start_row > end_row then
     start_row, end_row = end_row, start_row
-    start_col, end_col = end_col, start_col
   end
 
   -- Prompt for the language of the code block
