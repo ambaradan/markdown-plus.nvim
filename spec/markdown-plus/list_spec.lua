@@ -141,26 +141,26 @@ describe("markdown-plus list management", function()
         "3. G",
       }
       local groups = list.find_list_groups(lines)
-      
+
       -- Should have 3 groups:
       -- 1. Top level (items 1, 4, 7) - continuous group
       -- 2. First nested (items 2, 3)
       -- 3. Second nested (items 5, 6) - separated from first nested
       assert.are.equal(3, #groups)
-      
+
       -- Verify first group (top level - all items)
       assert.are.equal(0, groups[1].indent)
       assert.are.equal(3, #groups[1].items)
       assert.are.equal(1, groups[1].items[1].line_num)
       assert.are.equal(4, groups[1].items[2].line_num)
       assert.are.equal(7, groups[1].items[3].line_num)
-      
+
       -- Verify second group (first nested)
       assert.are.equal(4, groups[2].indent)
       assert.are.equal(2, #groups[2].items)
       assert.are.equal(2, groups[2].items[1].line_num)
       assert.are.equal(3, groups[2].items[2].line_num)
-      
+
       -- Verify third group (second nested - separate from first)
       assert.are.equal(4, groups[3].indent)
       assert.are.equal(2, #groups[3].items)
@@ -178,18 +178,18 @@ describe("markdown-plus list management", function()
         "    d. Nested 4",
       }
       local groups = list.find_list_groups(lines)
-      
+
       -- Should have 3 groups (top-level continuous, then two nested groups)
       assert.are.equal(3, #groups)
-      
+
       -- Verify groups are separated correctly
       assert.are.equal("letter_lower", groups[1].list_type)
       assert.are.equal(0, groups[1].indent)
-      assert.are.equal(2, #groups[1].items)  -- a. First, b. Second
+      assert.are.equal(2, #groups[1].items) -- a. First, b. Second
       assert.are.equal("letter_lower", groups[2].list_type)
       assert.are.equal(4, groups[2].indent)
-      assert.are.equal(2, #groups[2].items)  -- First nested group
-      assert.are.equal(2, #groups[3].items)  -- Second nested group
+      assert.are.equal(2, #groups[2].items) -- First nested group
+      assert.are.equal(2, #groups[3].items) -- Second nested group
     end)
 
     it("handles three-level nesting", function()
@@ -202,15 +202,15 @@ describe("markdown-plus list management", function()
         "2. Level 1",
       }
       local groups = list.find_list_groups(lines)
-      
+
       -- Should have 3 groups (L1 continuous, L2 continuous, L3)
       assert.are.equal(3, #groups)
       assert.are.equal(0, groups[1].indent)
-      assert.are.equal(2, #groups[1].items)  -- Both L1 items
+      assert.are.equal(2, #groups[1].items) -- Both L1 items
       assert.are.equal(4, groups[2].indent)
-      assert.are.equal(2, #groups[2].items)  -- Both L2 items
+      assert.are.equal(2, #groups[2].items) -- Both L2 items
       assert.are.equal(8, groups[3].indent)
-      assert.are.equal(2, #groups[3].items)  -- Both L3 items
+      assert.are.equal(2, #groups[3].items) -- Both L3 items
     end)
 
     it("handles parenthesized ordered lists", function()
@@ -223,14 +223,14 @@ describe("markdown-plus list management", function()
         "    4) F",
       }
       local groups = list.find_list_groups(lines)
-      
+
       assert.are.equal(3, #groups)
       assert.are.equal("ordered_paren", groups[1].list_type)
-      assert.are.equal(2, #groups[1].items)  -- Top level: A, D
+      assert.are.equal(2, #groups[1].items) -- Top level: A, D
       assert.are.equal("ordered_paren", groups[2].list_type)
-      assert.are.equal(2, #groups[2].items)  -- First nested: B, C
+      assert.are.equal(2, #groups[2].items) -- First nested: B, C
       assert.are.equal("ordered_paren", groups[3].list_type)
-      assert.are.equal(2, #groups[3].items)  -- Second nested: E, F
+      assert.are.equal(2, #groups[3].items) -- Second nested: E, F
     end)
 
     it("separates groups when encountering non-list content", function()
@@ -244,7 +244,7 @@ describe("markdown-plus list management", function()
         "2. Fourth",
       }
       local groups = list.find_list_groups(lines)
-      
+
       -- Should have 2 groups separated by non-list content
       assert.are.equal(2, #groups)
       assert.are.equal(2, #groups[1].items)
@@ -260,7 +260,7 @@ describe("markdown-plus list management", function()
         "4. D",
       }
       local groups = list.find_list_groups(lines)
-      
+
       -- Should have 2 groups separated by blank line
       assert.are.equal(2, #groups)
       assert.are.equal(2, #groups[1].items)
@@ -279,7 +279,7 @@ describe("markdown-plus list management", function()
         "2. Second",
       }
       local groups = list.find_list_groups(lines)
-      
+
       -- Should have 2 groups
       assert.are.equal(2, #groups)
       assert.are.equal(1, #groups[1].items)
@@ -295,17 +295,17 @@ describe("markdown-plus list management", function()
         "2. D",
       }
       local groups = list.find_list_groups(lines)
-      
+
       -- Blank line breaks ALL groups, so we get 4 separate groups
       assert.are.equal(4, #groups)
       assert.are.equal(0, groups[1].indent)
-      assert.are.equal(1, #groups[1].items)  -- A only
+      assert.are.equal(1, #groups[1].items) -- A only
       assert.are.equal(4, groups[2].indent)
-      assert.are.equal(1, #groups[2].items)  -- B only
+      assert.are.equal(1, #groups[2].items) -- B only
       assert.are.equal(4, groups[3].indent)
-      assert.are.equal(1, #groups[3].items)  -- C only
+      assert.are.equal(1, #groups[3].items) -- C only
       assert.are.equal(0, groups[4].indent)
-      assert.are.equal(1, #groups[4].items)  -- D only
+      assert.are.equal(1, #groups[4].items) -- D only
     end)
   end)
 
@@ -320,7 +320,7 @@ describe("markdown-plus list management", function()
           { line_num = 3, indent = "", checkbox = nil, content = "Third", original_line = "1. Third" },
         },
       }
-      
+
       local changes = list.renumber_list_group(group)
       assert.is_not_nil(changes)
       assert.are.equal(3, #changes)
@@ -338,7 +338,7 @@ describe("markdown-plus list management", function()
           { line_num = 2, indent = "    ", checkbox = nil, content = "Second", original_line = "    d. Second" },
         },
       }
-      
+
       local changes = list.renumber_list_group(group)
       assert.is_not_nil(changes)
       assert.are.equal(2, #changes)
@@ -355,7 +355,7 @@ describe("markdown-plus list management", function()
           { line_num = 2, indent = "", checkbox = " ", content = "Todo", original_line = "7. [ ] Todo" },
         },
       }
-      
+
       local changes = list.renumber_list_group(group)
       assert.is_not_nil(changes)
       assert.are.equal(2, #changes)
@@ -375,17 +375,17 @@ describe("markdown-plus list management", function()
         "    4. F",
         "3. G",
       }
-      
+
       vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
       list.renumber_ordered_lists()
-      
+
       local result = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
       assert.are.equal("1. A", result[1])
       assert.are.equal("    1. B", result[2])
       assert.are.equal("    2. C", result[3])
       assert.are.equal("2. D", result[4])
-      assert.are.equal("    1. E", result[5])  -- Should restart at 1
-      assert.are.equal("    2. F", result[6])  -- Should be 2
+      assert.are.equal("    1. E", result[5]) -- Should restart at 1
+      assert.are.equal("    2. F", result[6]) -- Should be 2
       assert.are.equal("3. G", result[7])
     end)
 
@@ -398,17 +398,17 @@ describe("markdown-plus list management", function()
         "    e. Nested 3",
         "    f. Nested 4",
       }
-      
+
       vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
       list.renumber_ordered_lists()
-      
+
       local result = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
       assert.are.equal("a. First", result[1])
       assert.are.equal("    a. Nested 1", result[2])
       assert.are.equal("    b. Nested 2", result[3])
       assert.are.equal("b. Second", result[4])
-      assert.are.equal("    a. Nested 3", result[5])  -- Should restart at a
-      assert.are.equal("    b. Nested 4", result[6])  -- Should be b
+      assert.are.equal("    a. Nested 3", result[5]) -- Should restart at a
+      assert.are.equal("    b. Nested 4", result[6]) -- Should be b
     end)
 
     it("handles three-level nesting", function()
@@ -420,10 +420,10 @@ describe("markdown-plus list management", function()
         "    6. Level 2",
         "2. Level 1",
       }
-      
+
       vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
       list.renumber_ordered_lists()
-      
+
       local result = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
       assert.are.equal("1. Level 1", result[1])
       assert.are.equal("    1. Level 2", result[2])
@@ -441,15 +441,15 @@ describe("markdown-plus list management", function()
         "3. C",
         "4. D",
       }
-      
+
       vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
       list.renumber_ordered_lists()
-      
+
       local result = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
       assert.are.equal("1. A", result[1])
       assert.are.equal("2. B", result[2])
       assert.are.equal("", result[3])
-      assert.are.equal("1. C", result[4])  -- Should restart at 1
+      assert.are.equal("1. C", result[4]) -- Should restart at 1
       assert.are.equal("2. D", result[5])
     end)
 
@@ -460,15 +460,15 @@ describe("markdown-plus list management", function()
         "",
         "c. Third",
       }
-      
+
       vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
       list.renumber_ordered_lists()
-      
+
       local result = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
       assert.are.equal("a. First", result[1])
       assert.are.equal("b. Second", result[2])
       assert.are.equal("", result[3])
-      assert.are.equal("a. Third", result[4])  -- Should restart at a
+      assert.are.equal("a. Third", result[4]) -- Should restart at a
     end)
   end)
 end)
