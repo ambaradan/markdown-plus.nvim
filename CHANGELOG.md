@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Improved release workflow with automated PR creation and auto-merge
+- Pre-release verification step to ensure tests, linting, and formatting pass before creating releases
+- Rollback mechanism for failed releases
+- Enhanced release notes with installation instructions for multiple package managers
+
+### Changed
+- Refactored release workflow into reusable scripts in `scripts/` directory
+- Upgraded to StyLua GitHub Action for better caching and reliability
+- Improved LuaRocks workflow with better error handling and validation
+
+### Fixed
+- Fixed secret accessibility issues in GitHub Actions conditionals
+- Improved temporary file cleanup in workflows
+- Enhanced security with checksum verification for downloaded binaries
+
 ---
 
 ## [1.4.0] - 2025-10-25
