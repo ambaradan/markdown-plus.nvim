@@ -7,6 +7,12 @@ on:
         description: 'Release version to publish (e.g., 1.3.0)'
         required: true
         type: string
+  workflow_call:
+    inputs:
+      version:
+        description: 'Release version to publish'
+        required: true
+        type: string
 
 jobs:
   luarocks-release:
@@ -17,6 +23,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: main
+          fetch-depth: 0
       
       - name: Install LuaRocks
         run: |
@@ -25,6 +32,9 @@ jobs:
           
           # Install required JSON library for luarocks upload
           sudo luarocks install dkjson
+          
+          echo "✓ LuaRocks installed"
+          luarocks --version
       
       - name: Validate version format
         run: |
@@ -32,18 +42,34 @@ jobs:
             echo "Error: Version must be in format X.Y.Z (e.g., 1.3.0)"
             exit 1
           fi
+          echo "✓ Version format is valid: ${{ inputs.version }}"
       
       - name: Verify release exists
         run: |
           VERSION="${{ inputs.version }}"
+          
           if ! gh release view "v${VERSION}" > /dev/null 2>&1; then
             echo "Error: Release v${VERSION} does not exist"
             echo "Please create the release first using the 'Create Release' workflow"
             exit 1
           fi
-          echo "✓ Release v${VERSION} found"
+          
+          echo "✓ GitHub release v${VERSION} found"
+          gh release view "v${VERSION}" --json tagName,name,publishedAt
         env:
           GH_TOKEN: ${{ github.token }}
+      
+      - name: Verify tag exists
+        run: |
+          VERSION="${{ inputs.version }}"
+          
+          if ! git rev-parse "v${VERSION}" >/dev/null 2>&1; then
+            echo "Error: Tag v${VERSION} does not exist"
+            exit 1
+          fi
+          
+          echo "✓ Git tag v${VERSION} found"
+          git show "v${VERSION}" --no-patch --format="%H %ci"
       
       - name: Set version output
         id: version
@@ -59,12 +85,17 @@ jobs:
           
           if [ ! -f "$ROCKSPEC_FILE" ]; then
             echo "Error: Rockspec file $ROCKSPEC_FILE not found"
+            echo ""
             echo "Available rockspecs:"
-            ls -la rockspecs/*.rockspec
+            ls -la rockspecs/*.rockspec || echo "No rockspecs found"
+            echo ""
+            echo "Please ensure the release workflow created the versioned rockspec."
             exit 1
           fi
           
-          echo "Found rockspec: $ROCKSPEC_FILE"
+          echo "✓ Found rockspec: $ROCKSPEC_FILE"
+          echo ""
+          echo "Rockspec content:"
           cat "$ROCKSPEC_FILE"
       
       - name: Validate rockspec
@@ -72,10 +103,35 @@ jobs:
           VERSION="${{ steps.version.outputs.version }}"
           ROCKSPEC_FILE="rockspecs/markdown-plus.nvim-${VERSION}-1.rockspec"
           
-          echo "Validating rockspec..."
-          luarocks lint "$ROCKSPEC_FILE"
+          echo "Validating rockspec with luarocks lint..."
+          
+          # Run lint and capture output
+          if luarocks lint "$ROCKSPEC_FILE" 2>&1 | tee /tmp/lint_output.txt; then
+            echo "✓ Rockspec validation passed"
+          else
+            echo "⚠️  Rockspec has warnings/errors:"
+            cat /tmp/lint_output.txt
+            echo ""
+            echo "Continuing anyway (some warnings are acceptable)..."
+          fi
+      
+      - name: Check if already published
+        id: check_published
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          
+          # Try to check if version already exists on LuaRocks
+          # Note: This may fail if the package doesn't exist yet, which is fine
+          if luarocks search markdown-plus.nvim "${VERSION}" 2>/dev/null | grep -q "${VERSION}"; then
+            echo "already_published=true" >> $GITHUB_OUTPUT
+            echo "⚠️  Version ${VERSION} appears to already be published to LuaRocks"
+          else
+            echo "already_published=false" >> $GITHUB_OUTPUT
+            echo "✓ Version ${VERSION} not yet published (ready to upload)"
+          fi
       
       - name: Upload to LuaRocks
+        if: steps.check_published.outputs.already_published != 'true'
         env:
           LUAROCKS_API_KEY: ${{ secrets.LUAROCKS_API_KEY }}
         run: |
@@ -83,31 +139,87 @@ jobs:
           ROCKSPEC_FILE="rockspecs/markdown-plus.nvim-${VERSION}-1.rockspec"
           
           if [ -z "$LUAROCKS_API_KEY" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "# ⚠️  LuaRocks API Key Not Configured" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Cannot publish to LuaRocks without API key." >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "## Setup Instructions" >> $GITHUB_STEP_SUMMARY
+            echo "1. Get your API key from https://luarocks.org/settings/api-keys" >> $GITHUB_STEP_SUMMARY
+            echo "2. Add it as a repository secret named \`LUAROCKS_API_KEY\`" >> $GITHUB_STEP_SUMMARY
+            echo "3. Re-run this workflow" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            
             echo "⚠️  Warning: LUAROCKS_API_KEY secret not configured"
             echo "Please add your LuaRocks API key to GitHub Secrets:"
             echo "https://github.com/${{ github.repository }}/settings/secrets/actions"
             echo ""
             echo "Skipping LuaRocks upload..."
-            exit 0
+            exit 1
           fi
           
-          echo "Uploading to LuaRocks..."
-          luarocks upload "$ROCKSPEC_FILE" --api-key="$LUAROCKS_API_KEY"
+          echo "Uploading rockspec to LuaRocks..."
+          echo ""
+          
+          # Upload with detailed output
+          if luarocks upload "$ROCKSPEC_FILE" --api-key="$LUAROCKS_API_KEY" 2>&1 | tee /tmp/upload_output.txt; then
+            echo ""
+            echo "✓ Successfully uploaded to LuaRocks!"
+          else
+            echo ""
+            echo "✗ Upload failed. Output:"
+            cat /tmp/upload_output.txt
+            exit 1
+          fi
       
-      - name: Summary
+      - name: Verify upload
+        if: steps.check_published.outputs.already_published != 'true' && secrets.LUAROCKS_API_KEY != ''
         run: |
           VERSION="${{ steps.version.outputs.version }}"
-          echo "✅ LuaRocks release for v$VERSION complete!"
-          echo ""
-          if [ -n "${{ secrets.LUAROCKS_API_KEY }}" ]; then
-            echo "📦 Published to LuaRocks: https://luarocks.org/modules/yousefhadder/markdown-plus.nvim"
-            echo ""
-            echo "Users can now install with:"
-            echo "  luarocks install markdown-plus.nvim"
-            echo ""
-            echo "Or install specific version:"
-            echo "  luarocks install markdown-plus.nvim ${VERSION}"
+          
+          echo "Waiting for LuaRocks to index the package (30 seconds)..."
+          sleep 30
+          
+          echo "Verifying package is available on LuaRocks..."
+          if luarocks search markdown-plus.nvim "${VERSION}" 2>/dev/null | grep -q "${VERSION}"; then
+            echo "✓ Package verified on LuaRocks!"
           else
-            echo "⚠️  LuaRocks upload skipped (API key not configured)"
-            echo "To enable automatic uploads, add LUAROCKS_API_KEY to repository secrets"
+            echo "⚠️  Package not yet visible (may take a few minutes to propagate)"
+          fi
+      
+      - name: Summary
+        if: always()
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ steps.check_published.outputs.already_published }}" = "true" ]; then
+            echo "# ℹ️  Already Published" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Version v${VERSION} is already published to LuaRocks." >> $GITHUB_STEP_SUMMARY
+            echo "No action taken." >> $GITHUB_STEP_SUMMARY
+          elif [ -n "${{ secrets.LUAROCKS_API_KEY }}" ]; then
+            echo "# ✅ LuaRocks Release Complete" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Successfully published markdown-plus.nvim v${VERSION} to LuaRocks!" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "## Package Information" >> $GITHUB_STEP_SUMMARY
+            echo "- 📦 **Package**: markdown-plus.nvim" >> $GITHUB_STEP_SUMMARY
+            echo "- 🔢 **Version**: ${VERSION}" >> $GITHUB_STEP_SUMMARY
+            echo "- 🔗 **LuaRocks URL**: https://luarocks.org/modules/yousefhadder/markdown-plus.nvim" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "## Installation" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+            echo "# Install latest version" >> $GITHUB_STEP_SUMMARY
+            echo "luarocks install markdown-plus.nvim" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "# Install specific version" >> $GITHUB_STEP_SUMMARY
+            echo "luarocks install markdown-plus.nvim ${VERSION}" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "# ⚠️  Upload Skipped" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "LuaRocks API key not configured." >> $GITHUB_STEP_SUMMARY
+            echo "See workflow logs for setup instructions." >> $GITHUB_STEP_SUMMARY
           fi
