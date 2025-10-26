@@ -80,23 +80,23 @@ function M.convert_to_code_block()
   local selection = M.get_visual_selection()
   local start_row, end_row = selection.start_row, selection.end_row
 
-  -- Ask for the language
+  -- Prompt for the language of the code block
   local lang = vim.fn.input("Language for code block: ")
   if lang == "" then
     vim.notify("MarkdownPlus: No language specified for code block.", vim.log.levels.WARN)
     return
   end
 
-  -- Add code block markers
+  -- Define code block markers
   local code_block_start = string.format("```%s", lang)
   local code_block_end = "```"
 
-  -- Insert code block markers
+  -- Insert code block markers at the start and end of the selection
   vim.api.nvim_buf_set_lines(0, start_row - 1, start_row - 1, false, { code_block_start })
   vim.api.nvim_buf_set_lines(0, end_row + 1, end_row + 1, false, { code_block_end })
 
   -- Exit visual mode and clear the selection
-  vim.cmd("normal! \033") -- Exit visual mode
+  vim.cmd("normal! \033")
 end
 
 return M
