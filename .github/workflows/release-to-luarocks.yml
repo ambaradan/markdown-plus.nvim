@@ -130,33 +130,26 @@ jobs:
             echo "✓ Version ${VERSION} not yet published (ready to upload)"
           fi
       
+      - name: Check API key availability
+        id: check_api_key
+        env:
+          LUAROCKS_API_KEY: ${{ secrets.LUAROCKS_API_KEY }}
+        run: |
+          if [ -n "$LUAROCKS_API_KEY" ]; then
+            echo "has_api_key=true" >> $GITHUB_OUTPUT
+            echo "✓ LuaRocks API key is configured"
+          else
+            echo "has_api_key=false" >> $GITHUB_OUTPUT
+            echo "⚠️  LuaRocks API key is not configured"
+          fi
+      
       - name: Upload to LuaRocks
-        if: steps.check_published.outputs.already_published != 'true'
+        if: steps.check_published.outputs.already_published != 'true' && steps.check_api_key.outputs.has_api_key == 'true'
         env:
           LUAROCKS_API_KEY: ${{ secrets.LUAROCKS_API_KEY }}
         run: |
           VERSION="${{ steps.version.outputs.version }}"
           ROCKSPEC_FILE="rockspecs/markdown-plus.nvim-${VERSION}-1.rockspec"
-          
-          if [ -z "$LUAROCKS_API_KEY" ]; then
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "# ⚠️  LuaRocks API Key Not Configured" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "Cannot publish to LuaRocks without API key." >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "## Setup Instructions" >> $GITHUB_STEP_SUMMARY
-            echo "1. Get your API key from https://luarocks.org/settings/api-keys" >> $GITHUB_STEP_SUMMARY
-            echo "2. Add it as a repository secret named \`LUAROCKS_API_KEY\`" >> $GITHUB_STEP_SUMMARY
-            echo "3. Re-run this workflow" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            
-            echo "⚠️  Warning: LUAROCKS_API_KEY secret not configured"
-            echo "Please add your LuaRocks API key to GitHub Secrets:"
-            echo "https://github.com/${{ github.repository }}/settings/secrets/actions"
-            echo ""
-            echo "Skipping LuaRocks upload..."
-            exit 1
-          fi
           
           echo "Uploading rockspec to LuaRocks..."
           echo ""
@@ -173,7 +166,7 @@ jobs:
           fi
       
       - name: Verify upload
-        if: steps.check_published.outputs.already_published != 'true' && secrets.LUAROCKS_API_KEY != ''
+        if: steps.check_published.outputs.already_published != 'true' && steps.check_api_key.outputs.has_api_key == 'true'
         run: |
           VERSION="${{ steps.version.outputs.version }}"
           
@@ -187,6 +180,24 @@ jobs:
             echo "⚠️  Package not yet visible (may take a few minutes to propagate)"
           fi
       
+      - name: Show API key setup instructions
+        if: steps.check_api_key.outputs.has_api_key != 'true'
+        run: |
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "# ⚠️  LuaRocks API Key Not Configured" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Cannot publish to LuaRocks without API key." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Setup Instructions" >> $GITHUB_STEP_SUMMARY
+          echo "1. Get your API key from https://luarocks.org/settings/api-keys" >> $GITHUB_STEP_SUMMARY
+          echo "2. Add it as a repository secret named \`LUAROCKS_API_KEY\`" >> $GITHUB_STEP_SUMMARY
+          echo "3. Re-run this workflow" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          echo "⚠️  Warning: LUAROCKS_API_KEY secret not configured"
+          echo "Please add your LuaRocks API key to GitHub Secrets:"
+          echo "https://github.com/${{ github.repository }}/settings/secrets/actions"
+      
       - name: Summary
         if: always()
         run: |
@@ -199,7 +210,7 @@ jobs:
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "Version v${VERSION} is already published to LuaRocks." >> $GITHUB_STEP_SUMMARY
             echo "No action taken." >> $GITHUB_STEP_SUMMARY
-          elif [ -n "${{ secrets.LUAROCKS_API_KEY }}" ]; then
+          elif [ "${{ steps.check_api_key.outputs.has_api_key }}" = "true" ]; then
             echo "# ✅ LuaRocks Release Complete" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "Successfully published markdown-plus.nvim v${VERSION} to LuaRocks!" >> $GITHUB_STEP_SUMMARY
