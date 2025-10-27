@@ -615,6 +615,7 @@ The plugin can be configured through the setup function:
         headers_toc = true,      -- Header manipulation and TOC generation
         links = true,            -- Link management and references
         quote = true,            -- Quote management
+        code_block = true,       -- Convert selected text to code blocks
       },
       keymaps = {
         enabled = true,          -- Enable/disable default keymaps
