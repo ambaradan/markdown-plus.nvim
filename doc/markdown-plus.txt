@@ -264,6 +264,30 @@ RENUMBERING ~
 Ordered and letter-based lists are automatically renumbered as you edit.
 Manual renumbering is available with `<leader>mr`.
 
+The renumbering system intelligently handles:
+- Nested lists: Each nesting level maintains independent numbering
+- Blank lines: Lists separated by blank lines restart numbering from 1/a/A
+- Mixed depths: Works correctly at any nesting depth
+
+Example of nested list renumbering:
+>markdown
+    1. A
+        1. B
+        2. C
+    2. D
+        1. E    <- Correctly restarts at 1 (not 3)
+        2. F
+<
+
+Example of blank line separation:
+>markdown
+    1. First list
+    2. Second item
+
+    1. New list    <- Restarts at 1 after blank line
+    2. Second item
+<
+
 
 SMART BACKSPACE ~
 

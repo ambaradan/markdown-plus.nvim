@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+---
+
+## [1.4.1] - 2025-10-27
+
+---
+
+## [1.4.1] - 2025-10-27
+
 ### Added
 - Improved release workflow with automated PR creation and auto-merge
 - Pre-release verification step to ensure tests, linting, and formatting pass before creating releases
@@ -22,6 +30,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed secret accessibility issues in GitHub Actions conditionals
 - Improved temporary file cleanup in workflows
 - Enhanced security with checksum verification for downloaded binaries
+- **List renumbering**: Fixed nested and blank-line-separated ordered list renumbering
+  - Nested lists now correctly restart numbering when returning to parent level (e.g., `1. A → 1. B, 2. C → 2. D → 1. E, 2. F` instead of `3. E, 4. F`)
+  - Blank lines now properly separate lists into distinct groups that restart numbering
+  - Applies to all ordered list types: numbered (`1.`, `2.`), letter-based (`a.`, `A.`), and parenthesized variants (`1)`, `a)`)
+  - Works at any nesting depth
+
 
 ---
 
@@ -209,6 +223,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 The improvements from Phase 1 and Phase 2 (testing infrastructure, type safety, code quality tools, CI/CD) were integrated into versions 1.1.0 and 1.2.0 as part of the overall development process. These foundational improvements support all current and future features.
 
+[1.4.1]: https://github.com/YousefHadder/markdown-plus.nvim/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/YousefHadder/markdown-plus.nvim/compare/v1.3.1...v1.4.0
 [1.3.1]: https://github.com/YousefHadder/markdown-plus.nvim/compare/v1.3.0...v1.3.1
 [1.3.0]: https://github.com/YousefHadder/markdown-plus.nvim/compare/v1.2.0...v1.3.0

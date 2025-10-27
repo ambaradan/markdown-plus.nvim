@@ -649,6 +649,16 @@ function M.find_list_groups(lines)
       local indent_level = #list_info.indent
       local list_type = list_info.type
 
+      -- When we encounter a list item at a certain indent level,
+      -- clear all groups at DEEPER indents (numerically greater than current level) to ensure nested lists
+      -- restart numbering when returning to a parent level
+      for key, _ in pairs(current_groups_by_indent) do
+        local group_indent = tonumber(key:match("^(%d+)_"))
+        if group_indent and group_indent > indent_level then
+          current_groups_by_indent[key] = nil
+        end
+      end
+
       -- Check if we have an active group at this indentation level and type
       local group_key = indent_level .. "_" .. list_type
       local current_group = current_groups_by_indent[group_key]
@@ -691,9 +701,9 @@ end
 
 -- Check if a line breaks list continuity
 function M.is_list_breaking_line(line)
-  -- Empty lines don't break lists
+  -- Empty lines terminate list groups (causing subsequent lists to restart numbering from 1 or a)
   if not line or line:match("^%s*$") then
-    return false
+    return true
   end
 
   -- Any non-list content breaks list continuity
