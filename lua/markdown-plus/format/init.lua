@@ -7,9 +7,9 @@ M.config = {}
 
 ---Formatting pattern definition
 ---@class markdown-plus.format.Pattern
----@field start string Start pattern (Lua pattern)
----@field end_pat string End pattern (Lua pattern)
----@field wrap string Wrapper string
+---@field start string? Start pattern (Lua pattern)
+---@field end_pat string? End pattern (Lua pattern)
+---@field wrap string? Wrapper string
 
 ---Formatting patterns for different styles
 ---@type table<string, markdown-plus.format.Pattern>
@@ -367,8 +367,8 @@ function M.toggle_format(format_type)
 
   M.set_text_in_range(selection.start_row, selection.start_col, selection.end_row, selection.end_col, new_text)
 
-  -- Exit visual mode after the operation
-  vim.cmd("normal! gv")
+  -- Exit visual mode and clear the selection
+  vim.cmd("normal! \033")
 end
 
 -- Get current word boundaries
@@ -484,8 +484,8 @@ function M.clear_formatting()
 
   M.set_text_in_range(selection.start_row, selection.start_col, selection.end_row, selection.end_col, new_text)
 
-  -- Exit visual mode after the operation
-  vim.cmd("normal! gv")
+  -- Exit visual mode and clear the selection
+  vim.cmd("normal! \033")
 end
 
 -- Convert visual selection to a code block
