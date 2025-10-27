@@ -7,9 +7,9 @@ M.config = {}
 
 ---Formatting pattern definition
 ---@class markdown-plus.format.Pattern
----@field start string? Start pattern (Lua pattern)
----@field end_pat string? End pattern (Lua pattern)
----@field wrap string? Wrapper string
+---@field start string Start pattern (Lua pattern)
+---@field end_pat string End pattern (Lua pattern)
+---@field wrap string Wrapper string
 
 ---Formatting patterns for different styles
 ---@type table<string, markdown-plus.format.Pattern>
@@ -18,7 +18,6 @@ M.patterns = {
   italic = { start = "%*", end_pat = "%*", wrap = "*" },
   strikethrough = { start = "~~", end_pat = "~~", wrap = "~~" },
   code = { start = "`", end_pat = "`", wrap = "`" },
-  code_block = {},
 }
 
 ---Setup text formatting module

@@ -49,6 +49,7 @@ function M.validate(opts)
       headers_toc = { opts.features.headers_toc, "boolean", true },
       links = { opts.features.links, "boolean", true },
       quotes = { opts.features.quotes, "boolean", true },
+      code_block = { opts.features.code_block, "boolean", true },
     })
     if not ok then
       return false, err
@@ -86,7 +87,7 @@ function M.validate(opts)
       headers_toc = true,
       links = true,
       quotes = true,
-      code_blocks = true,
+      code_block = true,
     }
     for key in pairs(opts.features) do
       if not known_feature_fields[key] then

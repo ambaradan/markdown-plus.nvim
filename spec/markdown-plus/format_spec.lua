@@ -6,7 +6,12 @@ describe("markdown-plus format", function()
     -- Create a test buffer
     vim.cmd("enew")
     vim.bo.filetype = "markdown"
-    format.setup({ enabled = true })
+    format.setup({
+      enabled = true,
+      features = {
+        text_formatting = true,
+      },
+    })
   end)
 
   after_each(function()
@@ -231,6 +236,18 @@ describe("markdown-plus format", function()
     end)
   end)
   describe("convert_to_code_block", function()
+    local original_input
+
+    before_each(function()
+      -- Save original vim.fn.input
+      original_input = vim.fn.input
+    end)
+
+    after_each(function()
+      -- Restore original vim.fn.input
+      vim.fn.input = original_input
+    end)
+
     it("converts selected lines to a code block", function()
       -- Set buffer lines for testing
       vim.api.nvim_buf_set_lines(0, 0, -1, false, {
@@ -244,7 +261,7 @@ describe("markdown-plus format", function()
       vim.cmd("normal! Vj") -- Enter visual line mode and select down one line
 
       -- Mock vim.fn.input to simulate user input
-      _G.vim.fn.input = function()
+      vim.fn.input = function()
         return "lua"
       end
 
@@ -275,7 +292,7 @@ describe("markdown-plus format", function()
       vim.cmd("normal! Vjj") -- Enter visual line mode and select down two lines
 
       -- Mock vim.fn.input to simulate user input
-      _G.vim.fn.input = function()
+      vim.fn.input = function()
         return "lua"
       end
 
@@ -353,6 +370,16 @@ describe("markdown-plus format", function()
   end)
 
   describe("convert_to_format with backward selection", function()
+    local original_input
+
+    before_each(function()
+      original_input = vim.fn.input
+    end)
+
+    after_each(function()
+      vim.fn.input = original_input
+    end)
+
     it("correctly handles backward visual selection", function()
       vim.api.nvim_buf_set_lines(0, 0, -1, false, {
         "First line",
@@ -364,7 +391,7 @@ describe("markdown-plus format", function()
       vim.api.nvim_win_set_cursor(0, { 3, 0 })
       vim.cmd("normal! Vk") -- Enter visual line mode and select up one line
 
-      _G.vim.fn.input = function()
+      vim.fn.input = function()
         return "lua"
       end
 
@@ -387,6 +414,16 @@ describe("markdown-plus format", function()
   end)
 
   describe("convert_to_code_block without user input", function()
+    local original_input
+
+    before_each(function()
+      original_input = vim.fn.input
+    end)
+
+    after_each(function()
+      vim.fn.input = original_input
+    end)
+
     it("shows a warning and does not insert code block markers", function()
       vim.api.nvim_buf_set_lines(0, 0, -1, false, {
         "First line",
@@ -394,7 +431,7 @@ describe("markdown-plus format", function()
       })
       vim.api.nvim_win_set_cursor(0, { 1, 0 })
       vim.cmd("normal! Vj")
-      _G.vim.fn.input = function()
+      vim.fn.input = function()
         return ""
       end
       format.convert_to_code_block()
