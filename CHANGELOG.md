@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Code Block Conversion**: Added support for converting selected rows to code blocks in markdown.
+  - Convert visual selection to code block with `<leader>mw` in visual mode.
+  - `<Plug>` mapping: `<Plug>(MarkdownPlusCodeBlock)` for custom keymap configuration.
+  - Prompts for code block language, with a configurable default language.
+
 ---
 
 ## [1.4.1] - 2025-10-27
@@ -16,17 +23,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.4.1] - 2025-10-27
 
 ### Added
+
 - Improved release workflow with automated PR creation and auto-merge
 - Pre-release verification step to ensure tests, linting, and formatting pass before creating releases
 - Rollback mechanism for failed releases
 - Enhanced release notes with installation instructions for multiple package managers
 
 ### Changed
+
 - Refactored release workflow into reusable scripts in `scripts/` directory
 - Upgraded to StyLua GitHub Action for better caching and reliability
 - Improved LuaRocks workflow with better error handling and validation
 
 ### Fixed
+
 - Fixed secret accessibility issues in GitHub Actions conditionals
 - Improved temporary file cleanup in workflows
 - Enhanced security with checksum verification for downloaded binaries
@@ -36,12 +46,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Applies to all ordered list types: numbered (`1.`, `2.`), letter-based (`a.`, `A.`), and parenthesized variants (`1)`, `a)`)
   - Works at any nesting depth
 
-
 ---
 
 ## [1.4.0] - 2025-10-25
 
 ### Added
+
 - **Quotes Management**: Added support for toggling blockquotes in markdown
   - Toggle blockquote on current line with `<leader>mq` in normal mode
   - Toggle blockquote on selected lines in visual mode with `<leader>mq`
@@ -57,6 +67,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Single-letter support with wraparound (z→a, Z→A)
 
 ### Changed
+
 - **List module refactoring**:
   - Pattern-driven architecture with `PATTERN_CONFIG` table
   - Extracted helper functions: `get_next_marker()`, `get_previous_marker()`, `extract_list_content()`
@@ -65,14 +76,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added module-level constants for delimiters
 
 ### Fixed
+
 - Invalid pattern capture error when indenting parenthesized lists
 - Tab/Shift-Tab now work correctly with all list types including parenthesized variants
 - 'O' command (insert above) now correctly calculates markers for letter-based lists
 
 ---
+
 ## [1.3.1] - 2025-10-25
 
 ### Fixed
+
 - **Visual mode selection issue**: Fixed error when formatting text on first visual selection
   - Implemented workaround for Neovim's visual mode marks (`'<` and `'>`) not updating until after exiting visual mode
   - Now uses `vim.fn.getpos('v')` and `vim.fn.getpos('.')` when in active visual mode
