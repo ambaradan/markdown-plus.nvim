@@ -183,6 +183,30 @@ describe("markdown-plus format", function()
       assert.is_not_nil(selection.end_row)
       assert.is_not_nil(selection.end_col)
     end)
+
+    it("handles visual line mode (V) by selecting entire lines", function()
+      vim.api.nvim_buf_set_lines(0, 0, -1, false, { "hello world" })
+      -- Simulate being in visual line mode (V)
+      vim.cmd("normal! ggV")
+      local selection = format.get_visual_selection()
+      -- In line mode, should select from column 1 to end of line
+      assert.equals(1, selection.start_row)
+      assert.equals(1, selection.start_col)
+      assert.equals(1, selection.end_row)
+      assert.equals(11, selection.end_col) -- "hello world" has 11 characters
+    end)
+
+    it("handles visual line mode (V) with multiple lines", function()
+      vim.api.nvim_buf_set_lines(0, 0, -1, false, { "first line", "second line", "third line" })
+      -- Simulate visual line mode selecting lines 1-2
+      vim.cmd("normal! ggVj")
+      local selection = format.get_visual_selection()
+      -- Should select entire lines
+      assert.equals(1, selection.start_row)
+      assert.equals(1, selection.start_col)
+      assert.equals(2, selection.end_row)
+      assert.equals(11, selection.end_col) -- "second line" has 11 characters
+    end)
   end)
 
   describe("patterns", function()
