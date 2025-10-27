@@ -22,6 +22,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed secret accessibility issues in GitHub Actions conditionals
 - Improved temporary file cleanup in workflows
 - Enhanced security with checksum verification for downloaded binaries
+- **List renumbering**: Fixed nested and blank-line-separated ordered list renumbering
+  - Nested lists now correctly restart numbering when returning to parent level (e.g., `1. A → 1. B, 2. C → 2. D → 1. E, 2. F` instead of `3. E, 4. F`)
+  - Blank lines now properly separate lists into distinct groups that restart numbering
+  - Applies to all ordered list types: numbered (`1.`, `2.`), letter-based (`a.`, `A.`), and parenthesized variants (`1)`, `a)`)
+  - Works at any nesting depth
+
 
 ---
 

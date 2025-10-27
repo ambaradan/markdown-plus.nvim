@@ -650,7 +650,7 @@ function M.find_list_groups(lines)
       local list_type = list_info.type
 
       -- When we encounter a list item at a certain indent level,
-      -- clear all groups at DEEPER indents (not equal) to ensure nested lists
+      -- clear all groups at DEEPER indents (numerically greater than current level) to ensure nested lists
       -- restart numbering when returning to a parent level
       for key, _ in pairs(current_groups_by_indent) do
         local group_indent = tonumber(key:match("^(%d+)_"))
@@ -701,7 +701,7 @@ end
 
 -- Check if a line breaks list continuity
 function M.is_list_breaking_line(line)
-  -- Empty lines DO break lists (separate lists should restart numbering)
+  -- Empty lines terminate list groups (causing subsequent lists to restart numbering from 1 or a)
   if not line or line:match("^%s*$") then
     return true
   end

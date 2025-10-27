@@ -143,9 +143,9 @@ describe("markdown-plus list management", function()
       local groups = list.find_list_groups(lines)
 
       -- Should have 3 groups:
-      -- 1. Top level (items 1, 4, 7) - continuous group
-      -- 2. First nested (items 2, 3)
-      -- 3. Second nested (items 5, 6) - separated from first nested
+      -- 1. Top level (lines 1, 4, 7: A, D, G) - continuous group
+      -- 2. First nested (lines 2, 3: B, C)
+      -- 3. Second nested (lines 5, 6: E, F) - separated from first nested
       assert.are.equal(3, #groups)
 
       -- Verify first group (top level - all items)
@@ -296,7 +296,7 @@ describe("markdown-plus list management", function()
       }
       local groups = list.find_list_groups(lines)
 
-      -- Blank line breaks ALL groups, so we get 4 separate groups
+      -- Blank line terminates all active groups (at all indentation levels), resulting in 4 separate groups
       assert.are.equal(4, #groups)
       assert.are.equal(0, groups[1].indent)
       assert.are.equal(1, #groups[1].items) -- A only
