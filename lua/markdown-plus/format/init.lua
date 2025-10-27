@@ -488,6 +488,12 @@ end
 
 -- Convert visual selection to a code block
 function M.convert_to_code_block()
+  -- Check if text formatting feature is enabled
+  if not M.config.features or not M.config.features.text_formatting then
+    vim.notify("MarkdownPlus: Text formatting feature is disabled.", vim.log.levels.WARN)
+    return
+  end
+
   local selection = M.get_visual_selection()
   local start_row, end_row = selection.start_row, selection.end_row
 
