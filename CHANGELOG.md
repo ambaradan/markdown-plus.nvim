@@ -14,9 +14,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `<Plug>` mapping: `<Plug>(MarkdownPlusCodeBlock)` for custom keymap configuration.
   - Prompts for code block language, with a configurable default language.
 
----
-
-## [1.4.1] - 2025-10-27
 ### Fixed
 - **Format toggling**: Fixed visual line mode (`V`) formatting to apply to entire selected lines instead of just the word at cursor position
   - When using `V` to select entire lines, formatting now correctly wraps the full line content
