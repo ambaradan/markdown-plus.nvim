@@ -300,7 +300,6 @@ function M.set_text_in_range(start_row, start_col, end_row, end_col, new_text)
     -- Set the new line in the buffer
     utils.set_line(start_row, new_line)
 
-    -- Debug print to verify buffer content after modification
   else
     -- Multi-line replacement logic
     local first_line = utils.get_line(start_row)
