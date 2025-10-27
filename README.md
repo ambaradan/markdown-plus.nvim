@@ -1,7 +1,6 @@
 
 <img width="1340" height="413" alt="Screenshot 2025-10-25 at 2 47 19 PM" src="https://github.com/user-attachments/assets/8a44f9f7-5ca5-4c3f-8298-6a55e16a3f3c" />
 
-
 <div align="center">
 
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/yousefhadder/markdown-plus.nvim?style=flat-square&logo=github&color=blue)](https://github.com/yousefhadder/markdown-plus.nvim/releases)
@@ -18,7 +17,6 @@
 [![Dotfyle](https://dotfyle.com/plugins/yousefhadder/markdown-plus.nvim/shield?style=flat-square)](https://dotfyle.com/plugins/yousefhadder/markdown-plus.nvim)
 
 </div>
-
 
 A comprehensive Neovim plugin that provides modern markdown editing capabilities, implementing features found in popular editors like Typora, Mark Text, and Obsidian.
 
@@ -114,6 +112,7 @@ See [Configuration](#configuration) for all available options.
 - **Toggle italic**: `<leader>mi` to toggle `*italic*` formatting on selection or word
 - **Toggle strikethrough**: `<leader>ms` to toggle `~~strikethrough~~` formatting on selection or word
 - **Toggle inline code**: `<leader>mc` to toggle `` `code` `` formatting on selection or word
+- **Convert to code block**: `<leader>mw` to convert the selected text into a code block
 - **Clear all formatting**: `<leader>mC` to remove all markdown formatting from selection or word
 - **Smart word detection**: Works with words containing hyphens (`test-word`), dots (`file.name`), and underscores (`snake_case`)
 - **Visual and normal mode**: All formatting commands work in both visual selection and normal mode (on current word)
@@ -173,12 +172,10 @@ See [Configuration](#configuration) for all available options.
 
 </details>
 
-
 ## Requirements
 
 - Neovim 0.11+ (uses modern Lua APIs)
 - No external dependencies
-
 
 ## Installation
 
@@ -278,7 +275,6 @@ require("markdown-plus").setup()
 ```
 
 </details>
-
 
 ## Usage
 
@@ -387,6 +383,27 @@ text → ~~text~~
 Position cursor on word and press <leader>mc:
 text → `text`
 `text` → text (toggle off)
+```
+
+### Convert to Code Block
+
+```markdown
+Select any text in visual block mode and convert it to a code block:
+1. Enter visual block mode with `V`
+2. Select the rows you want to convert
+3. Press `<leader>mw`
+4. Enter the language for the code block (e.g., `lua`, `python`)
+
+Example:
+This is some text
+and more text
+
+→
+
+    ```txt
+    This is some text
+    and more text
+    ```
 ```
 
 ### Clear All Formatting
@@ -708,6 +725,7 @@ Normal line 2
 | | `<leader>mi` | Normal/Visual | Toggle *italic* |
 | | `<leader>ms` | Normal/Visual | Toggle ~~strikethrough~~ |
 | | `<leader>mc` | Normal/Visual | Toggle `code` |
+| | `<leader>mw` | Visual | Convert selection to code block |
 | | `<leader>mC` | Normal/Visual | Clear all formatting |
 | **Headers & TOC** |
 | | `]]` | Normal | Jump to next header |
@@ -733,8 +751,6 @@ Normal line 2
 
 <details>
 <summary><b>Detailed Keymaps by Category</b></summary>
-
-
 
 ### List Management (Insert Mode)
 
@@ -762,6 +778,7 @@ Normal line 2
 | `<leader>mi` | Normal/Visual | Toggle *italic* formatting |
 | `<leader>ms` | Normal/Visual | Toggle ~~strikethrough~~ formatting |
 | `<leader>mc` | Normal/Visual | Toggle `` `code` `` formatting |
+| `<leader>mw` | Visual | Convert selection to code block |
 | `<leader>mC` | Normal/Visual | Clear all formatting |
 
 ### Headers & TOC (Normal Mode)
@@ -973,7 +990,6 @@ This allows you to:
 
 </details>
 
-
 ## Customizing Keymaps
 
 <details>
@@ -1012,6 +1028,7 @@ vim.keymap.set("x", "<C-b>", "<Plug>(MarkdownPlusBold)")
 vim.keymap.set("x", "<C-i>", "<Plug>(MarkdownPlusItalic)")
 vim.keymap.set("x", "<C-s>", "<Plug>(MarkdownPlusStrikethrough)")
 vim.keymap.set("x", "<C-k>", "<Plug>(MarkdownPlusCode)")
+vim.keymap.set("x", "<leader>mw", "<Plug>(MarkdownPlusCodeBlock)")
 vim.keymap.set("x", "<C-x>", "<Plug>(MarkdownPlusClearFormatting)")
 ```
 
@@ -1076,6 +1093,7 @@ vim.keymap.set("x", "<C-q>", "<Plug>(MarkdownPlusToggleQuote)")
 - `<Plug>(MarkdownPlusItalic)` - Toggle italic (n, x)
 - `<Plug>(MarkdownPlusStrikethrough)` - Toggle strikethrough (n, x)
 - `<Plug>(MarkdownPlusCode)` - Toggle inline code (n, x)
+- `<Plug>(MarkdownPlusCodeBlock)` - Convert selection to code block (x)
 - `<Plug>(MarkdownPlusClearFormatting)` - Clear all formatting (n, x)
 
 #### Headers & TOC
@@ -1131,7 +1149,6 @@ vim.keymap.set("n", "<C-b>", "<Plug>(MarkdownPlusBold)", { buffer = false })  --
 Note: The plugin uses `hasmapto()` to check if a `<Plug>` mapping is already mapped before setting defaults, so your custom mappings will take precedence.
 
 </details>
-
 
 ## Contributing & Development
 
