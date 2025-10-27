@@ -86,6 +86,7 @@ function M.validate(opts)
       headers_toc = true,
       links = true,
       quotes = true,
+      code_blocks = true,
     }
     for key in pairs(opts.features) do
       if not known_feature_fields[key] then
