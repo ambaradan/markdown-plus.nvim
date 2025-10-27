@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       
       - name: Install Neovim
         uses: rhysd/action-setup-vim@v1
@@ -85,7 +85,7 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
       
@@ -272,7 +272,7 @@ jobs:
       
       - name: Trigger LuaRocks publish
         if: inputs.dry_run != true && inputs.publish_to_luarocks == true
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             await github.rest.actions.createWorkflowDispatch({
