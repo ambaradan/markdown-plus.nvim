@@ -58,6 +58,7 @@ FEATURES                                     *markdown-plus-introduction-feature
 
 - Text formatting:
   - Toggle bold, italic, strikethrough, and inline code
+  - Convert selected rows to code block
   - Smart formatting that respects word boundaries
   - Clear all formatting from selected text
   - Works in both normal and visual mode
