@@ -340,7 +340,27 @@ Toggle inline code with `<leader>mc`:
     This is code           ->    This is `code`
     This is `code`         ->    This is code
 <
+CODE BLOCK ~
 
+Convert selected rows to a code block with `<leader>mw`:
+1. Enter visual block mode with `V`.
+2. Select the rows you want to convert.
+3. Press `<leader>mw`.
+4. Enter the language for the code block when prompted (e.g., txt).
+
+>markdown
+    This is some text
+    and more text
+<
+
+After following the steps above, the selected text will become:
+
+>markdown
+    ```txt
+    This is some text
+    and more text
+    ```
+<
 
 CLEAR FORMATTING ~
 
@@ -562,6 +582,7 @@ Default keymaps:
         toggle_italic = '<leader>mi',
         toggle_strikethrough = '<leader>ms',
         toggle_code = '<leader>mc',
+        convert_to_code_block = '<leader>mw', -- Convert selection to code block
         clear_formatting = '<leader>mC',
 
         -- Link operations
@@ -829,6 +850,12 @@ markdown-plus.format.toggle_format_word(format_type)
     Toggles formatting on the word under cursor.
     Parameters: ~
         {format_type}  (string) One of: 'bold', 'italic', 'strikethrough', 'code'
+
+                                        *markdown-plus.format.convert_to_code_block*
+markdown-plus.format.convert_to_code_block()
+    Converts the selected text to a code block. Prompts for the language of the
+    code block.
+
 
                                         *markdown-plus.format.clear_formatting*
 markdown-plus.format.clear_formatting()
