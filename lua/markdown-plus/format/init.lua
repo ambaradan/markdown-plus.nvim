@@ -194,6 +194,13 @@ function M.get_visual_selection()
       start_col, end_col = end_col, start_col
     end
 
+    -- In line-wise visual mode (V), we need to select the entire lines
+    if mode == "V" then
+      start_col = 1
+      local end_line = vim.api.nvim_buf_get_lines(0, end_row - 1, end_row, false)[1] or ""
+      end_col = #end_line
+    end
+
     return {
       start_row = start_row,
       start_col = start_col,
