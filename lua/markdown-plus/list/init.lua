@@ -131,6 +131,20 @@ function M.setup_keymaps()
     desc = "New list item above",
   })
 
+  -- Checkbox <Plug> mappings
+  vim.keymap.set("n", "<Plug>(MarkdownPlusToggleCheckbox)", M.toggle_checkbox_line, {
+    silent = true,
+    desc = "Toggle checkbox on line",
+  })
+  vim.keymap.set("x", "<Plug>(MarkdownPlusToggleCheckbox)", M.toggle_checkbox_range, {
+    silent = true,
+    desc = "Toggle checkbox",
+  })
+  vim.keymap.set("i", "<Plug>(MarkdownPlusToggleCheckbox)", M.toggle_checkbox_insert, {
+    silent = true,
+    desc = "Toggle checkbox in insert mode",
+  })
+
   -- Set up default keymaps only if not already mapped
   -- Note: vim.fn.hasmapto() returns 0 or 1, and in Lua 0 is truthy, so we must compare with == 0
   if vim.fn.hasmapto("<Plug>(MarkdownPlusListEnter)", "i") == 0 then
@@ -161,6 +175,17 @@ function M.setup_keymaps()
   end
   if vim.fn.hasmapto("<Plug>(MarkdownPlusNewListItemAbove)", "n") == 0 then
     vim.keymap.set("n", "O", "<Plug>(MarkdownPlusNewListItemAbove)", { buffer = true, desc = "New list item above" })
+  end
+
+  -- Checkbox default keymaps
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusToggleCheckbox)", "n") == 0 then
+    vim.keymap.set("n", "<leader>mx", "<Plug>(MarkdownPlusToggleCheckbox)", { buffer = true, desc = "Toggle checkbox" })
+  end
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusToggleCheckbox)", "x") == 0 then
+    vim.keymap.set("x", "<leader>mx", "<Plug>(MarkdownPlusToggleCheckbox)", { buffer = true, desc = "Toggle checkbox" })
+  end
+  if vim.fn.hasmapto("<Plug>(MarkdownPlusToggleCheckbox)", "i") == 0 then
+    vim.keymap.set("i", "<C-x>", "<Plug>(MarkdownPlusToggleCheckbox)", { buffer = true, desc = "Toggle checkbox" })
   end
 
   -- Set up autocommands for auto-renumbering
@@ -768,6 +793,130 @@ function M.debug_list_groups()
     end
     print()
   end
+end
+
+-- ============================================================================
+-- Checkbox Management
+-- ============================================================================
+
+--- Toggle checkbox on a specific line
+---@param line_num number 1-indexed line number
+---@return nil
+function M.toggle_checkbox_on_line(line_num)
+  local line = utils.get_line(line_num)
+  if line == "" then
+    return
+  end
+
+  local list_info = M.parse_list_line(line)
+
+  if not list_info then
+    return -- Not a list item, do nothing
+  end
+
+  local new_line = M.toggle_checkbox_in_line(line, list_info)
+  if new_line then
+    utils.set_line(line_num, new_line)
+  end
+end
+
+--- Toggle checkbox state in a line
+---@param line string The line content
+---@param list_info table The parsed list information
+---@return string|nil The modified line, or nil if no change
+function M.toggle_checkbox_in_line(line, list_info)
+  if list_info.checkbox then
+    -- Has checkbox - toggle between checked/unchecked
+    return M.replace_checkbox_state(line, list_info)
+  else
+    -- No checkbox - add one
+    return M.add_checkbox_to_line(line, list_info)
+  end
+end
+
+--- Replace checkbox state in a line
+---@param line string The line content
+---@param list_info table The parsed list information
+---@return string The modified line
+function M.replace_checkbox_state(line, list_info)
+  local indent = list_info.indent
+  local marker = list_info.marker
+
+  -- Find the checkbox pattern and extract the content after it
+  local checkbox_pattern = "^(" .. utils.escape_pattern(indent) .. utils.escape_pattern(marker) .. "%s*)%[.?%]%s*(.*)"
+
+  local prefix, content = line:match(checkbox_pattern)
+
+  if prefix and content ~= nil then
+    local current_state = list_info.checkbox
+    local new_state = (current_state == "x" or current_state == "X") and " " or "x"
+    return prefix .. "[" .. new_state .. "] " .. content
+  end
+
+  return line
+end
+
+--- Add checkbox to a line that doesn't have one
+---@param line string The line content
+---@param list_info table The parsed list information
+---@return string The modified line
+function M.add_checkbox_to_line(line, list_info)
+  local indent = list_info.indent
+  local marker = list_info.marker
+
+  -- Pattern to match list item and capture content
+  local list_pattern = "^(" .. utils.escape_pattern(indent) .. utils.escape_pattern(marker) .. "%s*)(.*)"
+
+  local prefix, content = line:match(list_pattern)
+
+  if prefix and content ~= nil then
+    return prefix .. "[ ] " .. content
+  end
+
+  return line
+end
+
+--- Toggle checkbox on current line (normal mode)
+---@return nil
+function M.toggle_checkbox_line()
+  local cursor = utils.get_cursor()
+  local row = cursor[1]
+  M.toggle_checkbox_on_line(row)
+end
+
+--- Toggle checkbox in visual range
+---@return nil
+function M.toggle_checkbox_range()
+  local start_row = vim.fn.line("v")
+  local end_row = vim.fn.line(".")
+
+  if start_row == 0 or end_row == 0 then
+    return
+  end
+
+  -- Ensure start is before end
+  if start_row > end_row then
+    start_row, end_row = end_row, start_row
+  end
+
+  for row = start_row, end_row do
+    M.toggle_checkbox_on_line(row)
+  end
+end
+
+--- Toggle checkbox in insert mode (maintains cursor position)
+---@return nil
+function M.toggle_checkbox_insert()
+  local cursor = utils.get_cursor()
+  local row = cursor[1]
+  local col = cursor[2]
+
+  M.toggle_checkbox_on_line(row)
+
+  -- Restore cursor position (adjusting for potential line length changes)
+  local new_line = utils.get_line(row)
+  local new_col = math.min(col, #new_line)
+  vim.api.nvim_win_set_cursor(0, { row, new_col })
 end
 
 return M
