@@ -97,7 +97,7 @@ See [Configuration](#configuration) for all available options.
 - **Smart backspace**: Remove list markers when backspacing on empty items
 - **List breaking**: Press Enter twice on empty list items to break out of lists
 - **Checkbox support**: Works with all list types (e.g., `- [ ]`, `1. [ ]`, `a. [x]`)
-- **Checkbox toggling**: Toggle checkboxes on/off with `<leader>mx` in normal/visual mode or `<C-x>` in insert mode
+- **Checkbox toggling**: Toggle checkboxes on/off with `<leader>mx` in normal/visual mode or `<C-t>` in insert mode
 - **Multiple list types**: Supports unordered (`-`, `*`, `+`), ordered (`1.`, `2.`), letter-based (`a.`, `A.`), and parenthesized variants (`1)`, `a)`, `A)`)
 - **Nested lists**: Full support for nested lists with proper renumbering
 
@@ -323,7 +323,7 @@ Visual mode - select multiple lines and press <leader>mx:
 - [x] Task 2         → - [ ] Task 2
 - Regular            → - [ ] Regular
 
-Insert mode - press Ctrl+X while on a list item:
+Insert mode - press Ctrl+T while on a list item:
 - [ ] Todo           → - [x] Todo (cursor stays in place)
 ```
 
@@ -727,7 +727,7 @@ Normal line 2
 | | `O` | Normal | Create previous list item |
 | | `<leader>mr` | Normal | Manual renumber lists |
 | | `<leader>mx` | Normal/Visual | Toggle checkbox |
-| | `<C-x>` | Insert | Toggle checkbox |
+| | `<C-t>` | Insert | Toggle checkbox |
 | **Text Formatting** |
 | | `<leader>mb` | Normal/Visual | Toggle **bold** |
 | | `<leader>mi` | Normal/Visual | Toggle *italic* |

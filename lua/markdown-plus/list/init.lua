@@ -185,7 +185,7 @@ function M.setup_keymaps()
     vim.keymap.set("x", "<leader>mx", "<Plug>(MarkdownPlusToggleCheckbox)", { buffer = true, desc = "Toggle checkbox" })
   end
   if vim.fn.hasmapto("<Plug>(MarkdownPlusToggleCheckbox)", "i") == 0 then
-    vim.keymap.set("i", "<C-x>", "<Plug>(MarkdownPlusToggleCheckbox)", { buffer = true, desc = "Toggle checkbox" })
+    vim.keymap.set("i", "<C-t>", "<Plug>(MarkdownPlusToggleCheckbox)", { buffer = true, desc = "Toggle checkbox" })
   end
 
   -- Set up autocommands for auto-renumbering
@@ -911,11 +911,31 @@ function M.toggle_checkbox_insert()
   local row = cursor[1]
   local col = cursor[2]
 
+  local old_line = utils.get_line(row)
   M.toggle_checkbox_on_line(row)
 
   -- Restore cursor position (adjusting for potential line length changes)
   local new_line = utils.get_line(row)
-  local new_col = math.min(col, #new_line)
+
+  -- Calculate the character delta to adjust cursor position
+  local old_len = #old_line
+  local new_len = #new_line
+  local delta = new_len - old_len
+
+  local new_col
+  -- Adjust cursor position by the delta to maintain visual position
+  if delta > 0 then
+    -- Characters were added (e.g., checkbox added), move cursor forward
+    new_col = math.min(col + delta, #new_line)
+  elseif delta < 0 then
+    -- Characters were removed (e.g., checkbox removed), move cursor backward
+    new_col = math.max(0, col + delta)
+    new_col = math.min(new_col, #new_line)
+  else
+    -- No change in length (e.g., toggling checkbox state)
+    new_col = math.min(col, #new_line)
+  end
+
   vim.api.nvim_win_set_cursor(0, { row, new_col })
 end
 
