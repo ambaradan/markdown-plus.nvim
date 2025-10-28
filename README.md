@@ -95,6 +95,7 @@ See [Configuration](#configuration) for all available options.
 - **Smart backspace**: Remove list markers when backspacing on empty items
 - **List breaking**: Press Enter twice on empty list items to break out of lists
 - **Checkbox support**: Works with all list types (e.g., `- [ ]`, `1. [ ]`, `a. [x]`)
+- **Checkbox toggling**: Toggle checkboxes on/off with `<leader>mx` in normal/visual mode or `<C-t>` in insert mode
 - **Multiple list types**: Supports unordered (`-`, `*`, `+`), ordered (`1.`, `2.`), letter-based (`a.`, `A.`), and parenthesized variants (`1)`, `a)`, `A)`)
 - **Nested lists**: Full support for nested lists with proper renumbering
 
@@ -298,6 +299,28 @@ The plugin automatically activates when you open a markdown file (`.md` extensio
 
 1. [x]
 2. [ ]
+```
+
+### Toggle Checkboxes
+
+```markdown
+Position cursor on a list item and press <leader>mx:
+
+- Regular item       ← Press <leader>mx
+- [ ] Regular item   ← Press <leader>mx again
+- [x] Regular item   ← Press <leader>mx again (cycles back to unchecked)
+
+Works with all list types:
+1. Item              → 1. [ ] Item → 1. [x] Item
+a. Item              → a. [ ] Item → a. [x] Item
+
+Visual mode - select multiple lines and press <leader>mx:
+- [ ] Task 1         → - [x] Task 1
+- [x] Task 2         → - [ ] Task 2
+- Regular            → - [ ] Regular
+
+Insert mode - press Ctrl+T while on a list item:
+- [ ] Todo           → - [x] Todo (cursor stays in place)
 ```
 
 ### Smart Indentation
@@ -720,6 +743,8 @@ Normal line 2
 | | `o` | Normal | Create next list item |
 | | `O` | Normal | Create previous list item |
 | | `<leader>mr` | Normal | Manual renumber lists |
+| | `<leader>mx` | Normal/Visual | Toggle checkbox |
+| | `<C-t>` | Insert | Toggle checkbox |
 | **Text Formatting** |
 | | `<leader>mb` | Normal/Visual | Toggle **bold** |
 | | `<leader>mi` | Normal/Visual | Toggle *italic* |
@@ -768,7 +793,14 @@ Normal line 2
 | `o` | Normal | Create next list item |
 | `O` | Normal | Create previous list item |
 | `<leader>mr` | Normal | Manual renumber ordered lists |
+| `<leader>mx` | Normal | Toggle checkbox on current line |
 | `<leader>md` | Normal | Debug list groups (development) |
+
+### List Management (Visual Mode)
+
+| Keymap | Mode | Description |
+|--------|------|-------------|
+| `<leader>mx` | Visual | Toggle checkboxes in selection |
 
 ### Text Formatting (Normal & Visual Mode)
 
