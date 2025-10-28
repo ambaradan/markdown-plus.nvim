@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **List Management**: Checkbox toggle functionality in normal, visual, and insert modes
+  - `<leader>mx` in normal mode to toggle checkbox on current line
+  - `<leader>mx` in visual mode to toggle checkboxes in selection
+  - `<C-t>` in insert mode to toggle checkbox without leaving insert mode
+  - Automatically adds `[ ]` checkbox to regular list items
+  - Toggles between unchecked `[ ]` and checked `[x]` states
+  - Works with all list types: unordered, ordered, letter-based, and parenthesized variants
+- Comprehensive test suite with 32 new tests for checkbox functionality
+
 ### Fixed
 - **Format toggling**: Fixed visual line mode (`V`) formatting to apply to entire selected lines instead of just the word at cursor position
   - When using `V` to select entire lines, formatting now correctly wraps the full line content

@@ -471,4 +471,267 @@ describe("markdown-plus list management", function()
       assert.are.equal("a. Third", result[4]) -- Should restart at a
     end)
   end)
+
+  describe("checkbox management", function()
+    describe("add_checkbox_to_line", function()
+      it("adds checkbox to unordered list item", function()
+        local line = "- Item without checkbox"
+        local list_info = list.parse_list_line(line)
+        local result = list.add_checkbox_to_line(line, list_info)
+        assert.are.equal("- [ ] Item without checkbox", result)
+      end)
+
+      it("adds checkbox to ordered list item", function()
+        local line = "1. First item"
+        local list_info = list.parse_list_line(line)
+        local result = list.add_checkbox_to_line(line, list_info)
+        assert.are.equal("1. [ ] First item", result)
+      end)
+
+      it("adds checkbox to letter list item (lowercase)", function()
+        local line = "a. Letter item"
+        local list_info = list.parse_list_line(line)
+        local result = list.add_checkbox_to_line(line, list_info)
+        assert.are.equal("a. [ ] Letter item", result)
+      end)
+
+      it("adds checkbox to letter list item (uppercase)", function()
+        local line = "A. Letter item"
+        local list_info = list.parse_list_line(line)
+        local result = list.add_checkbox_to_line(line, list_info)
+        assert.are.equal("A. [ ] Letter item", result)
+      end)
+
+      it("adds checkbox to parenthesized ordered list", function()
+        local line = "1) Parenthesized item"
+        local list_info = list.parse_list_line(line)
+        local result = list.add_checkbox_to_line(line, list_info)
+        assert.are.equal("1) [ ] Parenthesized item", result)
+      end)
+
+      it("adds checkbox to parenthesized letter list (lowercase)", function()
+        local line = "a) Parenthesized letter"
+        local list_info = list.parse_list_line(line)
+        local result = list.add_checkbox_to_line(line, list_info)
+        assert.are.equal("a) [ ] Parenthesized letter", result)
+      end)
+
+      it("adds checkbox to parenthesized letter list (uppercase)", function()
+        local line = "A) Parenthesized letter"
+        local list_info = list.parse_list_line(line)
+        local result = list.add_checkbox_to_line(line, list_info)
+        assert.are.equal("A) [ ] Parenthesized letter", result)
+      end)
+
+      it("adds checkbox to indented list item", function()
+        local line = "  - Indented item"
+        local list_info = list.parse_list_line(line)
+        local result = list.add_checkbox_to_line(line, list_info)
+        assert.are.equal("  - [ ] Indented item", result)
+      end)
+
+      it("adds checkbox to list item with + marker", function()
+        local line = "+ Plus marker item"
+        local list_info = list.parse_list_line(line)
+        local result = list.add_checkbox_to_line(line, list_info)
+        assert.are.equal("+ [ ] Plus marker item", result)
+      end)
+
+      it("adds checkbox to list item with * marker", function()
+        local line = "* Star marker item"
+        local list_info = list.parse_list_line(line)
+        local result = list.add_checkbox_to_line(line, list_info)
+        assert.are.equal("* [ ] Star marker item", result)
+      end)
+    end)
+
+    describe("replace_checkbox_state", function()
+      it("toggles unchecked to checked", function()
+        local line = "- [ ] Unchecked item"
+        local list_info = list.parse_list_line(line)
+        local result = list.replace_checkbox_state(line, list_info)
+        assert.are.equal("- [x] Unchecked item", result)
+      end)
+
+      it("toggles checked to unchecked", function()
+        local line = "- [x] Checked item"
+        local list_info = list.parse_list_line(line)
+        local result = list.replace_checkbox_state(line, list_info)
+        assert.are.equal("- [ ] Checked item", result)
+      end)
+
+      it("toggles uppercase X to unchecked", function()
+        local line = "- [X] Checked with uppercase"
+        local list_info = list.parse_list_line(line)
+        local result = list.replace_checkbox_state(line, list_info)
+        assert.are.equal("- [ ] Checked with uppercase", result)
+      end)
+
+      it("toggles ordered list checkbox", function()
+        local line = "1. [ ] Ordered unchecked"
+        local list_info = list.parse_list_line(line)
+        local result = list.replace_checkbox_state(line, list_info)
+        assert.are.equal("1. [x] Ordered unchecked", result)
+      end)
+
+      it("toggles letter list checkbox", function()
+        local line = "a. [x] Letter checked"
+        local list_info = list.parse_list_line(line)
+        local result = list.replace_checkbox_state(line, list_info)
+        assert.are.equal("a. [ ] Letter checked", result)
+      end)
+
+      it("toggles indented checkbox", function()
+        local line = "  - [x] Indented checked"
+        local list_info = list.parse_list_line(line)
+        local result = list.replace_checkbox_state(line, list_info)
+        assert.are.equal("  - [ ] Indented checked", result)
+      end)
+    end)
+
+    describe("toggle_checkbox_in_line", function()
+      it("adds checkbox when none exists", function()
+        local line = "- Regular item"
+        local list_info = list.parse_list_line(line)
+        local result = list.toggle_checkbox_in_line(line, list_info)
+        assert.are.equal("- [ ] Regular item", result)
+      end)
+
+      it("toggles unchecked to checked", function()
+        local line = "- [ ] Todo item"
+        local list_info = list.parse_list_line(line)
+        local result = list.toggle_checkbox_in_line(line, list_info)
+        assert.are.equal("- [x] Todo item", result)
+      end)
+
+      it("toggles checked to unchecked", function()
+        local line = "- [x] Completed item"
+        local list_info = list.parse_list_line(line)
+        local result = list.toggle_checkbox_in_line(line, list_info)
+        assert.are.equal("- [ ] Completed item", result)
+      end)
+
+      it("works with ordered lists", function()
+        local line = "1. Regular ordered"
+        local list_info = list.parse_list_line(line)
+        local result = list.toggle_checkbox_in_line(line, list_info)
+        assert.are.equal("1. [ ] Regular ordered", result)
+      end)
+
+      it("works with letter lists", function()
+        local line = "a. Letter item"
+        local list_info = list.parse_list_line(line)
+        local result = list.toggle_checkbox_in_line(line, list_info)
+        assert.are.equal("a. [ ] Letter item", result)
+      end)
+    end)
+
+    describe("toggle_checkbox_on_line", function()
+      it("adds checkbox to list item without one", function()
+        vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "- Item without checkbox" })
+        list.toggle_checkbox_on_line(1)
+        local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+        assert.are.equal("- [ ] Item without checkbox", lines[1])
+      end)
+
+      it("toggles checkbox from unchecked to checked", function()
+        vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "- [ ] Unchecked item" })
+        list.toggle_checkbox_on_line(1)
+        local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+        assert.are.equal("- [x] Unchecked item", lines[1])
+      end)
+
+      it("toggles checkbox from checked to unchecked", function()
+        vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "- [x] Checked item" })
+        list.toggle_checkbox_on_line(1)
+        local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+        assert.are.equal("- [ ] Checked item", lines[1])
+      end)
+
+      it("does nothing on non-list lines", function()
+        vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "Regular paragraph text" })
+        list.toggle_checkbox_on_line(1)
+        local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+        assert.are.equal("Regular paragraph text", lines[1])
+      end)
+
+      it("does nothing on empty lines", function()
+        vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "" })
+        list.toggle_checkbox_on_line(1)
+        local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+        assert.are.equal("", lines[1])
+      end)
+
+      it("works with ordered lists", function()
+        vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "1. First item" })
+        list.toggle_checkbox_on_line(1)
+        local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+        assert.are.equal("1. [ ] First item", lines[1])
+      end)
+
+      it("works with indented lists", function()
+        vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "  - Indented item" })
+        list.toggle_checkbox_on_line(1)
+        local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+        assert.are.equal("  - [ ] Indented item", lines[1])
+      end)
+    end)
+
+    describe("toggle_checkbox_range", function()
+      it("adds checkboxes to multiple list items", function()
+        vim.api.nvim_buf_set_lines(buf, 0, -1, false, {
+          "- First item",
+          "- Second item",
+          "- Third item",
+        })
+        -- Enter visual mode and select lines 1-2
+        vim.cmd("normal! ggV")
+        vim.cmd("normal! j")
+        list.toggle_checkbox_range()
+        local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+        assert.are.equal("- [ ] First item", lines[1])
+        assert.are.equal("- [ ] Second item", lines[2])
+        assert.are.equal("- Third item", lines[3])
+      end)
+
+      it("toggles checkboxes in multiple list items", function()
+        vim.api.nvim_buf_set_lines(buf, 0, -1, false, {
+          "- [ ] Unchecked",
+          "- [x] Checked",
+          "- Regular",
+        })
+        -- Enter visual mode and select all 3 lines
+        vim.cmd("normal! ggV")
+        vim.cmd("normal! 2j")
+        list.toggle_checkbox_range()
+        local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+        assert.are.equal("- [x] Unchecked", lines[1])
+        assert.are.equal("- [ ] Checked", lines[2])
+        assert.are.equal("- [ ] Regular", lines[3])
+      end)
+    end)
+
+    describe("toggle_checkbox_line (normal mode)", function()
+      it("toggles checkbox on current line", function()
+        vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "- [ ] Todo" })
+        vim.api.nvim_win_set_cursor(0, { 1, 0 })
+        list.toggle_checkbox_line()
+        local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+        assert.are.equal("- [x] Todo", lines[1])
+      end)
+    end)
+
+    describe("toggle_checkbox_insert (insert mode)", function()
+      it("toggles checkbox and maintains cursor position", function()
+        vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "- [ ] Todo item" })
+        vim.api.nvim_win_set_cursor(0, { 1, 10 })
+        local initial_col = vim.api.nvim_win_get_cursor(0)[2]
+        list.toggle_checkbox_insert()
+        local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+        local final_col = vim.api.nvim_win_get_cursor(0)[2]
+        assert.are.equal("- [x] Todo item", lines[1])
+        assert.are.equal(initial_col, final_col)
+      end)
+    end)
+  end)
 end)

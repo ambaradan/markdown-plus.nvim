@@ -210,6 +210,23 @@ behavior for multiple list types:
 
 All list types support checkboxes (e.g., `- [ ]`, `1. [x]`, `a. [ ]`).
 
+CHECKBOX TOGGLING ~
+
+Toggle checkboxes with `<leader>mx` in normal/visual mode or `<C-t>` in insert
+mode:
+
+>markdown
+    - Regular item         Press <leader>mx    →  - [ ] Regular item
+    - [ ] Unchecked        Press <leader>mx    →  - [x] Unchecked
+    - [x] Checked          Press <leader>mx    →  - [ ] Checked
+
+    Works with all list types:
+    1. Item                →  1. [ ] Item       →  1. [x] Item
+    a. Task                →  a. [ ] Task       →  a. [x] Task
+
+    Visual mode - select lines and press <leader>mx to toggle multiple items
+    Insert mode - press <C-t> to toggle without leaving insert mode
+<
 
 AUTO-CONTINUATION ~
 
@@ -555,7 +572,11 @@ Default keymaps:
         new_item_below = 'o',               -- New list item below
         new_item_above = 'O',               -- New list item above
         renumber_lists = '<leader>mr',      -- Manual renumber
+        toggle_checkbox = '<leader>mx',     -- Toggle checkbox (normal/visual)
         debug_lists = '<leader>md',         -- Debug: show list groups
+
+        -- List operations (Insert mode - checkbox)
+        toggle_checkbox_insert = '<C-t>',   -- Toggle checkbox in insert mode
 
         -- Formatting operations (normal + visual)
         toggle_bold = '<leader>mb',
