@@ -183,6 +183,21 @@ describe("markdown-plus headers", function()
   end)
 
   describe("open_toc_window", function()
+    -- Helper function to cleanup TOC windows/buffers
+    local function cleanup_toc_window()
+      for _, win in ipairs(vim.api.nvim_list_wins()) do
+        if vim.api.nvim_win_is_valid(win) then
+          local win_buf = vim.api.nvim_win_get_buf(win)
+          if vim.api.nvim_buf_is_valid(win_buf) then
+            local name = vim.api.nvim_buf_get_name(win_buf)
+            if name:match("TOC:") then
+              vim.api.nvim_win_close(win, true)
+            end
+          end
+        end
+      end
+    end
+
     it("opens TOC window with headers", function()
       vim.api.nvim_buf_set_lines(buf, 0, -1, false, {
         "# Main Title",
@@ -210,9 +225,7 @@ describe("markdown-plus headers", function()
       assert.is_not_nil(toc_win)
 
       -- Clean up
-      if toc_win then
-        vim.api.nvim_win_close(toc_win, true)
-      end
+      cleanup_toc_window()
     end)
 
     it("toggles TOC window on/off", function()
@@ -300,13 +313,7 @@ describe("markdown-plus headers", function()
         assert.is_false(has_h3) -- Should not show initially (depth > 2)
 
         -- Clean up
-        for _, win in ipairs(vim.api.nvim_list_wins()) do
-          local win_buf = vim.api.nvim_win_get_buf(win)
-          if win_buf == toc_buf then
-            vim.api.nvim_win_close(win, true)
-            break
-          end
-        end
+        cleanup_toc_window()
       end
     end)
   end)

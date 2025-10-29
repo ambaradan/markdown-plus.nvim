@@ -572,6 +572,11 @@ function M.update_toc()
   print("TOC updated")
 end
 
+-- Constants for TOC window
+local TOC_WINDOW_PADDING = 5 -- Extra padding for window width calculation
+local TOC_MAX_WIDTH_RATIO = 0.5 -- Maximum width as ratio of screen width
+local TOC_DEFAULT_MAX_DEPTH = 2 -- Default initial depth to show
+
 -- State for TOC window
 local toc_state = {
   source_bufnr = nil,
@@ -580,7 +585,7 @@ local toc_state = {
   headers = {},
   expanded_levels = {}, -- Track which headers are expanded
   visible_headers = {}, -- Currently visible headers
-  max_depth = 2, -- Initial depth to show
+  max_depth = TOC_DEFAULT_MAX_DEPTH, -- Initial depth to show
 }
 
 --- Check if a header's children should be visible
@@ -696,7 +701,7 @@ local function render_toc()
 
   -- Auto-resize window
   if toc_state.toc_winnr and vim.api.nvim_win_is_valid(toc_state.toc_winnr) then
-    local win_width = math.min(max_len + 5, math.floor(vim.o.columns / 2))
+    local win_width = math.min(max_len + TOC_WINDOW_PADDING, math.floor(vim.o.columns * TOC_MAX_WIDTH_RATIO))
     vim.api.nvim_win_set_width(toc_state.toc_winnr, win_width)
   end
 end
@@ -882,6 +887,12 @@ local function close_toc_window()
   return false
 end
 
+--- Get the TOC statusline string
+---@return string
+local function get_toc_statusline()
+  return "%#StatusLine# TOC %#StatusLineNC#│ l=expand  h=collapse  ⏎=jump  q=close  ?=help"
+end
+
 --- Set up syntax highlighting for TOC buffer
 local function setup_toc_highlights()
   -- Define highlight groups (global)
@@ -906,15 +917,15 @@ local function setup_toc_highlights()
     -- Match markers first (so they can be contained)
     vim.cmd([[syntax match TocMarkerClosed "▶" contained]])
     vim.cmd([[syntax match TocMarkerOpen "▼" contained]])
-    vim.cmd([[syntax match TocLevel "\[H[1-6]\]" contained]])
+    vim.cmd([[syntax match TocLevel "\\[H[1-6]\\]" contained]])
 
-    -- Match full lines by header level
-    vim.cmd([[syntax match TocH1 "^\[H1\].*$" contains=TocLevel]])
-    vim.cmd([[syntax match TocH2 "^.\{-}\[H2\].*$" contains=TocLevel,TocMarkerClosed,TocMarkerOpen]])
-    vim.cmd([[syntax match TocH3 "^.\{-}\[H3\].*$" contains=TocLevel,TocMarkerClosed,TocMarkerOpen]])
-    vim.cmd([[syntax match TocH4 "^.\{-}\[H4\].*$" contains=TocLevel,TocMarkerClosed,TocMarkerOpen]])
-    vim.cmd([[syntax match TocH5 "^.\{-}\[H5\].*$" contains=TocLevel,TocMarkerClosed,TocMarkerOpen]])
-    vim.cmd([[syntax match TocH6 "^.\{-}\[H6\].*$" contains=TocLevel,TocMarkerClosed,TocMarkerOpen]])
+    -- Match full lines by header level (escaped brackets for literal match)
+    vim.cmd([[syntax match TocH1 "^\\[H1\\].*$" contains=TocLevel]])
+    vim.cmd([[syntax match TocH2 "^.\\{-}\\[H2\\].*$" contains=TocLevel,TocMarkerClosed,TocMarkerOpen]])
+    vim.cmd([[syntax match TocH3 "^.\\{-}\\[H3\\].*$" contains=TocLevel,TocMarkerClosed,TocMarkerOpen]])
+    vim.cmd([[syntax match TocH4 "^.\\{-}\\[H4\\].*$" contains=TocLevel,TocMarkerClosed,TocMarkerOpen]])
+    vim.cmd([[syntax match TocH5 "^.\\{-}\\[H5\\].*$" contains=TocLevel,TocMarkerClosed,TocMarkerOpen]])
+    vim.cmd([[syntax match TocH6 "^.\\{-}\\[H6\\].*$" contains=TocLevel,TocMarkerClosed,TocMarkerOpen]])
   end)
 end
 
@@ -943,7 +954,7 @@ function M.open_toc_window(window_type)
   toc_state.headers = headers
   toc_state.expanded_levels = {}
   toc_state.visible_headers = {}
-  toc_state.max_depth = 2
+  toc_state.max_depth = M.config.toc and M.config.toc.initial_depth or TOC_DEFAULT_MAX_DEPTH
 
   -- Create or reuse TOC buffer
   if not toc_state.toc_bufnr or not vim.api.nvim_buf_is_valid(toc_state.toc_bufnr) then
@@ -985,8 +996,7 @@ function M.open_toc_window(window_type)
   vim.wo[toc_state.toc_winnr].colorcolumn = ""
 
   -- Set a helpful status line
-  vim.wo[toc_state.toc_winnr].statusline = "%#StatusLine# TOC %#StatusLineNC#│ "
-    .. "l=expand  h=collapse  ⏎=jump  q=close  ?=help"
+  vim.wo[toc_state.toc_winnr].statusline = get_toc_statusline()
 
   -- Set up syntax highlighting
   setup_toc_highlights()

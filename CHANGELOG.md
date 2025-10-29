@@ -9,6 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **TOC Window**: Interactive Table of Contents window with fold/unfold navigation
+  - Commands: `:Toc` (vertical), `:Toch` (horizontal), `:Toct` (tab)
+  - Keymap: `<leader>hT` to toggle TOC window
+  - Features:
+    - Toggle on/off (no duplicate windows)
+    - Progressive disclosure: shows H1-H2 initially, expand with `l` key
+    - Fold/unfold: `l` to expand, `h` to collapse or jump to parent
+    - Jump to headers: press `<Enter>` on any header
+    - Help popup: press `?` for keyboard shortcuts
+    - Syntax highlighting: color-coded headers by level (H1-H6)
+    - Visual markers: `▶` (collapsed), `▼` (expanded)
+    - Auto-sizing: window adapts to content width
+    - Status line: shows available commands
+  - Configuration: `toc.initial_depth` to set initial display depth (default: 2)
+  - `<Plug>` mapping: `<Plug>(MarkdownPlusOpenTocWindow)` for custom keymap
 - **Code Block Conversion**: Added support for converting selected rows to code blocks in markdown.
   - Convert visual selection to code block with `<leader>mw` in visual mode.
   - `<Plug>` mapping: `<Plug>(MarkdownPlusCodeBlock)` for custom keymap configuration.
