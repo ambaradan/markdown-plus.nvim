@@ -806,13 +806,21 @@ Future versions may add:
 
                                                                           *:Toc*
 :Toc            Open Table of Contents in vertical split window.
-                Toggle on/off by running the command again.
+                Toggles the TOC window: if open, closes it; if closed, opens
+                it in a vertical split.
+
+                Note: All TOC commands (:Toc, :Toch, :Toct) share the same
+                toggle state. If the TOC window is open (regardless of layout),
+                running any TOC command will close it. To change the layout,
+                close the TOC window first, then run the desired command.
 
                                                                          *:Toch*
 :Toch           Open Table of Contents in horizontal split window.
+                See note above regarding toggle behavior.
 
                                                                          *:Toct*
 :Toct           Open Table of Contents in new tab.
+                See note above regarding toggle behavior.
 
 These commands are buffer-local and only available in markdown buffers.
 

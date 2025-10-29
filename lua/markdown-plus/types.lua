@@ -8,6 +8,7 @@
 ---@field keymaps? markdown-plus.KeymapConfig Keymap configuration
 ---@field filetypes? string[] Filetypes to enable plugin for (default: {"markdown"})
 ---@field code_block? markdown-plus.CodeBlockConfig Code block configuration
+---@field toc? markdown-plus.TocConfig TOC window configuration
 
 ---Feature configuration
 ---@class markdown-plus.FeatureConfig
@@ -21,6 +22,10 @@
 ---Code block configuration
 ---@class markdown-plus.CodeBlockConfig
 ---@field enabled? boolean Enable code block features (default: true)
+
+---TOC window configuration
+---@class markdown-plus.TocConfig
+---@field initial_depth? number Initial depth to show in TOC window (default: 2, range: 1-6)
 
 ---Keymap configuration
 ---@class markdown-plus.KeymapConfig

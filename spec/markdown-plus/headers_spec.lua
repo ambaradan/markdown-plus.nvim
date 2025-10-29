@@ -254,10 +254,12 @@ describe("markdown-plus headers", function()
 
       -- Capture notification
       local notified = false
+      local notified_level = nil
       local orig_notify = vim.notify
       vim.notify = function(msg, level)
         if msg:match("No headers") then
           notified = true
+          notified_level = level
         end
       end
 
@@ -265,6 +267,7 @@ describe("markdown-plus headers", function()
 
       vim.notify = orig_notify
       assert.is_true(notified)
+      assert.are.equal(vim.log.levels.WARN, notified_level)
     end)
 
     it("displays headers at initial depth 2", function()

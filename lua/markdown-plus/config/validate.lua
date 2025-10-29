@@ -24,6 +24,7 @@ function M.validate(opts)
     features = { opts.features, "table", true },
     keymaps = { opts.keymaps, "table", true },
     filetypes = { opts.filetypes, "table", true },
+    toc = { opts.toc, "table", true },
   })
   if not ok then
     return false, err
@@ -66,8 +67,25 @@ function M.validate(opts)
     end
   end
 
+  -- Validate toc config
+  if opts.toc then
+    ok, err = validate_path("config.toc", {
+      initial_depth = { opts.toc.initial_depth, "number", true },
+    })
+    if not ok then
+      return false, err
+    end
+
+    -- Validate initial_depth range
+    if opts.toc.initial_depth then
+      if opts.toc.initial_depth < 1 or opts.toc.initial_depth > 6 then
+        return false, "config.toc.initial_depth: must be between 1 and 6"
+      end
+    end
+  end
+
   -- Check for unknown top-level fields
-  local known_fields = { enabled = true, features = true, keymaps = true, filetypes = true }
+  local known_fields = { enabled = true, features = true, keymaps = true, filetypes = true, toc = true }
   for key in pairs(opts) do
     if not known_fields[key] then
       return false,
@@ -96,6 +114,21 @@ function M.validate(opts)
             "config.features: unknown field '%s'. Valid fields are: %s",
             key,
             table.concat(vim.tbl_keys(known_feature_fields), ", ")
+          )
+      end
+    end
+  end
+
+  -- Check for unknown toc fields
+  if opts.toc then
+    local known_toc_fields = { initial_depth = true }
+    for key in pairs(opts.toc) do
+      if not known_toc_fields[key] then
+        return false,
+          string.format(
+            "config.toc: unknown field '%s'. Valid fields are: %s",
+            key,
+            table.concat(vim.tbl_keys(known_toc_fields), ", ")
           )
       end
     end

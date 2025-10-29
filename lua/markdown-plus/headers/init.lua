@@ -917,15 +917,16 @@ local function setup_toc_highlights()
     -- Match markers first (so they can be contained)
     vim.cmd([[syntax match TocMarkerClosed "▶" contained]])
     vim.cmd([[syntax match TocMarkerOpen "▼" contained]])
-    vim.cmd([[syntax match TocLevel "\\[H[1-6]\\]" contained]])
+    vim.cmd([[syntax match TocLevel "\[H[1-6]\]" contained]])
 
-    -- Match full lines by header level (escaped brackets for literal match)
-    vim.cmd([[syntax match TocH1 "^\\[H1\\].*$" contains=TocLevel]])
-    vim.cmd([[syntax match TocH2 "^.\\{-}\\[H2\\].*$" contains=TocLevel,TocMarkerClosed,TocMarkerOpen]])
-    vim.cmd([[syntax match TocH3 "^.\\{-}\\[H3\\].*$" contains=TocLevel,TocMarkerClosed,TocMarkerOpen]])
-    vim.cmd([[syntax match TocH4 "^.\\{-}\\[H4\\].*$" contains=TocLevel,TocMarkerClosed,TocMarkerOpen]])
-    vim.cmd([[syntax match TocH5 "^.\\{-}\\[H5\\].*$" contains=TocLevel,TocMarkerClosed,TocMarkerOpen]])
-    vim.cmd([[syntax match TocH6 "^.\\{-}\\[H6\\].*$" contains=TocLevel,TocMarkerClosed,TocMarkerOpen]])
+    -- Match full lines by header level
+    -- Use consistent pattern for all levels to handle whitespace/markers
+    vim.cmd([[syntax match TocH1 "^.*\[H1\].*$" contains=TocLevel,TocMarkerClosed,TocMarkerOpen]])
+    vim.cmd([[syntax match TocH2 "^.*\[H2\].*$" contains=TocLevel,TocMarkerClosed,TocMarkerOpen]])
+    vim.cmd([[syntax match TocH3 "^.*\[H3\].*$" contains=TocLevel,TocMarkerClosed,TocMarkerOpen]])
+    vim.cmd([[syntax match TocH4 "^.*\[H4\].*$" contains=TocLevel,TocMarkerClosed,TocMarkerOpen]])
+    vim.cmd([[syntax match TocH5 "^.*\[H5\].*$" contains=TocLevel,TocMarkerClosed,TocMarkerOpen]])
+    vim.cmd([[syntax match TocH6 "^.*\[H6\].*$" contains=TocLevel,TocMarkerClosed,TocMarkerOpen]])
   end)
 end
 
@@ -948,6 +949,9 @@ function M.open_toc_window(window_type)
     vim.notify("TOC: No headers found", vim.log.levels.WARN)
     return
   end
+
+  -- Capture cursor position in source buffer before switching windows
+  local source_cursor_line = vim.fn.line(".")
 
   -- Store state
   toc_state.source_bufnr = vim.api.nvim_get_current_buf()
@@ -1007,12 +1011,11 @@ function M.open_toc_window(window_type)
   -- Initial render
   render_toc()
 
-  -- Position cursor at header closest to current line in source buffer
-  local cursor_line = vim.fn.line(".")
+  -- Position cursor at header closest to source buffer cursor position
   local closest_idx = 1
 
   for i, header in ipairs(headers) do
-    if header.line_num <= cursor_line then
+    if header.line_num <= source_cursor_line then
       closest_idx = i
     else
       break
