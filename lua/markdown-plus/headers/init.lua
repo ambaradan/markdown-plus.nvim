@@ -884,13 +884,12 @@ end
 
 --- Set up syntax highlighting for TOC buffer
 local function setup_toc_highlights()
-  -- Define highlight groups
+  -- Define highlight groups (global)
   vim.cmd([[
-    highlight default link TocHeader Title
     highlight default link TocLevel Comment
     highlight default link TocMarkerClosed Special
     highlight default link TocMarkerOpen Special
-    highlight default link TocH1 PreProc
+    highlight default link TocH1 Title
     highlight default link TocH2 Function
     highlight default link TocH3 String
     highlight default link TocH4 Type
@@ -898,18 +897,25 @@ local function setup_toc_highlights()
     highlight default link TocH6 Constant
   ]])
 
-  -- Set up syntax matches
-  vim.cmd([[
-    syntax match TocMarkerClosed "▶"
-    syntax match TocMarkerOpen "▼"
-    syntax match TocLevel "\[H[1-6]\]"
-    syntax match TocH1 "^[H1].*$" contains=TocLevel,TocMarkerClosed,TocMarkerOpen
-    syntax match TocH2 "^\s\{2\}\[H2\].*$" contains=TocLevel,TocMarkerClosed,TocMarkerOpen
-    syntax match TocH3 "^\s\{4\}\[H3\].*$" contains=TocLevel,TocMarkerClosed,TocMarkerOpen
-    syntax match TocH4 "^\s\{6\}\[H4\].*$" contains=TocLevel,TocMarkerClosed,TocMarkerOpen
-    syntax match TocH5 "^\s\{8\}\[H5\].*$" contains=TocLevel,TocMarkerClosed,TocMarkerOpen
-    syntax match TocH6 "^\s\{10\}\[H6\].*$" contains=TocLevel,TocMarkerClosed,TocMarkerOpen
-  ]])
+  -- Set up syntax matches in the TOC buffer context
+  vim.api.nvim_buf_call(toc_state.toc_bufnr, function()
+    -- Enable syntax
+    vim.cmd("syntax enable")
+    vim.cmd("syntax clear")
+
+    -- Match markers first (so they can be contained)
+    vim.cmd([[syntax match TocMarkerClosed "▶" contained]])
+    vim.cmd([[syntax match TocMarkerOpen "▼" contained]])
+    vim.cmd([[syntax match TocLevel "\[H[1-6]\]" contained]])
+
+    -- Match full lines by header level
+    vim.cmd([[syntax match TocH1 "^\[H1\].*$" contains=TocLevel]])
+    vim.cmd([[syntax match TocH2 "^.\{-}\[H2\].*$" contains=TocLevel,TocMarkerClosed,TocMarkerOpen]])
+    vim.cmd([[syntax match TocH3 "^.\{-}\[H3\].*$" contains=TocLevel,TocMarkerClosed,TocMarkerOpen]])
+    vim.cmd([[syntax match TocH4 "^.\{-}\[H4\].*$" contains=TocLevel,TocMarkerClosed,TocMarkerOpen]])
+    vim.cmd([[syntax match TocH5 "^.\{-}\[H5\].*$" contains=TocLevel,TocMarkerClosed,TocMarkerOpen]])
+    vim.cmd([[syntax match TocH6 "^.\{-}\[H6\].*$" contains=TocLevel,TocMarkerClosed,TocMarkerOpen]])
+  end)
 end
 
 --- Open a navigable TOC in a custom buffer window
@@ -980,7 +986,7 @@ function M.open_toc_window(window_type)
 
   -- Set a helpful status line
   vim.wo[toc_state.toc_winnr].statusline = "%#StatusLine# TOC %#StatusLineNC#│ "
-      .. "l=expand  h=collapse  ⏎=jump  q=close  ?=help"
+    .. "l=expand  h=collapse  ⏎=jump  q=close  ?=help"
 
   -- Set up syntax highlighting
   setup_toc_highlights()
