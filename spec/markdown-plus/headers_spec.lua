@@ -181,4 +181,165 @@ describe("markdown-plus headers", function()
       assert.are.equal(1, toc_count)
     end)
   end)
+
+  describe("open_toc_window", function()
+    it("opens TOC window with headers", function()
+      vim.api.nvim_buf_set_lines(buf, 0, -1, false, {
+        "# Main Title",
+        "Some content",
+        "## Section 1",
+        "More content",
+        "### Subsection",
+        "## Section 2",
+      })
+
+      headers.open_toc_window()
+
+      -- Check that a window was created
+      local wins = vim.api.nvim_list_wins()
+      local toc_win = nil
+      for _, win in ipairs(wins) do
+        local win_buf = vim.api.nvim_win_get_buf(win)
+        local name = vim.api.nvim_buf_get_name(win_buf)
+        if name:match("TOC:") then
+          toc_win = win
+          break
+        end
+      end
+
+      assert.is_not_nil(toc_win)
+
+      -- Clean up
+      if toc_win then
+        vim.api.nvim_win_close(toc_win, true)
+      end
+    end)
+
+    it("toggles TOC window on/off", function()
+      vim.api.nvim_buf_set_lines(buf, 0, -1, false, {
+        "# Header 1",
+        "## Header 2",
+      })
+
+      -- Open TOC
+      headers.open_toc_window()
+      local wins_after_open = #vim.api.nvim_list_wins()
+
+      -- Toggle (close)
+      headers.open_toc_window()
+      local wins_after_close = #vim.api.nvim_list_wins()
+
+      -- Should have closed the window
+      assert.is_true(wins_after_close < wins_after_open)
+    end)
+
+    it("shows warning when no headers found", function()
+      vim.api.nvim_buf_set_lines(buf, 0, -1, false, {
+        "Just plain text",
+        "No headers here",
+      })
+
+      -- Capture notification
+      local notified = false
+      local orig_notify = vim.notify
+      vim.notify = function(msg, level)
+        if msg:match("No headers") then
+          notified = true
+        end
+      end
+
+      headers.open_toc_window()
+
+      vim.notify = orig_notify
+      assert.is_true(notified)
+    end)
+
+    it("displays headers at initial depth 2", function()
+      vim.api.nvim_buf_set_lines(buf, 0, -1, false, {
+        "# H1",
+        "## H2",
+        "### H3",
+        "#### H4",
+      })
+
+      headers.open_toc_window()
+
+      -- Find TOC buffer
+      local toc_buf = nil
+      for _, b in ipairs(vim.api.nvim_list_bufs()) do
+        if vim.api.nvim_buf_is_valid(b) then
+          local name = vim.api.nvim_buf_get_name(b)
+          if name:match("TOC:") then
+            toc_buf = b
+            break
+          end
+        end
+      end
+
+      if toc_buf then
+        local lines = vim.api.nvim_buf_get_lines(toc_buf, 0, -1, false)
+        -- Should show H1 and H2, but not H3 and H4 initially
+        local has_h1 = false
+        local has_h2 = false
+        local has_h3 = false
+
+        for _, line in ipairs(lines) do
+          if line:match("%[H1%]") then
+            has_h1 = true
+          end
+          if line:match("%[H2%]") then
+            has_h2 = true
+          end
+          if line:match("%[H3%]") then
+            has_h3 = true
+          end
+        end
+
+        assert.is_true(has_h1)
+        assert.is_true(has_h2)
+        assert.is_false(has_h3) -- Should not show initially (depth > 2)
+
+        -- Clean up
+        for _, win in ipairs(vim.api.nvim_list_wins()) do
+          local win_buf = vim.api.nvim_win_get_buf(win)
+          if win_buf == toc_buf then
+            vim.api.nvim_win_close(win, true)
+            break
+          end
+        end
+      end
+    end)
+  end)
+
+  describe("get_all_headers", function()
+    it("returns all headers from buffer", function()
+      vim.api.nvim_buf_set_lines(buf, 0, -1, false, {
+        "# Header 1",
+        "Content",
+        "## Header 2",
+        "### Header 3",
+      })
+
+      local all_headers = headers.get_all_headers()
+      assert.are.equal(3, #all_headers)
+      assert.are.equal(1, all_headers[1].level)
+      assert.are.equal(2, all_headers[2].level)
+      assert.are.equal(3, all_headers[3].level)
+    end)
+
+    it("filters headers in code blocks", function()
+      vim.api.nvim_buf_set_lines(buf, 0, -1, false, {
+        "# Real Header",
+        "```",
+        "# Not a header",
+        "```",
+        "## Another Real Header",
+      })
+
+      local all_headers = headers.get_all_headers()
+      assert.are.equal(2, #all_headers)
+      assert.are.equal("Real Header", all_headers[1].text)
+      assert.are.equal("Another Real Header", all_headers[2].text)
+    end)
+  end)
 end)
