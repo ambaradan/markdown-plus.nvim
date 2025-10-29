@@ -568,6 +568,49 @@ All links work correctly on GitHub! ✓
 Press <leader>ht → Only "Real Section" appears in TOC ✓
 ```
 
+### TOC Window (Navigable)
+
+Open an interactive Table of Contents window to browse and navigate your document structure:
+
+```vim
+:Toc          " Open TOC in vertical split
+:Toch         " Open TOC in horizontal split
+:Toct         " Open TOC in new tab
+<leader>hT    " Default keymap to toggle TOC
+```
+
+**Features:**
+- **Progressive disclosure**: Shows H1-H2 initially, expand on demand
+- **Fold/unfold navigation**: `l` to expand, `h` to collapse
+- **Color-coded levels**: Each header level has distinct color
+- **Visual markers**: `▶` (collapsed), `▼` (expanded)
+- **Jump to headers**: Press `<Enter>` on any header
+- **Help popup**: Press `?` for keyboard shortcuts
+
+**Example:**
+```
+Initial View (depth 1-2):
+[H1] Main Title
+▶ [H2] Getting Started
+▶ [H2] Features
+▶ [H2] Contributing
+
+After pressing 'l' on "Getting Started":
+[H1] Main Title
+▼ [H2] Getting Started
+    ▶ [H3] Installation
+    ▶ [H3] Configuration
+▶ [H2] Features
+▶ [H2] Contributing
+```
+
+**Keymaps (inside TOC):**
+- `l` - Expand header to show children
+- `h` - Collapse header or jump to parent
+- `<Enter>` - Jump to header in source buffer
+- `q` - Close TOC window
+- `?` - Show help popup
+
 </details>
 
 <details>
@@ -829,6 +872,7 @@ Normal line 2
 | `<leader>h6` | Normal | Set/convert to H6 |
 | `<leader>ht` | Normal | Generate table of contents |
 | `<leader>hu` | Normal | Update existing table of contents |
+| `<leader>hT` | Normal | Toggle navigable TOC window |
 | `gd` | Normal | Follow TOC link (jump to header) |
 
 ### Links & References (Normal & Visual Mode)

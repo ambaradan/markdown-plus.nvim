@@ -198,6 +198,46 @@ Update the TOC with `<leader>hu` when you've added or modified headers.
 
 Follow TOC links with `gd` when cursor is on a link to jump to that header.
 
+TOC WINDOW (NAVIGABLE) ~
+                                                    *markdown-plus-toc-window*
+
+Open an interactive Table of Contents window to browse and navigate your
+document structure:
+
+>vim
+    :Toc          " Open TOC in vertical split
+    :Toch         " Open TOC in horizontal split
+    :Toct         " Open TOC in new tab
+    <leader>hT    " Default keymap to toggle TOC
+<
+
+Features:
+    - Progressive disclosure: Shows H1-H2 initially, expand on demand
+    - Fold/unfold: `l` to expand, `h` to collapse or jump to parent
+    - Color-coded levels: Each header level has distinct color
+    - Visual markers: ▶ (collapsed), ▼ (expanded)
+    - Jump to headers: Press <Enter> on any header
+    - Help popup: Press ? for keyboard shortcuts
+    - Toggle on/off: No duplicate windows
+    - Auto-sizing: Window adapts to content width
+
+Keymaps (inside TOC):
+    l           Expand header to show children
+    h           Collapse header or jump to parent
+    <Enter>     Jump to header in source buffer
+    q           Close TOC window
+    ?           Show help popup
+
+Configuration:
+    initial_depth: Set initial display depth (default: 2)
+>lua
+    require('markdown-plus').setup({
+      toc = {
+        initial_depth = 3,  -- Show H1-H3 initially
+      }
+    })
+<
+
 
 LISTS                                                *markdown-plus-usage-lists*
 
@@ -574,6 +614,7 @@ Default keymaps:
         demote_header = '<leader>h-',       -- Demote (decrease level)
         generate_toc = '<leader>ht',        -- Generate TOC
         update_toc = '<leader>hu',          -- Update TOC
+        open_toc_window = '<leader>hT',     -- Toggle TOC window
         next_header = ']]',                 -- Jump to next header
         prev_header = '[[',                 -- Jump to previous header
         set_h1 = '<leader>h1',              -- Convert to H1
@@ -763,13 +804,31 @@ Future versions may add:
 ==============================================================================
 5. Commands                                               *markdown-plus-commands*
 
-The plugin currently does not provide Ex commands. All functionality is
-accessed through keymaps (see |markdown-plus-configuration-keymaps|).
+                                                                          *:Toc*
+:Toc            Open Table of Contents in vertical split window.
+                Toggles the TOC window: if open, closes it; if closed, opens
+                it in a vertical split.
 
-However, you can call the Lua API functions directly if needed:
+                Note: All TOC commands (:Toc, :Toch, :Toct) share the same
+                toggle state. If the TOC window is open (regardless of layout),
+                running any TOC command will close it. To change the layout,
+                close the TOC window first, then run the desired command.
+
+                                                                         *:Toch*
+:Toch           Open Table of Contents in horizontal split window.
+                See note above regarding toggle behavior.
+
+                                                                         *:Toct*
+:Toct           Open Table of Contents in new tab.
+                See note above regarding toggle behavior.
+
+These commands are buffer-local and only available in markdown buffers.
+
+You can also call the Lua API functions directly if needed:
 
 >vim
     :lua require('markdown-plus').headers.generate_toc()
+    :lua require('markdown-plus').headers.open_toc_window()
     :lua require('markdown-plus').list.renumber_ordered_lists()
     :lua require('markdown-plus').format.toggle_format('bold')
     :lua require('markdown-plus').links.insert_link()
@@ -808,6 +867,38 @@ markdown-plus.headers.update_toc()
 markdown-plus.headers.follow_link()
     Follows the TOC link under cursor.
     Returns: boolean - true if a link was followed, false otherwise.
+
+                                            *markdown-plus.headers.open_toc_window*
+markdown-plus.headers.open_toc_window({window_type})
+    Opens an interactive Table of Contents window.
+    
+    Parameters: ~
+        {window_type}  (string, optional) Window layout:
+                      - 'vertical' (default): vertical split
+                      - 'horizontal': horizontal split
+                      - 'tab': new tab
+    
+    Features: ~
+        - Toggle on/off (no duplicate windows)
+        - Progressive disclosure (shows H1-H2 initially)
+        - Expand/collapse with l/h keys
+        - Jump to headers with <Enter>
+        - Help popup with ?
+        - Syntax highlighting
+        - Auto-sizing
+    
+    Keymaps (inside TOC): ~
+        l         - Expand header to show children
+        h         - Collapse header or jump to parent
+        <Enter>   - Jump to header in source buffer
+        q         - Close TOC window
+        ?         - Show help popup
+    
+    Example: ~
+>lua
+        require('markdown-plus').headers.open_toc_window()  -- vertical
+        require('markdown-plus').headers.open_toc_window('horizontal')
+<
 
                                                *markdown-plus.headers.next_header*
 markdown-plus.headers.next_header()
