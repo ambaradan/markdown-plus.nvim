@@ -10,6 +10,7 @@ M.config = {
     links = true,
     headers_toc = true,
     quotes = true,
+    code_block = true,
   },
   keymaps = {
     enabled = true,
