@@ -5,6 +5,19 @@ All notable changes to markdown-plus.nvim will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.1](https://github.com/YousefHadder/markdown-plus.nvim/compare/v1.5.0...v1.5.1) (2025-10-30)
+
+
+### Bug Fixes
+
+* address final 2 unresolved PR comments ([3304632](https://github.com/YousefHadder/markdown-plus.nvim/commit/3304632d1fe57750bccbcf2185969159943012ee))
+* address remaining PR review comments ([2a16266](https://github.com/YousefHadder/markdown-plus.nvim/commit/2a162660c22b20f53edbbffe7b3da3c6d27595aa))
+* fix release-please file ([fe79a36](https://github.com/YousefHadder/markdown-plus.nvim/commit/fe79a3642b2c54d283e6787df01144122303ded2))
+* improve input cancellation handling ([7f5724b](https://github.com/YousefHadder/markdown-plus.nvim/commit/7f5724b6fbc81e29f177232a9593743ef2585966))
+* improve type annotations and cursor positioning ([570440b](https://github.com/YousefHadder/markdown-plus.nvim/commit/570440ba2fff3d17b2f6db292524aa50f49a3d36))
+* invalid completion value error in utils.input() ([91bdb2c](https://github.com/YousefHadder/markdown-plus.nvim/commit/91bdb2c5fbc88e92dfea717c02a1b10998a2cd02))
+* restore legacy TOC detection without HTML markers ([e7aefb0](https://github.com/YousefHadder/markdown-plus.nvim/commit/e7aefb0f565e73d46768e022fcba0281f3edf7ef))
+
 ## [1.5.0] - 2025-10-29
 
 ### Added
