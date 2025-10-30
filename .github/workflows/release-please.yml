@@ -65,42 +65,43 @@ jobs:
 
           echo "✓ Created rockspec: $ROCKSPEC_FILE"
 
-      - name: Commit rockspec
-        run: |
-          VERSION="${{ needs.release-please.outputs.version }}"
-          ROCKSPEC_FILE="rockspecs/markdown-plus.nvim-${VERSION}-1.rockspec"
-
-          # Verify rockspec was created
-          if [ ! -f "$ROCKSPEC_FILE" ]; then
-            echo "Error: Rockspec file not created: $ROCKSPEC_FILE"
-            exit 1
-          fi
-
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          git add "$ROCKSPEC_FILE"
-          git commit -m "chore: add rockspec for v${VERSION} [skip ci]"
-          git push origin "${{ github.ref_name }}"
-
-      - name: Trigger LuaRocks publish
-        uses: actions/github-script@v8
+      - name: Create PR for rockspec
+        uses: peter-evans/create-pull-request@v7
+        id: create_pr
         with:
-          script: |
-            await github.rest.actions.createWorkflowDispatch({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              workflow_id: 'release-to-luarocks.yml',
-              ref: 'main',
-              inputs: {
-                version: '${{ needs.release-please.outputs.version }}'
-              }
-            });
-            console.log('✓ Triggered LuaRocks publish workflow');
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore: add rockspec for v${{ needs.release-please.outputs.version }}"
+          branch: "chore/add-rockspec-v${{ needs.release-please.outputs.version }}"
+          delete-branch: true
+          title: "chore: add rockspec for v${{ needs.release-please.outputs.version }}"
+          body: |
+            ## 🪨 Add Rockspec for v${{ needs.release-please.outputs.version }}
+            
+            This PR adds the LuaRocks rockspec file for the newly released version.
+            
+            **Release:** [${{ needs.release-please.outputs.tag_name }}](https://github.com/${{ github.repository }}/releases/tag/${{ needs.release-please.outputs.tag_name }})
+            
+            **Files added:**
+            - `rockspecs/markdown-plus.nvim-${{ needs.release-please.outputs.version }}-1.rockspec`
+            
+            ---
+            
+            🤖 This is an automated PR. Please review and merge to publish to LuaRocks.
+          labels: |
+            chore
+            rockspec
+
+      - name: Link rockspec PR to summary
+        if: steps.create_pr.outputs.pull-request-number != ''
+        run: |
+          PR_NUMBER="${{ steps.create_pr.outputs.pull-request-number }}"
+          echo "rockspec_pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
+          echo "✓ Created PR #$PR_NUMBER for rockspec"
       
       - name: Summary
         run: |
           VERSION="${{ needs.release-please.outputs.version }}"
+          PR_NUMBER="${{ steps.create_pr.outputs.pull-request-number }}"
 
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "# ✅ Release v${VERSION} Created Successfully!" >> $GITHUB_STEP_SUMMARY
@@ -111,5 +112,9 @@ jobs:
           echo "- 🪨 **Rockspec**: markdown-plus.nvim-${VERSION}-1.rockspec" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "## Next Steps" >> $GITHUB_STEP_SUMMARY
-          echo "✅ LuaRocks publish workflow has been triggered automatically" >> $GITHUB_STEP_SUMMARY
-          echo "Check the Actions tab to monitor the publish status" >> $GITHUB_STEP_SUMMARY
+          if [ -n "$PR_NUMBER" ]; then
+            echo "1. 🔍 **Review and merge** PR [#${PR_NUMBER}](https://github.com/${{ github.repository }}/pull/${PR_NUMBER}) to add the rockspec" >> $GITHUB_STEP_SUMMARY
+            echo "2. 🪨 **LuaRocks publish** will be triggered automatically after the rockspec PR is merged" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ Rockspec PR creation failed - please create the rockspec manually" >> $GITHUB_STEP_SUMMARY
+          fi
