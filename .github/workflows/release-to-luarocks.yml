@@ -158,10 +158,10 @@ jobs:
           echo "Checking if version ${VERSION} is already published to LuaRocks..."
           
           # Query the LuaRocks API to check if this specific version exists
-          if curl -sf "https://luarocks.org/manifests/yousefhadder/markdown-plus.nvim-${VERSION}-1.rockspec" > /dev/null 2>&1; then
+          if curl -sf "https://luarocks.org/manifests/${{ github.repository_owner }}/markdown-plus.nvim-${VERSION}-1.rockspec" > /dev/null 2>&1; then
             echo "already_published=true" >> $GITHUB_OUTPUT
             echo "⚠️  Version ${VERSION} is already published to LuaRocks"
-            echo "🔗 https://luarocks.org/modules/yousefhadder/markdown-plus.nvim/${VERSION}"
+            echo "🔗 https://luarocks.org/modules/${{ github.repository_owner }}/markdown-plus.nvim/${VERSION}"
           else
             echo "already_published=false" >> $GITHUB_OUTPUT
             echo "✓ Version ${VERSION} not yet published (ready to upload)"
@@ -239,9 +239,9 @@ jobs:
           while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
             echo "Verification attempt $ATTEMPT/$MAX_ATTEMPTS..."
             
-            if curl -sf "https://luarocks.org/manifests/yousefhadder/markdown-plus.nvim-${VERSION}-1.rockspec" > /dev/null 2>&1; then
+            if curl -sf "https://luarocks.org/manifests/${{ github.repository_owner }}/markdown-plus.nvim-${VERSION}-1.rockspec" > /dev/null 2>&1; then
               echo "✓ Package verified on LuaRocks!"
-              echo "🔗 https://luarocks.org/modules/yousefhadder/markdown-plus.nvim/${VERSION}"
+              echo "🔗 https://luarocks.org/modules/${{ github.repository_owner }}/markdown-plus.nvim/${VERSION}"
               exit 0
             fi
             
@@ -253,9 +253,9 @@ jobs:
             ATTEMPT=$((ATTEMPT + 1))
           done
           
-          echo "⚠️  Package not yet visible after $((MAX_ATTEMPTS * 15 + PROPAGATION_WAIT)) seconds"
+          echo "⚠️  Package not yet visible after $(((MAX_ATTEMPTS - 1) * 15 + PROPAGATION_WAIT)) seconds"
           echo "This is normal - LuaRocks indexing can take a few minutes."
-          echo "Check manually: https://luarocks.org/modules/yousefhadder/markdown-plus.nvim"
+          echo "Check manually: https://luarocks.org/modules/${{ github.repository_owner }}/markdown-plus.nvim"
       
       - name: Show API key setup instructions
         if: steps.check_api_key.outputs.has_api_key != 'true'
