@@ -91,11 +91,10 @@ jobs:
             chore
             rockspec
 
-      - name: Link rockspec PR to summary
+      - name: Log rockspec PR creation
         if: steps.create_pr.outputs.pull-request-number != ''
         run: |
           PR_NUMBER="${{ steps.create_pr.outputs.pull-request-number }}"
-          echo "rockspec_pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
           echo "✓ Created PR #$PR_NUMBER for rockspec"
       
       - name: Summary

@@ -38,12 +38,16 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             # Extract version from rockspec filename
-            ROCKSPEC_FILE=$(git diff --name-only HEAD~1 HEAD | grep 'rockspecs/markdown-plus.nvim-.*\.rockspec' | head -1)
+            ROCKSPEC_FILE=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep 'rockspecs/markdown-plus.nvim-.*\.rockspec' | head -1)
             if [ -z "$ROCKSPEC_FILE" ]; then
               echo "Error: No rockspec file found in PR"
               exit 1
             fi
             VERSION=$(echo "$ROCKSPEC_FILE" | sed -n 's/.*markdown-plus\.nvim-\([0-9.]*\)-[0-9]\.rockspec/\1/p')
+            if [ -z "$VERSION" ]; then
+              echo "Error: Failed to extract version from rockspec filename: $ROCKSPEC_FILE"
+              exit 1
+            fi
             echo "version=$VERSION" >> $GITHUB_OUTPUT
             echo "✓ Detected version from rockspec: $VERSION"
           else
