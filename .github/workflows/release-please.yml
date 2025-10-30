@@ -86,17 +86,28 @@ jobs:
             
             ---
             
-            🤖 This is an automated PR. Please review and merge to publish to LuaRocks.
+            ### 🚀 What happens after merge?
+            
+            When this PR is merged, the **Release to LuaRocks** workflow will be automatically triggered to publish this version to LuaRocks.
+            
+            🤖 This is an automated PR created by the release workflow.
           labels: |
             chore
             rockspec
-
-      - name: Log rockspec PR creation
+      
+      - name: Enable auto-merge for rockspec PR
         if: steps.create_pr.outputs.pull-request-number != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           PR_NUMBER="${{ steps.create_pr.outputs.pull-request-number }}"
-          echo "✓ Created PR #$PR_NUMBER for rockspec"
-      
+          
+          # Enable auto-merge with squash strategy
+          gh pr merge "$PR_NUMBER" --auto --squash --delete-branch
+          
+          echo "✓ Enabled auto-merge for PR #$PR_NUMBER"
+          echo "PR will be automatically merged when all checks pass"
+
       - name: Summary
         run: |
           VERSION="${{ needs.release-please.outputs.version }}"
@@ -112,8 +123,11 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "## Next Steps" >> $GITHUB_STEP_SUMMARY
           if [ -n "$PR_NUMBER" ]; then
-            echo "1. 🔍 **Review and merge** PR [#${PR_NUMBER}](https://github.com/${{ github.repository }}/pull/${PR_NUMBER}) to add the rockspec" >> $GITHUB_STEP_SUMMARY
-            echo "2. 🪨 **LuaRocks publish** will be triggered automatically after the rockspec PR is merged" >> $GITHUB_STEP_SUMMARY
+            echo "1. 🔄 **Auto-merge enabled** for PR [#${PR_NUMBER}](https://github.com/${{ github.repository }}/pull/${PR_NUMBER})" >> $GITHUB_STEP_SUMMARY
+            echo "2. ⏳ PR will merge automatically when checks pass" >> $GITHUB_STEP_SUMMARY
+            echo "3. 🪨 **LuaRocks publish** will trigger automatically after merge" >> $GITHUB_STEP_SUMMARY
           else
             echo "⚠️ Rockspec PR creation failed - please create the rockspec manually" >> $GITHUB_STEP_SUMMARY
           fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Monitor progress in the [Actions tab](https://github.com/${{ github.repository }}/actions)." >> $GITHUB_STEP_SUMMARY
