@@ -155,11 +155,13 @@ jobs:
         run: |
           VERSION="${{ steps.version.outputs.version }}"
           
-          # Try to check if version already exists on LuaRocks
-          # Note: This may fail if the package doesn't exist yet, which is fine
-          if luarocks search markdown-plus.nvim "${VERSION}" 2>/dev/null | grep -q "${VERSION}"; then
+          echo "Checking if version ${VERSION} is already published to LuaRocks..."
+          
+          # Query the LuaRocks API to check if this specific version exists
+          if curl -sf "https://luarocks.org/manifests/${{ github.repository_owner }}/markdown-plus.nvim-${VERSION}-1.rockspec" > /dev/null 2>&1; then
             echo "already_published=true" >> $GITHUB_OUTPUT
-            echo "⚠️  Version ${VERSION} appears to already be published to LuaRocks"
+            echo "⚠️  Version ${VERSION} is already published to LuaRocks"
+            echo "🔗 https://luarocks.org/modules/${{ github.repository_owner }}/markdown-plus.nvim/${VERSION}"
           else
             echo "already_published=false" >> $GITHUB_OUTPUT
             echo "✓ Version ${VERSION} not yet published (ready to upload)"
@@ -187,6 +189,7 @@ jobs:
           ROCKSPEC_FILE="rockspecs/markdown-plus.nvim-${VERSION}-1.rockspec"
           
           echo "Uploading rockspec to LuaRocks..."
+          echo "File: $ROCKSPEC_FILE"
           echo ""
           
           # Upload with detailed output
@@ -196,10 +199,25 @@ jobs:
           if luarocks upload "$ROCKSPEC_FILE" --api-key="$LUAROCKS_API_KEY" 2>&1 | tee "$UPLOAD_OUTPUT_FILE"; then
             echo ""
             echo "✓ Successfully uploaded to LuaRocks!"
+            echo "📦 Package: markdown-plus.nvim ${VERSION}"
           else
+            EXIT_CODE=$?
             echo ""
-            echo "✗ Upload failed. Output:"
+            echo "✗ Upload failed with exit code: $EXIT_CODE"
+            echo ""
+            echo "Output:"
             cat "$UPLOAD_OUTPUT_FILE"
+            echo ""
+            
+            # Check for common errors
+            if grep -q "already exists" "$UPLOAD_OUTPUT_FILE"; then
+              echo "❌ Error: This version already exists on LuaRocks"
+              echo "This may indicate the check step failed to detect it properly."
+            elif grep -q "authentication" "$UPLOAD_OUTPUT_FILE"; then
+              echo "❌ Error: Authentication failed"
+              echo "Please verify the LUAROCKS_API_KEY secret is correct."
+            fi
+            
             exit 1
           fi
       
@@ -209,17 +227,35 @@ jobs:
           VERSION="${{ steps.version.outputs.version }}"
           
           # Wait for LuaRocks to index the newly uploaded package
-          # Typical propagation time is 10-30 seconds
-          PROPAGATION_WAIT=30
+          # Typical propagation time is 10-60 seconds
+          PROPAGATION_WAIT=60
           echo "Waiting for LuaRocks to index the package ($PROPAGATION_WAIT seconds)..."
           sleep $PROPAGATION_WAIT
           
           echo "Verifying package is available on LuaRocks..."
-          if luarocks search markdown-plus.nvim "${VERSION}" 2>/dev/null | grep -q "${VERSION}"; then
-            echo "✓ Package verified on LuaRocks!"
-          else
-            echo "⚠️  Package not yet visible (may take a few minutes to propagate)"
-          fi
+          MAX_ATTEMPTS=5
+          ATTEMPT=1
+          
+          while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
+            echo "Verification attempt $ATTEMPT/$MAX_ATTEMPTS..."
+            
+            if curl -sf "https://luarocks.org/manifests/${{ github.repository_owner }}/markdown-plus.nvim-${VERSION}-1.rockspec" > /dev/null 2>&1; then
+              echo "✓ Package verified on LuaRocks!"
+              echo "🔗 https://luarocks.org/modules/${{ github.repository_owner }}/markdown-plus.nvim/${VERSION}"
+              exit 0
+            fi
+            
+            if [ $ATTEMPT -lt $MAX_ATTEMPTS ]; then
+              echo "Not yet visible, waiting 15 seconds..."
+              sleep 15
+            fi
+            
+            ATTEMPT=$((ATTEMPT + 1))
+          done
+          
+          echo "⚠️  Package not yet visible after $(((MAX_ATTEMPTS - 1) * 15 + PROPAGATION_WAIT)) seconds"
+          echo "This is normal - LuaRocks indexing can take a few minutes."
+          echo "Check manually: https://luarocks.org/modules/${{ github.repository_owner }}/markdown-plus.nvim"
       
       - name: Show API key setup instructions
         if: steps.check_api_key.outputs.has_api_key != 'true'
