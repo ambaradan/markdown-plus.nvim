@@ -122,9 +122,9 @@ function M.setup(config)
   if config.keymaps.enabled then
     local default_mappings = {
       -- Table creation & formatting (normal mode)
-      { "n", prefix .. "c",  "<Plug>(markdown-plus-table-create)" },
-      { "n", prefix .. "f",  "<Plug>(markdown-plus-table-format)" },
-      { "n", prefix .. "n",  "<Plug>(markdown-plus-table-normalize)" },
+      { "n", prefix .. "c", "<Plug>(markdown-plus-table-create)" },
+      { "n", prefix .. "f", "<Plug>(markdown-plus-table-format)" },
+      { "n", prefix .. "n", "<Plug>(markdown-plus-table-normalize)" },
 
       -- Row operations (normal mode)
       { "n", prefix .. "ir", "<Plug>(markdown-plus-table-insert-row-below)" },
