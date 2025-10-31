@@ -40,64 +40,6 @@ function M.setup(config)
       "Normalize table",
     },
 
-    -- Navigation (insert mode) - only work in tables
-    {
-      "i",
-      "<Plug>(markdown-plus-table-next-cell)",
-      function()
-        local nav = require("markdown-plus.table.navigation")
-        if nav.is_in_table() then
-          require("markdown-plus.table").next_cell()
-        else
-          -- Fallback to default behavior
-          vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<C-l>", true, false, true), "n", false)
-        end
-      end,
-      "Next cell",
-    },
-    {
-      "i",
-      "<Plug>(markdown-plus-table-prev-cell)",
-      function()
-        local nav = require("markdown-plus.table.navigation")
-        if nav.is_in_table() then
-          require("markdown-plus.table").prev_cell()
-        else
-          -- Fallback to default behavior
-          vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<C-z>", true, false, true), "n", false)
-        end
-      end,
-      "Previous cell",
-    },
-    {
-      "i",
-      "<Plug>(markdown-plus-table-next-row)",
-      function()
-        local nav = require("markdown-plus.table.navigation")
-        if nav.is_in_table() then
-          require("markdown-plus.table").next_row()
-        else
-          -- Fallback to default behavior
-          vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<M-j>", true, false, true), "n", false)
-        end
-      end,
-      "Next row",
-    },
-    {
-      "i",
-      "<Plug>(markdown-plus-table-prev-row)",
-      function()
-        local nav = require("markdown-plus.table.navigation")
-        if nav.is_in_table() then
-          require("markdown-plus.table").prev_row()
-        else
-          -- Fallback to default behavior
-          vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<M-k>", true, false, true), "n", false)
-        end
-      end,
-      "Previous row",
-    },
-
     -- Row operations
     {
       "n",
@@ -180,15 +122,9 @@ function M.setup(config)
   if config.keymaps.enabled then
     local default_mappings = {
       -- Table creation & formatting (normal mode)
-      { "n", prefix .. "c", "<Plug>(markdown-plus-table-create)" },
-      { "n", prefix .. "f", "<Plug>(markdown-plus-table-format)" },
-      { "n", prefix .. "n", "<Plug>(markdown-plus-table-normalize)" },
-
-      -- Navigation (insert mode)
-      { "i", "<C-l>", "<Plug>(markdown-plus-table-next-cell)" },
-      { "i", "<C-h>", "<Plug>(markdown-plus-table-prev-cell)" },
-      { "i", "<M-j>", "<Plug>(markdown-plus-table-next-row)" },
-      { "i", "<M-k>", "<Plug>(markdown-plus-table-prev-row)" },
+      { "n", prefix .. "c",  "<Plug>(markdown-plus-table-create)" },
+      { "n", prefix .. "f",  "<Plug>(markdown-plus-table-format)" },
+      { "n", prefix .. "n",  "<Plug>(markdown-plus-table-normalize)" },
 
       -- Row operations (normal mode)
       { "n", prefix .. "ir", "<Plug>(markdown-plus-table-insert-row-below)" },

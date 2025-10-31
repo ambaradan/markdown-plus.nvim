@@ -179,12 +179,10 @@ See [Configuration](#configuration) for all available options.
 - **Create tables**: `<leader>tc` to interactively create a new table with custom dimensions
 - **Format tables**: `<leader>tf` to auto-format and align columns
 - **Normalize tables**: `<leader>tn` to fix malformed tables
-- **Smart navigation**: `<C-l>`/`<C-h>` for cell navigation, `<M-j>`/`<M-k>` for row navigation (insert mode, table-aware)
 - **Row operations**: Insert (`<leader>tir`/`<leader>tiR`), delete (`<leader>tdr`), duplicate (`<leader>tyr`)
 - **Column operations**: Insert (`<leader>tic`/`<leader>tiC`), delete (`<leader>tdc`), duplicate (`<leader>tyc`)
 - **Alignment support**: Left (`:---`), center (`:---:`), right (`---:`)
 - **Smart cursor positioning**: Cursor automatically positioned after all operations
-- **Table-aware keybindings**: Insert mode navigation only activates in tables
 
 </details>
 
@@ -834,21 +832,6 @@ Missing pipes | fixed automatically
 | Missing pipes    | fixed automatically |
 ```
 
-### Navigate Between Cells
-
-```markdown
-In insert mode, use smart navigation (only active in tables):
-| Cell 1 | Cell 2 | Cell 3 |
-|--------|--------|--------|
-| A      | B      | C      | ← cursor here
-| D      | E      | F      |
-
-<C-l> - Move to next cell (B → C → D)
-<C-h> - Move to previous cell (B → A)
-<M-j> - Move to cell below (B → E)
-<M-k> - Move to cell above (E → B)
-```
-
 ### Row Operations
 
 ```markdown
@@ -994,10 +977,6 @@ Malformed tables (normalized automatically):
 ### Smart Features
 
 ```markdown
-**Table-Aware Navigation:**
-Insert mode navigation (<C-l>, <C-h>, <M-j>, <M-k>) only activates
-when cursor is inside a table. Outside tables, default behavior applies.
-
 **Header Protection:**
 Cannot delete header row or separator row. Operations protect table integrity.
 
@@ -1060,10 +1039,6 @@ logical cell (usually first cell of new/modified row/column).
 | | `<leader>tc` | Normal | Create table |
 | | `<leader>tf` | Normal | Format table |
 | | `<leader>tn` | Normal | Normalize table |
-| | `<C-l>` | Insert | Next cell (in tables) |
-| | `<C-h>` | Insert | Previous cell (in tables) |
-| | `<M-j>` | Insert | Next row (in tables) |
-| | `<M-k>` | Insert | Previous row (in tables) |
 | | `<leader>tir` | Normal | Insert row below |
 | | `<leader>tiR` | Normal | Insert row above |
 | | `<leader>tdr` | Normal | Delete row |

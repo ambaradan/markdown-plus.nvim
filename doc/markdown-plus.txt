@@ -79,7 +79,6 @@ FEATURES                                     *markdown-plus-introduction-feature
   - Create tables interactively with custom dimensions
   - Auto-format and align table columns
   - Normalize malformed tables
-  - Smart cell navigation (table-aware)
   - Row operations (insert, delete, duplicate)
   - Column operations (insert, delete, duplicate)
   - Alignment support (left, center, right)
@@ -87,7 +86,6 @@ FEATURES                                     *markdown-plus-introduction-feature
 
 - Context-aware keymaps:
   - List operations only active within lists
-  - Table navigation only active within tables
   - Proper fallback to default Vim behavior
   - Insert mode operations that respect context
 
@@ -643,17 +641,6 @@ Normalize malformed tables with `<leader>tn`:
     Missing | pipes                 | Missing  | pipes    |
 <
 
-NAVIGATE CELLS ~
-
-Use smart navigation in insert mode (only active when in tables):
-- `<C-l>` - Move to next cell (wraps to next row)
-- `<C-h>` - Move to previous cell (wraps to previous row)
-- `<M-j>` - Move to cell below (same column)
-- `<M-k>` - Move to cell above (same column)
-
-Outside tables, these keys work as expected (default behavior).
-
-
 ROW OPERATIONS ~
 
 Insert rows:
@@ -734,10 +721,6 @@ Minimum constraints:
   - Cannot delete the only data row
   - Always maintains: header + separator + at least one data row
 
-Table-aware navigation:
-  Insert mode navigation (<C-l>, <C-h>, <M-j>, <M-k>) only activates
-  when cursor is inside a table. Outside tables, normal behavior applies.
-
 
 ==============================================================================
 4. Configuration                                     *markdown-plus-configuration*
@@ -817,12 +800,6 @@ Default keymaps:
         table_insert_column_left = '<leader>tiC',  -- Insert column left
         table_delete_column = '<leader>tdc',       -- Delete current column
         table_duplicate_column = '<leader>tyc',    -- Duplicate current column
-
-        -- Table operations (Insert mode - navigation, table-aware)
-        table_next_cell = '<C-l>',         -- Next cell (in tables only)
-        table_prev_cell = '<C-h>',         -- Previous cell (in tables only)
-        table_next_row = '<M-j>',          -- Next row (in tables only)
-        table_prev_row = '<M-k>',          -- Previous row (in tables only)
       }
     }
 <
