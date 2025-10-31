@@ -91,34 +91,6 @@ function M.create_table(rows, cols)
   creator.create_table(rows, cols, M.config.default_alignment)
 end
 
----Navigate to next cell (right)
----@return boolean success True if navigation succeeded
-function M.next_cell()
-  local nav = require("markdown-plus.table.navigation")
-  return nav.move_to_next_cell()
-end
-
----Navigate to previous cell (left)
----@return boolean success True if navigation succeeded
-function M.prev_cell()
-  local nav = require("markdown-plus.table.navigation")
-  return nav.move_to_prev_cell()
-end
-
----Navigate to cell below
----@return boolean success True if navigation succeeded
-function M.next_row()
-  local nav = require("markdown-plus.table.navigation")
-  return nav.move_to_next_row()
-end
-
----Navigate to cell above
----@return boolean success True if navigation succeeded
-function M.prev_row()
-  local nav = require("markdown-plus.table.navigation")
-  return nav.move_to_prev_row()
-end
-
 ---Insert row below current row
 ---@return boolean success True if row was inserted
 function M.insert_row_below()
