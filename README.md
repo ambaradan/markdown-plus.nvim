@@ -173,6 +173,21 @@ See [Configuration](#configuration) for all available options.
 
 </details>
 
+<details>
+<summary><b>Table Support (Phase 1)</b></summary>
+
+- **Create tables**: `<leader>tc` to interactively create a new table with custom dimensions
+- **Format tables**: `<leader>tf` to auto-format and align columns
+- **Normalize tables**: `<leader>tn` to fix malformed tables
+- **Smart navigation**: `<C-l>`/`<C-h>` for cell navigation, `<M-j>`/`<M-k>` for row navigation (insert mode, table-aware)
+- **Row operations**: Insert (`<leader>tir`/`<leader>tiR`), delete (`<leader>tdr`), duplicate (`<leader>tyr`)
+- **Column operations**: Insert (`<leader>tic`/`<leader>tiC`), delete (`<leader>tdc`), duplicate (`<leader>tyc`)
+- **Alignment support**: Left (`:---`), center (`:---:`), right (`---:`)
+- **Smart cursor positioning**: Cursor automatically positioned after all operations
+- **Table-aware keybindings**: Insert mode navigation only activates in tables
+
+</details>
+
 ## Requirements
 
 - Neovim 0.11+ (uses modern Lua APIs)
@@ -771,6 +786,233 @@ Normal line 2
 
 </details>
 
+<details>
+<summary>Table Support Examples</summary>
+
+### Create a New Table
+
+```markdown
+Press <leader>tc to create a new table interactively:
+1. You'll be prompted: "Number of rows: "
+2. Enter the number of rows (e.g., 3)
+3. You'll be prompted: "Number of columns: "
+4. Enter the number of columns (e.g., 4)
+
+Result:
+| Header 1 | Header 2 | Header 3 | Header 4 |
+|----------|----------|----------|----------|
+|          |          |          |          |
+|          |          |          |          |
+|          |          |          |          |
+```
+
+### Format and Normalize Tables
+
+```markdown
+Format a table with <leader>tf:
+| Name | Age | City |
+|---|---|---|
+| Alice | 25 | NYC |
+| Bob | 30 | LA |
+
+→
+
+| Name  | Age | City |
+|-------|-----|------|
+| Alice | 25  | NYC  |
+| Bob   | 30  | LA   |
+
+Normalize malformed tables with <leader>tn:
+| Header 1 | Header 2
+|---|---
+Missing pipes | fixed automatically
+
+→
+
+| Header 1         | Header 2          |
+|------------------|-------------------|
+| Missing pipes    | fixed automatically |
+```
+
+### Navigate Between Cells
+
+```markdown
+In insert mode, use smart navigation (only active in tables):
+| Cell 1 | Cell 2 | Cell 3 |
+|--------|--------|--------|
+| A      | B      | C      | ← cursor here
+| D      | E      | F      |
+
+<C-l> - Move to next cell (B → C → D)
+<C-h> - Move to previous cell (B → A)
+<M-j> - Move to cell below (B → E)
+<M-k> - Move to cell above (E → B)
+```
+
+### Row Operations
+
+```markdown
+Insert row below with <leader>tir:
+| Name | Age |
+|------|-----|
+| Alice | 25 | ← cursor here
+| Bob  | 30 |
+
+→
+
+| Name  | Age |
+|-------|-----|
+| Alice | 25  |
+|       |     | ← new row inserted
+| Bob   | 30  |
+
+Insert row above with <leader>tiR:
+| Name  | Age |
+|-------|-----|
+|       |     | ← new row inserted
+| Alice | 25  | ← cursor was here
+
+Delete row with <leader>tdr:
+| Name  | Age |
+|-------|-----|
+| Alice | 25  | ← cursor here (row deleted)
+| Bob   | 30  |
+
+→
+
+| Name | Age |
+|------|-----|
+| Bob  | 30  |
+
+Duplicate row with <leader>tyr:
+| Name  | Age |
+|-------|-----|
+| Alice | 25  | ← cursor here
+| Bob   | 30  |
+
+→
+
+| Name  | Age |
+|-------|-----|
+| Alice | 25  |
+| Alice | 25  | ← duplicated row
+| Bob   | 30  |
+```
+
+### Column Operations
+
+```markdown
+Insert column right with <leader>tic:
+| Name  | Age |
+|-------|-----|
+| Alice | 25  |
+| Bob   | 30  |
+       ↑ cursor here
+
+→
+
+| Name  | Age |     |
+|-------|-----|-----|
+| Alice | 25  |     | ← new column
+| Bob   | 30  |     |
+
+Insert column left with <leader>tiC:
+|     | Name  | Age | ← new column inserted left
+|-----|-------|-----|
+|     | Alice | 25  |
+|     | Bob   | 30  |
+
+Delete column with <leader>tdc:
+| Name  | Age | City | ← Age column deleted
+|-------|-----|------|
+| Alice | 25  | NYC  |
+
+→
+
+| Name  | City |
+|-------|------|
+| Alice | NYC  |
+
+Duplicate column with <leader>tyc:
+| Name  | Age | Age | ← Age column duplicated
+|-------|-----|-----|
+| Alice | 25  | 25  |
+| Bob   | 30  | 30  |
+```
+
+### Alignment Support
+
+```markdown
+Tables support left, center, and right alignment:
+
+Left-aligned (default):     :---
+Center-aligned:             :---:
+Right-aligned:              ---:
+
+Example:
+| Left | Center | Right |
+|:-----|:------:|------:|
+| A    | B      | C     |
+| D    | E      | F     |
+
+Formatting preserves alignment markers.
+```
+
+### Edge Cases
+
+```markdown
+Tables handle various edge cases:
+
+Empty cells:
+| Header 1 | Header 2 |
+|----------|----------|
+|          | Data     |
+| Data     |          |
+
+Special characters:
+| Name      | Symbol |
+|-----------|--------|
+| Greater   | >      |
+| Less      | <      |
+| Pipe      | \|     |
+
+Unicode:
+| English | Japanese | Emoji |
+|---------|----------|-------|
+| Hello   | こんにちは | 👋    |
+| World   | 世界     | 🌍    |
+
+Malformed tables (normalized automatically):
+| No closing pipe
+| Missing separator
+    →
+| No closing pipe    |
+|--------------------|
+| Missing separator  |
+```
+
+### Smart Features
+
+```markdown
+**Table-Aware Navigation:**
+Insert mode navigation (<C-l>, <C-h>, <M-j>, <M-k>) only activates
+when cursor is inside a table. Outside tables, default behavior applies.
+
+**Header Protection:**
+Cannot delete header row or separator row. Operations protect table integrity.
+
+**Minimum Constraints:**
+- Cannot delete the last column
+- Cannot delete the only data row
+- Maintains at least one header + separator + one data row
+
+**Smart Cursor Positioning:**
+After all operations, cursor is automatically positioned in the most
+logical cell (usually first cell of new/modified row/column).
+```
+
+</details>
+
 ## Keymaps Reference
 
 <details open>
@@ -814,6 +1056,22 @@ Normal line 2
 | | `gx` | Normal | Open link in browser |
 | **Quotes** |
 | | `<leader>mq` | Normal/Visual | Toggle blockquote |
+| **Tables** |
+| | `<leader>tc` | Normal | Create table |
+| | `<leader>tf` | Normal | Format table |
+| | `<leader>tn` | Normal | Normalize table |
+| | `<C-l>` | Insert | Next cell (in tables) |
+| | `<C-h>` | Insert | Previous cell (in tables) |
+| | `<M-j>` | Insert | Next row (in tables) |
+| | `<M-k>` | Insert | Previous row (in tables) |
+| | `<leader>tir` | Normal | Insert row below |
+| | `<leader>tiR` | Normal | Insert row above |
+| | `<leader>tdr` | Normal | Delete row |
+| | `<leader>tyr` | Normal | Duplicate row |
+| | `<leader>tic` | Normal | Insert column right |
+| | `<leader>tiC` | Normal | Insert column left |
+| | `<leader>tdc` | Normal | Delete column |
+| | `<leader>tyc` | Normal | Duplicate column |
 
 </details>
 
@@ -914,6 +1172,7 @@ require("markdown-plus").setup({
     text_formatting = true,    -- Text formatting features
     headers_toc = true,        -- Headers and TOC features
     links = true,              -- Link management and references
+    table = true,              -- Table support features
   },
 
   -- Keymap configuration
