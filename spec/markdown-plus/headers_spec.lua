@@ -212,7 +212,7 @@ describe("markdown-plus headers", function()
           in_toc = false
         elseif in_toc and line:match("^%s*%-%s+%[") then
           -- This is a TOC entry
-          if line:match("Section") and not line:match("Subsection") then
+          if line:match("Section 1") or line:match("Section 2") then
             toc_has_section = true
           end
           if line:match("Subsection") then

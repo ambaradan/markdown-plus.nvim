@@ -107,7 +107,7 @@ local function build_visible_headers()
       should_show = true
     elseif header.level <= toc_state.max_depth then
       -- Within initial depth - show if all ancestors are expanded
-      should_show = not parent_idx or are_all_ancestors_expanded(i)
+      should_show = are_all_ancestors_expanded(i)
     else
       -- Beyond initial depth - only show if parent is expanded AND all ancestors are expanded
       should_show = parent_idx and is_expanded(parent_idx) and are_all_ancestors_expanded(i)
