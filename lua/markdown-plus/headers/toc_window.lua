@@ -91,7 +91,7 @@ local function build_visible_headers()
 
   for i, header in ipairs(toc_state.headers) do
     -- Check if this header should be visible
-    local should_show = false
+    local should_show
 
     -- Find direct parent (one level up)
     local parent_idx = nil
