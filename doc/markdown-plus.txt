@@ -136,6 +136,10 @@ Basic configuration with custom keymaps:
             list_management = true,
             text_formatting = true,
             headers_toc = true,
+            links = true,
+            quotes = true,
+            code_block = true,
+            table = true,
           },
         })
       end,
@@ -728,9 +732,9 @@ Minimum constraints:
 
 KEYMAPS                                      *markdown-plus-configuration-keymaps*
 
-Keymaps are automatically set up when the plugin loads for markdown files.
-Currently, keymaps are not customizable through the setup function - they
-use the default mappings shown below.
+Keymaps are automatically set up when the plugin loads (for configured filetypes).
+You can disable all defaults with `keymaps.enabled = false` and use provided
+`<Plug>` mappings to define custom keymaps (see below).
 
 Default keymaps:
 
@@ -818,8 +822,16 @@ The plugin can be configured through the setup function:
         text_formatting = true,  -- Bold, italic, strikethrough, code
         headers_toc = true,      -- Header manipulation and TOC generation
         links = true,            -- Link management and references
-        quote = true,            -- Quote management
+        quotes = true,           -- Blockquote (>) management
         code_block = true,       -- Convert selected text to code blocks
+      },
+      toc = {                    -- TOC window configuration
+        initial_depth = 2,
+      },
+      table = {                  -- Table sub-configuration
+        auto_format = true,
+        default_alignment = 'left', -- 'left' | 'center' | 'right'
+        keymaps = { enabled = true, prefix = '<leader>t' },
       },
       keymaps = {
         enabled = true,          -- Enable/disable default keymaps
@@ -840,6 +852,7 @@ Using a table (Lua): ~
       features = {
         list_management = true,
         text_formatting = false,
+        quotes = true,
       },
       keymaps = {
         enabled = false,
@@ -854,7 +867,8 @@ Using a table (Vimscript): ~
       \ enabled: v:true,
       \ features: #{
       \   list_management: v:true,
-      \   text_formatting: v:false
+      \   text_formatting: v:false,
+      \   quotes: v:true
       \ },
       \ keymaps: #{
       \   enabled: v:false
@@ -870,6 +884,7 @@ Using a function (dynamic configuration): ~
         enabled = vim.fn.has('nvim-0.10') == 1,
         features = {
           text_formatting = not vim.g.vscode,  -- Disable in VSCode
+          quotes = true,
         },
       }
     end

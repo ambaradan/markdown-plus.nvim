@@ -205,13 +205,24 @@ See [Configuration](#configuration) for all available options.
       -- Configuration options (all optional)
       enabled = true,
       features = {
-        list_management = true,  -- Enable list management features
-        text_formatting = true,  -- Enable text formatting features
-        headers_toc = true,      -- Enable headers and TOC features
-        links = true,            -- Enable link management features
+        list_management = true,  -- List management features
+        text_formatting = true,  -- Text formatting features
+        headers_toc = true,      -- Headers + TOC features
+        links = true,            -- Link management features
+        quotes = true,           -- Blockquote toggling feature
+        code_block = true,       -- Code block conversion feature
+        table = true,            -- Table support features
       },
       keymaps = {
-        enabled = true,  -- Enable default keymaps
+        enabled = true,  -- Enable default keymaps (<Plug> available for custom)
+      },
+      toc = {            -- TOC window configuration
+        initial_depth = 2,
+      },
+      table = {          -- Table sub-configuration
+        auto_format = true,
+        default_alignment = "left",
+        keymaps = { enabled = true, prefix = "<leader>t" },
       },
       filetypes = { "markdown" },  -- Filetypes to enable the plugin for
     })
@@ -1139,27 +1150,48 @@ logical cell (usually first cell of new/modified row/column).
 ```lua
 require("markdown-plus").setup({
   -- Global enable/disable
-  enabled = true,
+  enabled = true,               -- default: true
 
-  -- Feature toggles
+  -- Feature toggles (all default: true)
   features = {
-    list_management = true,    -- List management features
-    text_formatting = true,    -- Text formatting features
-    headers_toc = true,        -- Headers and TOC features
-    links = true,              -- Link management and references
-    table = true,              -- Table support features
+    list_management = true,     -- default: true (list auto-continue / indent / renumber / checkboxes)
+    text_formatting = true,     -- default: true (bold/italic/strike/code + clear)
+    headers_toc = true,         -- default: true (headers nav + TOC generation & window)
+    links = true,               -- default: true (insert/edit/convert/reference links)
+    quotes = true,              -- default: true (blockquote toggle)
+    code_block = true,          -- default: true (visual selection -> fenced block)
+    table = true,               -- default: true (table creation & editing)
   },
 
-  -- Keymap configuration
+  -- TOC window configuration
+  toc = {
+    initial_depth = 2,          -- default: 2 (range 1-6) depth initially shown in :Toc window
+  },
+
+  -- Table configuration
+  table = {
+    auto_format = true,         -- default: true  auto format table after operations
+    default_alignment = "left", -- default: "left"  alignment used for new columns
+    keymaps = {                 -- Table-specific keymaps (prefix based)
+      enabled = true,           -- default: true  provide table keymaps
+      prefix = "<leader>t",     -- default: "<leader>t"  prefix for table ops
+    },
+  },
+
+  -- Global keymap configuration
   keymaps = {
-    enabled = true,  -- Set to false to disable all default keymaps
+    enabled = true,             -- default: true  set false to disable ALL default maps (use <Plug>)
   },
 
   -- Filetypes configuration
-  -- Specifies which filetypes will enable the plugin features
-  -- Default: { "markdown" }
-  filetypes = { "markdown" },
+  filetypes = { "markdown" },   -- default: { "markdown" }
 })
+
+-- NOTES:
+-- 1. Any field omitted uses its default value shown above.
+-- 2. Unknown fields trigger a validation error.
+-- 3. vim.g.markdown_plus (table or function) is merged BEFORE this setup() call.
+-- 4. setup() options override vim.g values; both override internal defaults.
 ```
 
 ### Using with Multiple Filetypes
