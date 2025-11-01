@@ -204,7 +204,7 @@ function M.get_cursor_position_in_table()
   local cursor_row = vim.fn.line(".")
   local cursor_col = vim.fn.col(".")
 
-  -- Calculate row position (0 = header, 1+ = data rows)
+  -- Calculate row position (0 = header, 1 = separator, 2+ = data rows)
   local table_row = cursor_row - table_info.start_row
 
   -- Calculate column position by counting pipes before cursor

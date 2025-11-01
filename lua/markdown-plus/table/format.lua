@@ -62,14 +62,18 @@ local function generate_separator_cell(width, alignment)
   if width < 3 then
     width = 3
   end
-  local dashes = string.rep("-", width)
 
   if alignment == "center" then
-    return ":" .. dashes:sub(2, -2) .. ":"
+    -- Center: colon + dashes + colon (total = width)
+    local inner_dashes = math.max(1, width - 2)
+    return ":" .. string.rep("-", inner_dashes) .. ":"
   elseif alignment == "right" then
-    return dashes:sub(1, -2) .. "-:"
-  else -- left
-    return dashes
+    -- Right: dashes + colon (total = width)
+    local dashes = math.max(2, width - 1)
+    return string.rep("-", dashes) .. ":"
+  else
+    -- Left: just dashes
+    return string.rep("-", width)
   end
 end
 

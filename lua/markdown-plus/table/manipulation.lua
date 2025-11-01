@@ -95,15 +95,15 @@ function M.delete_row()
     return false
   end
 
-  -- Must have at least one data row
-  if #table_info.cells <= 2 then
+  -- Must have at least one data row (cells[1]=header, cells[2]=first data row)
+  if #table_info.cells < 2 then
     vim.notify("Cannot delete the only data row", vim.log.levels.WARN)
     return false
   end
 
-  -- pos.row is 0-indexed: 0=header, 1=separator, 2+=data rows
-  -- cells array excludes separator: cells[1]=header, cells[2+]=data rows
-  -- To delete data row at pos.row, we need cells[pos.row]
+  -- pos.row uses 0-based indexing: 0=header, 1=separator, 2+=data rows
+  -- cells array is 1-indexed (Lua): cells[1]=header, cells[2+]=data rows
+  -- For data row at pos.row=N (where N>=2), delete cells[N]
   local cells_index = pos.row
   table.remove(table_info.cells, cells_index)
 

@@ -64,7 +64,8 @@ function M.move_to_cell(table_info, row, col)
     return false
   end
 
-  -- Calculate line number (account for separator between header and data rows)
+  -- Calculate actual line number (account for separator between header and data rows)
+  -- row: 0=header, 1=separator (not in cells), 2+=data rows
   local line_num = table_info.start_row + row + (row >= 1 and 1 or 0)
 
   -- Get the line
