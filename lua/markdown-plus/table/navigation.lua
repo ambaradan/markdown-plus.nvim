@@ -56,8 +56,8 @@ end
 ---@param col integer Column index (0-based)
 ---@return boolean success True if cursor was moved
 function M.move_to_cell(table_info, row, col)
-  -- Validate bounds
-  if row < 0 or row >= #table_info.cells then
+  -- Validate bounds (row=1 is separator, not in cells array)
+  if row < 0 or (row > 1 and row - 1 >= #table_info.cells) then
     return false
   end
   if col < 0 or col >= table_info.cols then
@@ -66,7 +66,14 @@ function M.move_to_cell(table_info, row, col)
 
   -- Calculate actual line number (account for separator between header and data rows)
   -- row: 0=header, 1=separator (not in cells), 2+=data rows
-  local line_num = table_info.start_row + row + (row >= 1 and 1 or 0)
+  local line_num
+  if row == 1 then
+    line_num = table_info.start_row + 1
+  elseif row > 1 then
+    line_num = table_info.start_row + row + 1
+  else
+    line_num = table_info.start_row
+  end
 
   -- Get the line
   local line = vim.api.nvim_buf_get_lines(0, line_num - 1, line_num, false)[1]

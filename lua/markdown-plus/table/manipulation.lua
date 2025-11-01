@@ -118,8 +118,8 @@ function M.delete_row()
 
   -- Position cursor on the row that moved up (or previous row if last)
   local new_row = pos.row
-  if new_row >= #table_info.cells then
-    new_row = #table_info.cells - 1
+  if new_row > #table_info.cells then
+    new_row = #table_info.cells
   end
   navigation.move_to_cell(table_info, new_row, pos.col)
 
