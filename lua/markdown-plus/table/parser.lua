@@ -56,20 +56,25 @@ local function split_row_into_cells(row)
 
   -- Split by pipe, handling escaped pipes
   local current = ""
+  local escaped = false
   local i = 1
   while i <= #trimmed do
     local char = trimmed:sub(i, i)
-    if char == "|" then
-      -- Check if it's escaped
-      local prev = i > 1 and trimmed:sub(i - 1, i - 1) or ""
-      if prev == "\\" then
-        -- Escaped pipe, include it in cell
-        current = current:sub(1, -2) .. "|"
+    if escaped then
+      -- Previous char was backslash, current char is escaped
+      if char == "|" then
+        current = current .. "|"
       else
-        -- Unescaped pipe, end of cell
-        table.insert(cells, vim.trim(current))
-        current = ""
+        current = current .. "\\" .. char
       end
+      escaped = false
+    elseif char == "\\" then
+      -- Mark next character as escaped
+      escaped = true
+    elseif char == "|" then
+      -- Unescaped pipe, end of cell
+      table.insert(cells, vim.trim(current))
+      current = ""
     else
       current = current .. char
     end
@@ -189,7 +194,7 @@ function M.get_table_at_cursor()
 end
 
 ---Get current cursor position within table
----@return {row: integer, col: integer}? position Row and column (0-indexed) or nil
+---@return {row: integer, col: integer}? position Row (0=header, 1=separator, 2+=data rows) and column (0-indexed), or nil
 function M.get_cursor_position_in_table()
   local table_info = M.get_table_at_cursor()
   if not table_info then

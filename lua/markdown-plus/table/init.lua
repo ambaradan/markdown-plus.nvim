@@ -47,10 +47,9 @@ function M.setup(opts)
     return
   end
 
-  -- Setup keymaps if enabled
-  if M.config.keymaps.enabled then
-    require("markdown-plus.table.keymaps").setup(M.config)
-  end
+  -- Register global <Plug> mappings once
+  local keymaps = require("markdown-plus.table.keymaps")
+  keymaps.register_plug_mappings()
 end
 
 ---Check if cursor is inside a table

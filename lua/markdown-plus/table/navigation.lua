@@ -64,11 +64,8 @@ function M.move_to_cell(table_info, row, col)
     return false
   end
 
-  -- Calculate line number (skip separator row)
-  local line_num = table_info.start_row + row
-  if row >= 1 then
-    line_num = line_num + 1 -- Account for separator
-  end
+  -- Calculate line number (account for separator between header and data rows)
+  local line_num = table_info.start_row + row + (row >= 1 and 1 or 0)
 
   -- Get the line
   local line = vim.api.nvim_buf_get_lines(0, line_num - 1, line_num, false)[1]

@@ -166,9 +166,9 @@ function M.setup_autocmds()
       if M.quotes then
         M.quotes.enable()
       end
-      if M.table and M.table.setup then
-        -- Table module is already set up, keymaps are buffer-local
-        require("markdown-plus.table.keymaps").setup(M.config.table or M.table.config)
+      if M.table then
+        -- Set up buffer-local table keymaps
+        require("markdown-plus.table.keymaps").setup_buffer_keymaps(M.config.table or M.table.config)
       end
     end,
   })

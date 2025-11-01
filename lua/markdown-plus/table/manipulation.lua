@@ -58,6 +58,12 @@ function M.insert_row(above)
   -- Reformat and update buffer
   formatter.format_table(table_info)
 
+  -- Re-parse to get updated table info with correct line numbers
+  table_info = parser.get_table_at_cursor()
+  if not table_info then
+    return false
+  end
+
   -- Move cursor to new row (first cell)
   local navigation = require("markdown-plus.table.navigation")
   navigation.move_to_cell(table_info, insert_index, 0)
@@ -95,14 +101,20 @@ function M.delete_row()
     return false
   end
 
-  -- pos.row is 0-indexed: 0=header, 1=separator(virtual), 2+=data rows
-  -- cells array: 1=header, 2+=data rows
+  -- pos.row is 0-indexed: 0=header, 1=separator, 2+=data rows
+  -- cells array excludes separator: cells[1]=header, cells[2+]=data rows
   -- To delete data row at pos.row, we need cells[pos.row]
   local cells_index = pos.row
   table.remove(table_info.cells, cells_index)
 
   -- Reformat and update buffer
   formatter.format_table(table_info)
+
+  -- Re-parse to get updated table info with correct line numbers
+  table_info = parser.get_table_at_cursor()
+  if not table_info then
+    return false
+  end
 
   -- Position cursor on the row that moved up (or previous row if last)
   local new_row = pos.row
@@ -158,6 +170,12 @@ function M.duplicate_row()
   -- Reformat and update buffer
   formatter.format_table(table_info)
 
+  -- Re-parse to get updated table info with correct line numbers
+  table_info = parser.get_table_at_cursor()
+  if not table_info then
+    return false
+  end
+
   -- Move cursor to duplicated row (first cell)
   navigation.move_to_cell(table_info, pos.row + 1, 0)
 
@@ -196,6 +214,12 @@ function M.insert_column(left)
 
   -- Reformat and update buffer
   formatter.format_table(table_info)
+
+  -- Re-parse to get updated table info with correct line numbers
+  table_info = parser.get_table_at_cursor()
+  if not table_info then
+    return false
+  end
 
   -- Move cursor to new column (first row of that column)
   local navigation = require("markdown-plus.table.navigation")
@@ -239,6 +263,12 @@ function M.delete_column()
   -- Reformat and update buffer
   formatter.format_table(table_info)
 
+  -- Re-parse to get updated table info with correct line numbers
+  table_info = parser.get_table_at_cursor()
+  if not table_info then
+    return false
+  end
+
   -- Position cursor on the column to the left (or same position if first column deleted)
   local navigation = require("markdown-plus.table.navigation")
   local new_col = pos.col
@@ -280,6 +310,12 @@ function M.duplicate_column()
 
   -- Reformat and update buffer
   formatter.format_table(table_info)
+
+  -- Re-parse to get updated table info with correct line numbers
+  table_info = parser.get_table_at_cursor()
+  if not table_info then
+    return false
+  end
 
   -- Move cursor to duplicated column (first cell)
   local navigation = require("markdown-plus.table.navigation")

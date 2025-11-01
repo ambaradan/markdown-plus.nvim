@@ -7,11 +7,14 @@
 
 local M = {}
 
----Setup table keymaps
----@param config TableConfig Table configuration
-function M.setup(config)
-  local prefix = config.keymaps.prefix or "<leader>t"
+local plug_mappings_registered = false
 
+---Register global <Plug> mappings (should be called once)
+local function register_plug_mappings()
+  if plug_mappings_registered then
+    return
+  end
+  plug_mappings_registered = true
   -- Define <Plug> mappings
   local plug_mappings = {
     -- Table creation & formatting
@@ -117,6 +120,12 @@ function M.setup(config)
       desc = desc,
     })
   end
+end
+
+---Setup buffer-local default keymaps
+---@param config TableConfig Table configuration
+local function setup_buffer_keymaps(config)
+  local prefix = config.keymaps.prefix or "<leader>t"
 
   -- Set up default keybindings if enabled
   if config.keymaps.enabled then
@@ -149,6 +158,25 @@ function M.setup(config)
       end
     end
   end
+end
+
+---Register global <Plug> mappings (call once during module setup)
+function M.register_plug_mappings()
+  register_plug_mappings()
+end
+
+---Setup buffer-local keymaps for current buffer
+---@param config TableConfig Table configuration
+function M.setup_buffer_keymaps(config)
+  setup_buffer_keymaps(config)
+end
+
+---Setup table keymaps (registers <Plug> mappings once, then sets up buffer-local defaults)
+---For backward compatibility - prefer calling register_plug_mappings() once and setup_buffer_keymaps() per buffer
+---@param config TableConfig Table configuration
+function M.setup(config)
+  register_plug_mappings()
+  setup_buffer_keymaps(config)
 end
 
 return M

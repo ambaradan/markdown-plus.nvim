@@ -58,6 +58,10 @@ end
 ---@param alignment string 'left', 'center', or 'right'
 ---@return string separator Separator cell
 local function generate_separator_cell(width, alignment)
+  -- Ensure minimum width for alignment markers
+  if width < 3 then
+    width = 3
+  end
   local dashes = string.rep("-", width)
 
   if alignment == "center" then
@@ -116,8 +120,15 @@ function M.format_table(table_info)
     table.insert(formatted_rows, format_row(table_info.cells[i], widths, table_info.alignments))
   end
 
+  -- Calculate the correct end row based on current table structure
+  -- This handles cases where rows were added/removed from table_info.cells
+  local new_end_row = table_info.start_row + #formatted_rows - 1
+
   -- Replace table in buffer
   vim.api.nvim_buf_set_lines(0, table_info.start_row - 1, table_info.end_row, false, formatted_rows)
+
+  -- Update table_info.end_row to reflect the new table size
+  table_info.end_row = new_end_row
 end
 
 ---Format table and preserve cursor position

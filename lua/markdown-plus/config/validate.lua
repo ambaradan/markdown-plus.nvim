@@ -1,5 +1,8 @@
 local M = {}
 
+-- Valid table alignment values
+local VALID_ALIGNMENTS = { left = true, center = true, right = true }
+
 ---Validate user configuration
 ---@param opts markdown-plus.Config User configuration
 ---@return boolean is_valid True if config is valid
@@ -100,8 +103,7 @@ function M.validate(opts)
 
     -- Validate default_alignment values
     if opts.table.default_alignment then
-      local valid_alignments = { left = true, center = true, right = true }
-      if not valid_alignments[opts.table.default_alignment] then
+      if not VALID_ALIGNMENTS[opts.table.default_alignment] then
         return false, "config.table.default_alignment: must be 'left', 'center', or 'right'"
       end
     end
