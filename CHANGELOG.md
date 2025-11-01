@@ -5,6 +5,25 @@ All notable changes to markdown-plus.nvim will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0](https://github.com/YousefHadder/markdown-plus.nvim/compare/v1.5.1...v1.6.0) (2025-11-01)
+
+
+### Features
+
+* implement Phase 1 table support ([fed858e](https://github.com/YousefHadder/markdown-plus.nvim/commit/fed858ed34fb8cf2db741f3b00146c1ac9feebbc))
+* Phase 1 Table Support - Complete Implementation ([78ab892](https://github.com/YousefHadder/markdown-plus.nvim/commit/78ab892f58135117fe8bae81fb76fb693135afd3))
+
+
+### Bug Fixes
+
+* address Copilot PR review comments ([71a4c26](https://github.com/YousefHadder/markdown-plus.nvim/commit/71a4c26f1cd5e718308d3727ff58b96de5b0e7f2))
+* address PR review comments and critical bugs ([0b2a42a](https://github.com/YousefHadder/markdown-plus.nvim/commit/0b2a42a3028433e50c3f8c39210eab69c2c3f762))
+* correct LuaRocks publication workflow ([ee7f149](https://github.com/YousefHadder/markdown-plus.nvim/commit/ee7f14932f1afe5c7c058d2f39e1ac66ea19cde9))
+* correct LuaRocks publication workflow ([83aba4e](https://github.com/YousefHadder/markdown-plus.nvim/commit/83aba4e0bee5d9b5cf6c1aaa0b280c7a4edbde3c))
+* correct row bounds validation and line calculation ([e9ece1c](https://github.com/YousefHadder/markdown-plus.nvim/commit/e9ece1c3b00b970b94e73af3829e9eba9d4827d0))
+* correct separator width generation and row deletion validation ([2f9a49f](https://github.com/YousefHadder/markdown-plus.nvim/commit/2f9a49f83221eace02ddb297bc0c18086c393f63))
+* replace hardcoded username with github.repository_owner ([690815c](https://github.com/YousefHadder/markdown-plus.nvim/commit/690815cadf4301d976da4530922147b2c3ed5d6f))
+
 ## [1.5.1](https://github.com/YousefHadder/markdown-plus.nvim/compare/v1.5.0...v1.5.1) (2025-10-30)
 
 
