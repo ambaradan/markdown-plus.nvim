@@ -53,6 +53,38 @@ local function get_children(header_idx)
   return children
 end
 
+--- Check if all ancestors of a header are expanded
+---@param header_idx number Index of the header in headers array
+---@return boolean True if all ancestors are expanded (or no ancestors exist)
+local function are_all_ancestors_expanded(header_idx)
+  local current_level = toc_state.headers[header_idx].level
+
+  -- H1 has no ancestors
+  if current_level == 1 then
+    return true
+  end
+
+  -- Find direct parent and check ancestor chain
+  local check_idx = header_idx - 1
+  while check_idx >= 1 do
+    local check_header = toc_state.headers[check_idx]
+    if check_header.level < current_level then
+      -- Found an ancestor at higher level
+      if check_header.level == current_level - 1 then
+        -- Direct parent - check if expanded
+        if not is_expanded(check_idx) then
+          return false
+        end
+        -- Continue checking parent's ancestors
+        current_level = check_header.level
+      end
+    end
+    check_idx = check_idx - 1
+  end
+
+  return true
+end
+
 --- Build the visible headers list based on expansion state
 local function build_visible_headers()
   toc_state.visible_headers = {}
@@ -74,53 +106,11 @@ local function build_visible_headers()
       -- H1 is always visible
       should_show = true
     elseif header.level <= toc_state.max_depth then
-      -- Within initial depth - show if parent is expanded (or no parent exists)
-      if not parent_idx then
-        should_show = true
-      else
-        -- Check if ALL ancestors are expanded
-        local all_ancestors_expanded = true
-        local check_idx = parent_idx
-        while check_idx do
-          if not is_expanded(check_idx) then
-            all_ancestors_expanded = false
-            break
-          end
-          -- Find parent of current check_idx
-          local next_parent = nil
-          for j = check_idx - 1, 1, -1 do
-            if toc_state.headers[j].level == toc_state.headers[check_idx].level - 1 then
-              next_parent = j
-              break
-            end
-          end
-          check_idx = next_parent
-        end
-        should_show = all_ancestors_expanded
-      end
+      -- Within initial depth - show if all ancestors are expanded
+      should_show = not parent_idx or are_all_ancestors_expanded(i)
     else
-      -- Beyond initial depth - only show if direct parent is expanded
-      if parent_idx and is_expanded(parent_idx) then
-        -- Also check that all ancestors are expanded
-        local all_ancestors_expanded = true
-        local check_idx = parent_idx
-        while check_idx and toc_state.headers[check_idx].level > 1 do
-          -- Find parent of current check_idx
-          local next_parent = nil
-          for j = check_idx - 1, 1, -1 do
-            if toc_state.headers[j].level == toc_state.headers[check_idx].level - 1 then
-              next_parent = j
-              break
-            end
-          end
-          if next_parent and not is_expanded(next_parent) then
-            all_ancestors_expanded = false
-            break
-          end
-          check_idx = next_parent
-        end
-        should_show = all_ancestors_expanded
-      end
+      -- Beyond initial depth - only show if parent is expanded AND all ancestors are expanded
+      should_show = parent_idx and is_expanded(parent_idx) and are_all_ancestors_expanded(i)
     end
 
     if should_show then
@@ -434,7 +424,7 @@ function M.open_toc_window(window_type)
   -- Capture cursor position in source buffer before switching windows
   local source_cursor_line = vim.fn.line(".")
 
-  -- Safely get initial_depth from config
+  -- Get initial_depth from config
   local initial_depth = config.toc and config.toc.initial_depth or TOC_DEFAULT_MAX_DEPTH
 
   -- Store state
@@ -444,7 +434,7 @@ function M.open_toc_window(window_type)
   toc_state.visible_headers = {}
   toc_state.max_depth = initial_depth
 
-  -- Auto-expand headers within initial_depth that have children
+  -- Auto-expand headers below initial_depth that have children
   for i, header in ipairs(headers) do
     if header.level < initial_depth then
       -- Check if this header has children

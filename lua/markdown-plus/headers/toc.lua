@@ -151,10 +151,7 @@ function M.generate_toc()
   end
 
   -- Get max depth from config
-  local max_depth = TOC_DEFAULT_MAX_DEPTH
-  if config and config.toc and config.toc.initial_depth then
-    max_depth = config.toc.initial_depth
-  end
+  local max_depth = config.toc and config.toc.initial_depth or TOC_DEFAULT_MAX_DEPTH
 
   -- Build TOC lines with HTML comment markers
   local toc_lines = {
@@ -205,10 +202,7 @@ function M.update_toc()
   end
 
   -- Get max depth from config
-  local max_depth = TOC_DEFAULT_MAX_DEPTH
-  if config and config.toc and config.toc.initial_depth then
-    max_depth = config.toc.initial_depth
-  end
+  local max_depth = config.toc and config.toc.initial_depth or TOC_DEFAULT_MAX_DEPTH
 
   -- Build new TOC content (between markers)
   local toc_lines = {

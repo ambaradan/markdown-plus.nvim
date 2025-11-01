@@ -198,13 +198,13 @@ describe("markdown-plus headers", function()
       headers.generate_toc()
 
       local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
-      
+
       -- Find TOC section and check its contents
       local in_toc = false
       local toc_has_section = false
       local toc_has_subsection = false
       local toc_has_deep = false
-      
+
       for _, line in ipairs(lines) do
         if line:match("<!%-%- TOC %-%->") then
           in_toc = true
@@ -223,7 +223,7 @@ describe("markdown-plus headers", function()
           end
         end
       end
-      
+
       assert.is_true(toc_has_section)
       assert.is_false(toc_has_subsection) -- Should not include H3 in TOC
       assert.is_false(toc_has_deep) -- Should not include H4 in TOC
@@ -245,13 +245,13 @@ describe("markdown-plus headers", function()
       headers.generate_toc()
 
       local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
-      
+
       -- Find TOC section and check its contents
       local in_toc = false
       local toc_has_section = false
       local toc_has_subsection = false
       local toc_has_deep = false
-      
+
       for _, line in ipairs(lines) do
         if line:match("<!%-%- TOC %-%->") then
           in_toc = true
@@ -270,7 +270,7 @@ describe("markdown-plus headers", function()
           end
         end
       end
-      
+
       assert.is_true(toc_has_section)
       assert.is_true(toc_has_subsection) -- Should include H3 in TOC
       assert.is_false(toc_has_deep) -- Should not include H4 in TOC
@@ -294,13 +294,13 @@ describe("markdown-plus headers", function()
       headers.update_toc()
 
       local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
-      
+
       -- Find TOC section and check its contents
       local in_toc = false
       local toc_has_section1 = false
       local toc_has_section2 = false
       local toc_has_subsection = false
-      
+
       for _, line in ipairs(lines) do
         if line:match("<!%-%- TOC %-%->") then
           in_toc = true
@@ -319,7 +319,7 @@ describe("markdown-plus headers", function()
           end
         end
       end
-      
+
       assert.is_true(toc_has_section1)
       assert.is_true(toc_has_section2)
       assert.is_false(toc_has_subsection) -- Should not include H3 in TOC with depth=2
