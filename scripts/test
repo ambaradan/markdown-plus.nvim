@@ -1,6 +1,0 @@
-#!/usr/bin/env bash
-# Test script for folke/github CI integration
-# Runs tests using plenary.nvim test harness
-
-nvim --headless --noplugin -u spec/minimal_init.lua \
-  -c "lua require('plenary.test_harness').test_directory('spec/', { minimal_init = 'spec/minimal_init.lua' })"
