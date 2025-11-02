@@ -113,6 +113,7 @@ function M.validate(opts)
       ok, err = validate_path("config.table.keymaps", {
         enabled = { opts.table.keymaps.enabled, "boolean", true },
         prefix = { opts.table.keymaps.prefix, "string", true },
+        insert_mode_navigation = { opts.table.keymaps.insert_mode_navigation, "boolean", true },
       })
       if not ok then
         return false, err
@@ -187,7 +188,7 @@ function M.validate(opts)
 
     -- Check for unknown table.keymaps fields
     if opts.table.keymaps then
-      local known_table_keymap_fields = { enabled = true, prefix = true }
+      local known_table_keymap_fields = { enabled = true, prefix = true, insert_mode_navigation = true }
       for key in pairs(opts.table.keymaps) do
         if not known_table_keymap_fields[key] then
           return false,
