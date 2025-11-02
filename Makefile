@@ -1,4 +1,4 @@
-.PHONY: test test-file test-watch lint format format-check demo help
+.PHONY: test test-file test-watch lint format format-check check demo help
 
 # Default target
 help:
@@ -10,6 +10,7 @@ help:
 	@echo "  make lint          - Run luacheck linter"
 	@echo "  make format        - Format all Lua files with stylua"
 	@echo "  make format-check  - Check formatting without modifying files"
+	@echo "  make check         - Run lint + format-check + test (CI checks)"
 	@echo "  make demo          - Generate all demo GIFs (requires vhs)"
 	@echo "  make help          - Show this help message"
 	@echo ""
@@ -80,6 +81,10 @@ format-check:
 		 echo "Or on macOS: brew install stylua"; exit 1)
 	@echo "Checking Lua formatting..."
 	@stylua --check lua/ spec/ plugin/
+
+# Run all CI checks (lint + format-check + test)
+check: lint format-check test
+	@echo "✓ All checks passed!"
 
 # Generate demo GIFs
 demo:
