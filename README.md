@@ -223,7 +223,11 @@ See [Configuration](#configuration) for all available options.
       table = {          -- Table sub-configuration
         auto_format = true,
         default_alignment = "left",
-        keymaps = { enabled = true, prefix = "<leader>t" },
+        keymaps = {
+          enabled = true,
+          prefix = "<leader>t",
+          insert_mode_navigation = true,  -- Alt+hjkl cell navigation
+        },
       },
       filetypes = { "markdown" },  -- Filetypes to enable the plugin for
     })
@@ -1069,6 +1073,7 @@ logical cell (usually first cell of new/modified row/column).
 | | `<leader>h1` to `h6` | Normal | Set header level |
 | | `<leader>ht` | Normal | Generate TOC |
 | | `<leader>hu` | Normal | Update TOC |
+| | `<leader>hT` | Normal | Toggle TOC window |
 | | `gd` | Normal | Follow TOC link |
 | **Links** |
 | | `<leader>ml` | Normal | Insert new link |
@@ -1176,6 +1181,28 @@ logical cell (usually first cell of new/modified row/column).
  | `<leader>mq` | Normal     | Toggle blockquote on current line    |
  | `<leader>mq` | Visual     | Toggle blockquote on selected lines  |
 
+### Tables (Normal & Insert Mode)
+
+| Keymap | Mode | Description |
+|--------|------|-------------|
+| `<leader>tc` | Normal | Create new table interactively |
+| `<leader>tf` | Normal | Format table at cursor |
+| `<leader>tn` | Normal | Normalize malformed table |
+| `<leader>tir` | Normal | Insert row below current row |
+| `<leader>tiR` | Normal | Insert row above current row |
+| `<leader>tdr` | Normal | Delete current row |
+| `<leader>tyr` | Normal | Duplicate current row |
+| `<leader>tic` | Normal | Insert column to the right |
+| `<leader>tiC` | Normal | Insert column to the left |
+| `<leader>tdc` | Normal | Delete current column |
+| `<leader>tyc` | Normal | Duplicate current column |
+| `<A-h>` | Insert | Move to cell on the left (wraps) |
+| `<A-l>` | Insert | Move to cell on the right (wraps) |
+| `<A-j>` | Insert | Move to cell below (wraps) |
+| `<A-k>` | Insert | Move to cell above (wraps) |
+
+**Note**: Insert mode navigation falls back to arrow keys when not in a table.
+
 **Note**: In normal mode, these commands operate on the word under cursor. In visual mode, they operate on the selected text.
 
 </details>
@@ -1213,6 +1240,7 @@ require("markdown-plus").setup({
     keymaps = {                 -- Table-specific keymaps (prefix based)
       enabled = true,           -- default: true  provide table keymaps
       prefix = "<leader>t",     -- default: "<leader>t"  prefix for table ops
+      insert_mode_navigation = true,  -- default: true  Alt+hjkl cell navigation
     },
   },
 
@@ -1465,6 +1493,27 @@ vim.keymap.set("n", "<C-q>", "<Plug>(MarkdownPlusToggleQuote)")
 vim.keymap.set("x", "<C-q>", "<Plug>(MarkdownPlusToggleQuote)")
 ```
 
+#### Tables
+
+```lua
+-- Table operations with different prefix
+vim.keymap.set("n", "<leader>Tc", "<Plug>(markdown-plus-table-create)")
+vim.keymap.set("n", "<leader>Tf", "<Plug>(markdown-plus-table-format)")
+vim.keymap.set("n", "<leader>Tn", "<Plug>(markdown-plus-table-normalize)")
+
+-- Row operations
+vim.keymap.set("n", "<leader>Tir", "<Plug>(markdown-plus-table-insert-row-below)")
+vim.keymap.set("n", "<leader>TiR", "<Plug>(markdown-plus-table-insert-row-above)")
+vim.keymap.set("n", "<leader>Tdr", "<Plug>(markdown-plus-table-delete-row)")
+vim.keymap.set("n", "<leader>Tyr", "<Plug>(markdown-plus-table-duplicate-row)")
+
+-- Column operations
+vim.keymap.set("n", "<leader>Tic", "<Plug>(markdown-plus-table-insert-column-right)")
+vim.keymap.set("n", "<leader>TiC", "<Plug>(markdown-plus-table-insert-column-left)")
+vim.keymap.set("n", "<leader>Tdc", "<Plug>(markdown-plus-table-delete-column)")
+vim.keymap.set("n", "<leader>Tyc", "<Plug>(markdown-plus-table-duplicate-column)")
+```
+
 ### Available <Plug> Mappings
 
 #### Text Formatting
@@ -1510,6 +1559,20 @@ vim.keymap.set("x", "<C-q>", "<Plug>(MarkdownPlusToggleQuote)")
 #### Quotes
 
 - `<Plug>(MarkdownPlusToggleQuote)` - Toggle blockquote (n, x)
+
+#### Tables
+
+- `<Plug>(markdown-plus-table-create)` - Create table interactively (n)
+- `<Plug>(markdown-plus-table-format)` - Format table (n)
+- `<Plug>(markdown-plus-table-normalize)` - Normalize malformed table (n)
+- `<Plug>(markdown-plus-table-insert-row-below)` - Insert row below (n)
+- `<Plug>(markdown-plus-table-insert-row-above)` - Insert row above (n)
+- `<Plug>(markdown-plus-table-delete-row)` - Delete current row (n)
+- `<Plug>(markdown-plus-table-duplicate-row)` - Duplicate row (n)
+- `<Plug>(markdown-plus-table-insert-column-right)` - Insert column right (n)
+- `<Plug>(markdown-plus-table-insert-column-left)` - Insert column left (n)
+- `<Plug>(markdown-plus-table-delete-column)` - Delete column (n)
+- `<Plug>(markdown-plus-table-duplicate-column)` - Duplicate column (n)
 
 ### Mixing Default and Custom Keymaps
 
