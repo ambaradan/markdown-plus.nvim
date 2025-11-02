@@ -158,6 +158,45 @@ local function setup_buffer_keymaps(config)
       end
     end
   end
+
+  -- Set up insert mode navigation if enabled (default: true)
+  local insert_nav_enabled = config.keymaps.insert_mode_navigation
+  if insert_nav_enabled == nil then
+    insert_nav_enabled = true -- Default to enabled
+  end
+
+  if insert_nav_enabled then
+    local navigation = require("markdown-plus.table.navigation")
+
+    -- Helper to create insert mode navigation with fallback
+    local function make_nav_mapping(nav_func, fallback_key)
+      return function()
+        local success = nav_func()
+        if not success then
+          -- Not in table or at boundary, use default behavior
+          local key = vim.api.nvim_replace_termcodes(fallback_key, true, false, true)
+          vim.api.nvim_feedkeys(key, "n", false)
+        end
+      end
+    end
+
+    -- Insert mode navigation mappings
+    local insert_mappings = {
+      { "<A-h>", navigation.move_left, "<Left>" },
+      { "<A-l>", navigation.move_right, "<Right>" },
+      { "<A-j>", navigation.move_down, "<Down>" },
+      { "<A-k>", navigation.move_up, "<Up>" },
+    }
+
+    for _, mapping in ipairs(insert_mappings) do
+      local lhs, nav_func, fallback = mapping[1], mapping[2], mapping[3]
+      vim.keymap.set("i", lhs, make_nav_mapping(nav_func, fallback), {
+        buffer = true,
+        silent = true,
+        desc = "Navigate table cell or fallback to " .. fallback,
+      })
+    end
+  end
 end
 
 ---Register global <Plug> mappings (call once during module setup)

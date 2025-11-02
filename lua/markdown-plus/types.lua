@@ -32,6 +32,7 @@
 ---@class markdown-plus.TableKeymapConfig
 ---@field enabled? boolean Enable default table keymaps (default: true)
 ---@field prefix? string Keymap prefix (default: '<leader>t')
+---@field insert_mode_navigation? boolean Enable insert mode cell navigation with Alt+hjkl (default: true)
 
 ---Code block configuration
 ---@class markdown-plus.CodeBlockConfig
