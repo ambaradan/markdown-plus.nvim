@@ -637,3 +637,249 @@ describe("table.creator", function()
     end)
   end)
 end)
+
+describe("table.insert_mode_navigation", function()
+  before_each(function()
+    vim.cmd("enew")
+    vim.bo.filetype = "markdown"
+  end)
+
+  local navigation = require("markdown-plus.table.navigation")
+
+  describe("move_right", function()
+    it("should move to next cell in same row", function()
+      local lines = {
+        "| H1 | H2 | H3 |",
+        "| --- | --- | --- |",
+        "| A | B | C |",
+      }
+      vim.api.nvim_buf_set_lines(0, 0, -1, false, lines)
+      vim.fn.cursor(3, 3) -- First cell of data row
+
+      local before_col = vim.fn.col(".")
+      local success = navigation.move_right()
+      assert.is_true(success)
+
+      local after_col = vim.fn.col(".")
+      -- Should have moved to a different column position (right)
+      assert.is_true(after_col > before_col)
+    end)
+
+    it("should wrap from last column to first column", function()
+      local lines = {
+        "| H1 | H2 |",
+        "| --- | --- |",
+        "| A | B |",
+      }
+      vim.api.nvim_buf_set_lines(0, 0, -1, false, lines)
+      vim.fn.cursor(3, 9) -- Last cell
+
+      local before_col = vim.fn.col(".")
+      local success = navigation.move_right()
+      assert.is_true(success) -- Should wrap
+      local after_col = vim.fn.col(".")
+      assert.is_true(after_col < before_col) -- Wrapped to first column
+    end)
+
+    it("should return false when not in table", function()
+      vim.api.nvim_buf_set_lines(0, 0, -1, false, { "Not a table" })
+      vim.fn.cursor(1, 1)
+
+      local success = navigation.move_right()
+      assert.is_false(success)
+    end)
+  end)
+
+  describe("move_left", function()
+    it("should move to previous cell in same row", function()
+      local lines = {
+        "| H1 | H2 | H3 |",
+        "| --- | --- | --- |",
+        "| A | B | C |",
+      }
+      vim.api.nvim_buf_set_lines(0, 0, -1, false, lines)
+      vim.fn.cursor(3, 10) -- Second cell
+
+      local before_col = vim.fn.col(".")
+      local success = navigation.move_left()
+      assert.is_true(success)
+
+      local after_col = vim.fn.col(".")
+      -- Should have moved to a different column position (left)
+      assert.is_true(after_col < before_col)
+    end)
+
+    it("should wrap from first column to last column", function()
+      local lines = {
+        "| H1 | H2 |",
+        "| --- | --- |",
+        "| A | B |",
+      }
+      vim.api.nvim_buf_set_lines(0, 0, -1, false, lines)
+      vim.fn.cursor(3, 3) -- First cell
+
+      local before_col = vim.fn.col(".")
+      local success = navigation.move_left()
+      assert.is_true(success) -- Should wrap
+      local after_col = vim.fn.col(".")
+      assert.is_true(after_col > before_col) -- Wrapped to last column
+    end)
+  end)
+
+  describe("move_down", function()
+    it("should move to same column in next row", function()
+      local lines = {
+        "| H1 | H2 |",
+        "| --- | --- |",
+        "| A | B |",
+        "| C | D |",
+      }
+      vim.api.nvim_buf_set_lines(0, 0, -1, false, lines)
+      vim.fn.cursor(3, 3) -- First data row, first cell
+
+      local before_row = vim.fn.line(".")
+      local success = navigation.move_down()
+      assert.is_true(success)
+
+      local after_row = vim.fn.line(".")
+      assert.equals(4, after_row) -- Moved to next row
+      assert.is_true(after_row > before_row)
+    end)
+
+    it("should skip separator when moving from header", function()
+      local lines = {
+        "| H1 | H2 |",
+        "| --- | --- |",
+        "| A | B |",
+      }
+      vim.api.nvim_buf_set_lines(0, 0, -1, false, lines)
+      vim.fn.cursor(1, 3) -- Header row
+
+      local success = navigation.move_down()
+      assert.is_true(success)
+
+      local after_row = vim.fn.line(".")
+      assert.equals(3, after_row) -- Skipped separator, moved to data row
+    end)
+
+    it("should wrap from last row to header", function()
+      local lines = {
+        "| H1 | H2 |",
+        "| --- | --- |",
+        "| A | B |",
+      }
+      vim.api.nvim_buf_set_lines(0, 0, -1, false, lines)
+      vim.fn.cursor(3, 3) -- Last data row
+
+      local success = navigation.move_down()
+      assert.is_true(success) -- Should wrap
+      local after_row = vim.fn.line(".")
+      assert.equals(1, after_row) -- Wrapped to header
+    end)
+  end)
+
+  describe("move_up", function()
+    it("should move to same column in previous row", function()
+      local lines = {
+        "| H1 | H2 |",
+        "| --- | --- |",
+        "| A | B |",
+        "| C | D |",
+      }
+      vim.api.nvim_buf_set_lines(0, 0, -1, false, lines)
+      vim.fn.cursor(4, 3) -- Second data row
+
+      local before_row = vim.fn.line(".")
+      local success = navigation.move_up()
+      assert.is_true(success)
+
+      local after_row = vim.fn.line(".")
+      assert.equals(3, after_row) -- Moved to previous row
+      assert.is_true(after_row < before_row)
+    end)
+
+    it("should skip separator when moving to header", function()
+      local lines = {
+        "| H1 | H2 |",
+        "| --- | --- |",
+        "| A | B |",
+      }
+      vim.api.nvim_buf_set_lines(0, 0, -1, false, lines)
+      vim.fn.cursor(3, 3) -- First data row
+
+      local success = navigation.move_up()
+      assert.is_true(success)
+
+      local after_row = vim.fn.line(".")
+      assert.equals(1, after_row) -- Skipped separator, moved to header
+    end)
+
+    it("should wrap from header to last row", function()
+      local lines = {
+        "| H1 | H2 |",
+        "| --- | --- |",
+        "| A | B |",
+        "| C | D |",
+      }
+      vim.api.nvim_buf_set_lines(0, 0, -1, false, lines)
+      vim.fn.cursor(1, 3) -- Header row
+
+      local success = navigation.move_up()
+      assert.is_true(success) -- Should wrap
+      local after_row = vim.fn.line(".")
+      assert.equals(4, after_row) -- Wrapped to last data row
+    end)
+  end)
+
+  describe("boundary_and_edge_cases", function()
+    it("should handle navigation in single data row table", function()
+      local lines = {
+        "| H1 | H2 |",
+        "| --- | --- |",
+        "| A | B |",
+      }
+      vim.api.nvim_buf_set_lines(0, 0, -1, false, lines)
+
+      -- Start in first cell of data row
+      vim.fn.cursor(3, 3)
+      -- Can move right
+      assert.is_true(navigation.move_right())
+
+      -- Now in second cell, can move back left
+      assert.is_true(navigation.move_left())
+
+      -- Back in first cell of data row, can move to header
+      assert.is_true(navigation.move_up())
+
+      -- Now in header, can move back down
+      assert.is_true(navigation.move_down())
+    end)
+
+    it("should handle navigation in single column table", function()
+      local lines = {
+        "| H1 |",
+        "| --- |",
+        "| A |",
+        "| B |",
+      }
+      vim.api.nvim_buf_set_lines(0, 0, -1, false, lines)
+      vim.fn.cursor(3, 3) -- First data row
+      local initial_pos = vim.fn.getcurpos()
+
+      -- Moving left/right wraps to same column (visually stays in place)
+      assert.is_true(navigation.move_left())
+      local pos_after_left = vim.fn.getcurpos()
+      assert.equals(initial_pos[2], pos_after_left[2]) -- Still in same row
+
+      assert.is_true(navigation.move_right())
+      local pos_after_right = vim.fn.getcurpos()
+      assert.equals(initial_pos[2], pos_after_right[2]) -- Still in same row
+
+      -- Can move down to second data row
+      assert.is_true(navigation.move_down())
+
+      -- From second data row, can move up
+      assert.is_true(navigation.move_up())
+    end)
+  end)
+end)

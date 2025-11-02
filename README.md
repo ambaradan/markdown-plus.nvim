@@ -181,6 +181,7 @@ See [Configuration](#configuration) for all available options.
 - **Normalize tables**: `<leader>tn` to fix malformed tables
 - **Row operations**: Insert (`<leader>tir`/`<leader>tiR`), delete (`<leader>tdr`), duplicate (`<leader>tyr`)
 - **Column operations**: Insert (`<leader>tic`/`<leader>tiC`), delete (`<leader>tdc`), duplicate (`<leader>tyc`)
+- **Insert mode navigation**: Navigate table cells with `<A-h>`, `<A-l>`, `<A-j>`, `<A-k>` (wraps around)
 - **Alignment support**: Left (`:---`), center (`:---:`), right (`---:`)
 - **Smart cursor positioning**: Cursor automatically positioned after all operations
 
@@ -952,6 +953,39 @@ Example:
 Formatting preserves alignment markers.
 ```
 
+### Insert Mode Navigation
+
+```markdown
+Navigate table cells in insert mode with Alt+hjkl:
+
+| Name  | Age | City     |
+|-------|-----|----------|
+| Alice | 25  | New York | ← cursor here
+| Bob   | 30  | LA       |
+
+Press <A-l> (Alt+l) to move right:
+| Name  | Age | City     |
+|-------|-----|----------|
+| Alice | 25  | New York |
+| Bob   | 30  | LA       | ← cursor moves here
+                ^
+
+Press <A-j> (Alt+j) to move down:
+| Name  | Age | City     |
+|-------|-----|----------|
+| Alice | 25  | New York |
+| Bob   | 30  | LA       | ← cursor moves down
+          ^
+
+Wrapping behavior (circular navigation):
+- <A-l> at last column wraps to first column
+- <A-h> at first column wraps to last column
+- <A-j> at last row wraps to header row
+- <A-k> at header row wraps to last data row
+
+Falls back to arrow keys when not in a table.
+```
+
 ### Edge Cases
 
 ```markdown
@@ -1058,6 +1092,10 @@ logical cell (usually first cell of new/modified row/column).
 | | `<leader>tiC` | Normal | Insert column left |
 | | `<leader>tdc` | Normal | Delete column |
 | | `<leader>tyc` | Normal | Duplicate column |
+| | `<A-h>` | Insert | Move to cell left (wraps) |
+| | `<A-l>` | Insert | Move to cell right (wraps) |
+| | `<A-j>` | Insert | Move to cell down (wraps) |
+| | `<A-k>` | Insert | Move to cell up (wraps) |
 
 </details>
 

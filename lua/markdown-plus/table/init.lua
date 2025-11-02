@@ -132,4 +132,32 @@ function M.delete_column()
   return manip.delete_column()
 end
 
+---Move to the cell to the left (insert mode navigation)
+---@return boolean success True if moved successfully
+function M.move_left()
+  local nav = require("markdown-plus.table.navigation")
+  return nav.move_left()
+end
+
+---Move to the cell to the right (insert mode navigation)
+---@return boolean success True if moved successfully
+function M.move_right()
+  local nav = require("markdown-plus.table.navigation")
+  return nav.move_right()
+end
+
+---Move to the cell above (insert mode navigation)
+---@return boolean success True if moved successfully
+function M.move_up()
+  local nav = require("markdown-plus.table.navigation")
+  return nav.move_up()
+end
+
+---Move to the cell below (insert mode navigation)
+---@return boolean success True if moved successfully
+function M.move_down()
+  local nav = require("markdown-plus.table.navigation")
+  return nav.move_down()
+end
+
 return M

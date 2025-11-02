@@ -81,6 +81,7 @@ FEATURES                                     *markdown-plus-introduction-feature
   - Normalize malformed tables
   - Row operations (insert, delete, duplicate)
   - Column operations (insert, delete, duplicate)
+  - Insert mode navigation with Alt+hjkl (circular wrapping)
   - Alignment support (left, center, right)
   - Smart cursor positioning after operations
 
@@ -710,6 +711,38 @@ Example:
 Formatting operations preserve alignment markers.
 
 
+INSERT MODE NAVIGATION ~
+
+Navigate table cells in insert mode using Alt+hjkl:
+- `<A-h>` - Move to cell on the left
+- `<A-l>` - Move to cell on the right
+- `<A-j>` - Move to cell below
+- `<A-k>` - Move to cell above
+
+Navigation wraps around (circular):
+- Moving right at last column wraps to first column
+- Moving left at first column wraps to last column
+- Moving down at last row wraps to header row
+- Moving up at header row wraps to last data row
+
+Example:
+>markdown
+    | Name  | Age | City     |
+    |-------|-----|----------|
+    | Alice | 25  | New York |  <- cursor here
+    | Bob   | 30  | LA       |
+
+    Press <A-l> to move right:
+    | Name  | Age | City     |
+    |-------|-----|----------|
+    | Alice | 25  | New York |
+    | Bob   | 30  | LA       |  <- cursor moves here
+                    ^
+<
+
+When not in a table, navigation keys fall back to arrow keys.
+
+
 TABLE FEATURES ~
 
 Smart cursor positioning:
@@ -804,6 +837,12 @@ Default keymaps:
         table_insert_column_left = '<leader>tiC',  -- Insert column left
         table_delete_column = '<leader>tdc',       -- Delete current column
         table_duplicate_column = '<leader>tyc',    -- Duplicate current column
+
+        -- Table operations (Insert mode)
+        table_move_left = '<A-h>',         -- Move to cell left (wraps)
+        table_move_right = '<A-l>',        -- Move to cell right (wraps)
+        table_move_down = '<A-j>',         -- Move to cell down (wraps)
+        table_move_up = '<A-k>',           -- Move to cell up (wraps)
       }
     }
 <
@@ -831,7 +870,11 @@ The plugin can be configured through the setup function:
       table = {                  -- Table sub-configuration
         auto_format = true,
         default_alignment = 'left', -- 'left' | 'center' | 'right'
-        keymaps = { enabled = true, prefix = '<leader>t' },
+        keymaps = {
+          enabled = true,
+          prefix = '<leader>t',
+          insert_mode_navigation = true,  -- Alt+hjkl navigation in insert mode
+        },
       },
       keymaps = {
         enabled = true,          -- Enable/disable default keymaps
