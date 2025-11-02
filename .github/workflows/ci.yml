@@ -12,4 +12,4 @@ jobs:
     secrets: inherit
     with:
       plugin: markdown-plus
-      repo: yousefhadder/markdown-plus.nvim
+      repo: YousefHadder/markdown-plus.nvim

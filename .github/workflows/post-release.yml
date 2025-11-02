@@ -39,7 +39,7 @@ jobs:
             next
           }
           /^  url = "git:\/\/github.com\/.*\.git",?$/ {
-            print "  url = \"git://github.com/yousefhadder/markdown-plus.nvim.git\","
+            print "  url = \"git://github.com/YousefHadder/markdown-plus.nvim.git\","
             print "  tag = \"v" version "\","
             next
           }
