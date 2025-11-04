@@ -12,6 +12,14 @@ local function extract_list_content(line, list_info)
   return line:sub(marker_end + 1):match("^%s*(.*)") or ""
 end
 
+---Calculate the column position where list content starts (after marker and checkbox)
+---Note: full_marker already includes checkbox if present (e.g., "- [ ]")
+---@param list_info table List information
+---@return number The column position where content starts
+local function get_content_start_col(list_info)
+  return #list_info.indent + #list_info.full_marker + 1
+end
+
 ---Break out of list (remove current empty item)
 ---@param list_info table List information
 function M.break_out_of_list(list_info)
@@ -73,11 +81,8 @@ function M.handle_enter()
     return
   end
 
-  -- Calculate marker end position
-  local marker_end = #list_info.indent + #list_info.full_marker + 1
-  if list_info.checkbox then
-    marker_end = marker_end + 4 -- Add "[ ] " length
-  end
+  -- Calculate where list content starts
+  local marker_end = get_content_start_col(list_info)
 
   -- Check if cursor is in the middle of content
   if col > marker_end and col < #current_line then
@@ -97,7 +102,12 @@ function M.handle_enter()
     next_line = next_line .. content_after:match("^%s*(.*)")
 
     utils.insert_line(row + 1, next_line)
-    utils.set_cursor(row + 1, #list_info.indent + #next_marker + 1 + (list_info.checkbox and 4 or 0))
+    -- Calculate cursor position on new line (after marker and optional checkbox)
+    local new_cursor_col = #list_info.indent + #next_marker + 1
+    if list_info.checkbox then
+      new_cursor_col = new_cursor_col + 4 -- Add "[ ] " length
+    end
+    utils.set_cursor(row + 1, new_cursor_col)
     return
   end
 
@@ -126,10 +136,7 @@ function M.handle_shift_enter()
   end
 
   -- Calculate the indentation for continuation (align with list content start)
-  local marker_end = #list_info.indent + #list_info.full_marker + 1
-  if list_info.checkbox then
-    marker_end = marker_end + 4 -- Add "[ ] " length
-  end
+  local marker_end = get_content_start_col(list_info)
 
   -- Split line at cursor
   local line_before = current_line:sub(1, col)

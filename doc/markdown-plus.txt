@@ -1126,8 +1126,8 @@ markdown-plus.list.handle_enter()
 
                                         *markdown-plus.list.handle_shift_enter*
 markdown-plus.list.handle_shift_enter()
-    Handles Alt+Enter key in insert mode for continuing list content on
-    the next line without creating a new bullet. Aligns continuation text
+    Handles Alt+Enter key (<A-CR>) in insert mode for continuing list content
+    on the next line without creating a new bullet. Aligns continuation text
     with the list content start position.
 
                                                 *markdown-plus.list.handle_tab*

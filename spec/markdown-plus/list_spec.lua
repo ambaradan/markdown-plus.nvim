@@ -734,4 +734,123 @@ describe("markdown-plus list management", function()
       end)
     end)
   end)
+
+  describe("content splitting and continuation", function()
+    describe("handle_enter with content splitting", function()
+      it("splits content at cursor position in unordered list", function()
+        vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "- This is some content" })
+        vim.api.nvim_win_set_cursor(0, { 1, 14 }) -- After "some"
+        list.handle_enter()
+        local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+        assert.are.equal("- This is some", lines[1])
+        assert.are.equal("- content", lines[2])
+      end)
+
+      it("splits content at cursor position in ordered list", function()
+        vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "1. First item content" })
+        vim.api.nvim_win_set_cursor(0, { 1, 13 }) -- After "item"
+        list.handle_enter()
+        local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+        assert.are.equal("1. First item", lines[1])
+        assert.are.equal("2. content", lines[2])
+      end)
+
+      it("splits content at cursor position in checkbox list", function()
+        vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "- [ ] Task with details" })
+        vim.api.nvim_win_set_cursor(0, { 1, 15 }) -- After "with"
+        list.handle_enter()
+        local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+        assert.are.equal("- [ ] Task with", lines[1])
+        assert.are.equal("- [ ] details", lines[2])
+      end)
+
+      it("splits content at cursor position in letter list", function()
+        vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "a. Alpha item here" })
+        vim.api.nvim_win_set_cursor(0, { 1, 13 }) -- After "item"
+        list.handle_enter()
+        local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+        assert.are.equal("a. Alpha item", lines[1])
+        assert.are.equal("b. here", lines[2])
+      end)
+
+      it("positions cursor at content start of new item after split", function()
+        vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "- First half content" })
+        vim.api.nvim_win_set_cursor(0, { 1, 11 }) -- After "half"
+        list.handle_enter()
+        local cursor = vim.api.nvim_win_get_cursor(0)
+        assert.are.equal(2, cursor[1]) -- Second line
+        assert.are.equal(2, cursor[2]) -- After "- "
+      end)
+
+      it("creates normal list item when cursor is near end of line", function()
+        local line = "- Content"
+        vim.api.nvim_buf_set_lines(buf, 0, -1, false, { line })
+        -- Set cursor after all content (at the actual end position)
+        vim.api.nvim_win_set_cursor(0, { 1, #line })
+        list.handle_enter()
+        local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+        -- When at/past end, should create new empty item
+        assert.are.equal("- Content", lines[1])
+        assert.are.equal("- ", lines[2])
+      end)
+    end)
+
+    describe("handle_shift_enter for content continuation", function()
+      it("continues content on next line for unordered list", function()
+        vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "- First line text" })
+        vim.api.nvim_win_set_cursor(0, { 1, 12 }) -- After "line"
+        list.handle_shift_enter()
+        local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+        assert.are.equal("- First line", lines[1])
+        assert.are.equal("  text", lines[2])
+      end)
+
+      it("continues content on next line for ordered list", function()
+        vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "1. Item with more text" })
+        vim.api.nvim_win_set_cursor(0, { 1, 12 }) -- After "with"
+        list.handle_shift_enter()
+        local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+        assert.are.equal("1. Item with", lines[1])
+        assert.are.equal("   more text", lines[2])
+      end)
+
+      it("continues content on next line for checkbox list", function()
+        local line = "- [ ] Task continues here"
+        vim.api.nvim_buf_set_lines(buf, 0, -1, false, { line })
+        local target = "- [ ] Task continues"
+        vim.api.nvim_win_set_cursor(0, { 1, #target }) -- After "continues"
+        list.handle_shift_enter()
+        local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+        assert.are.equal("- [ ] Task continues", lines[1])
+        assert.are.equal("      here", lines[2])
+      end)
+
+      it("continues content on next line for letter list", function()
+        vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "a. Content to continue" })
+        vim.api.nvim_win_set_cursor(0, { 1, 13 }) -- After "to"
+        list.handle_shift_enter()
+        local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+        assert.are.equal("a. Content to", lines[1])
+        assert.are.equal("   continue", lines[2])
+      end)
+
+      it("positions cursor at correct indentation on continuation line", function()
+        vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "- Some text" })
+        vim.api.nvim_win_set_cursor(0, { 1, 6 }) -- After "Some"
+        list.handle_shift_enter()
+        local cursor = vim.api.nvim_win_get_cursor(0)
+        assert.are.equal(2, cursor[1]) -- Second line
+        assert.are.equal(2, cursor[2]) -- At indentation start (after "  ")
+      end)
+
+      it("falls back to default Enter when not in a list", function()
+        vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "Regular text here" })
+        vim.api.nvim_win_set_cursor(0, { 1, 8 })
+        list.handle_shift_enter()
+        local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+        assert.are.equal("Regular ", lines[1])
+        assert.are.equal("text here", lines[2])
+      end)
+    end)
+  end)
 end)
