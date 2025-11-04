@@ -291,6 +291,24 @@ The plugin automatically activates when you open a markdown file (`.md` extensio
 - The next item is automatically created ⬅️ (cursor here)
 ```
 
+### Split List Content
+
+```markdown
+- This is some content in| the middle
+  Press Enter splits at cursor:
+- This is some content in
+- the middle ⬅️ (cursor here, new item created with remaining content)
+```
+
+### Continue Content Without New Bullet
+
+```markdown
+- This is a longer list item that|
+  Press Alt+Enter to continue on next line:
+- This is a longer list item that
+  continues here ⬅️ (same item, no new bullet)
+```
+
 ### Checkbox Lists
 
 ```markdown
@@ -779,7 +797,8 @@ Normal line 2
 | Feature | Keymap | Mode | Description |
 |---------|--------|------|-------------|
 | **List Management** |
-| | `<CR>` | Insert | Auto-continue lists or break out |
+| | `<CR>` | Insert | Auto-continue lists, split content, or break out |
+| | `<A-CR>` | Insert | Continue content on next line (no new bullet) |
 | | `<Tab>` | Insert | Indent list item |
 | | `<S-Tab>` | Insert | Outdent list item |
 | | `<BS>` | Insert | Smart backspace |
