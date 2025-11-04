@@ -1,0 +1,15 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  ci:
+    uses: folke/github/.github/workflows/ci.yml@main
+    secrets: inherit
+    with:
+      plugin: markdown-plus
+      repo: YousefHadder/markdown-plus.nvim

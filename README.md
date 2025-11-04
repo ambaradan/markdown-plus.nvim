@@ -173,6 +173,20 @@ See [Configuration](#configuration) for all available options.
 
 </details>
 
+<details>
+<summary><b>Table Support (Phase 1)</b></summary>
+
+- **Create tables**: `<leader>tc` to interactively create a new table with custom dimensions
+- **Format tables**: `<leader>tf` to auto-format and align columns
+- **Normalize tables**: `<leader>tn` to fix malformed tables
+- **Row operations**: Insert (`<leader>tir`/`<leader>tiR`), delete (`<leader>tdr`), duplicate (`<leader>tyr`)
+- **Column operations**: Insert (`<leader>tic`/`<leader>tiC`), delete (`<leader>tdc`), duplicate (`<leader>tyc`)
+- **Insert mode navigation**: Navigate table cells with `<A-h>`, `<A-l>`, `<A-j>`, `<A-k>` (wraps around)
+- **Alignment support**: Left (`:---`), center (`:---:`), right (`---:`)
+- **Smart cursor positioning**: Cursor automatically positioned after all operations
+
+</details>
+
 ## Requirements
 
 - Neovim 0.11+ (uses modern Lua APIs)
@@ -192,13 +206,28 @@ See [Configuration](#configuration) for all available options.
       -- Configuration options (all optional)
       enabled = true,
       features = {
-        list_management = true,  -- Enable list management features
-        text_formatting = true,  -- Enable text formatting features
-        headers_toc = true,      -- Enable headers and TOC features
-        links = true,            -- Enable link management features
+        list_management = true,  -- List management features
+        text_formatting = true,  -- Text formatting features
+        headers_toc = true,      -- Headers + TOC features
+        links = true,            -- Link management features
+        quotes = true,           -- Blockquote toggling feature
+        code_block = true,       -- Code block conversion feature
+        table = true,            -- Table support features
       },
       keymaps = {
-        enabled = true,  -- Enable default keymaps
+        enabled = true,  -- Enable default keymaps (<Plug> available for custom)
+      },
+      toc = {            -- TOC window configuration
+        initial_depth = 2,
+      },
+      table = {          -- Table sub-configuration
+        auto_format = true,
+        default_alignment = "left",
+        keymaps = {
+          enabled = true,
+          prefix = "<leader>t",
+          insert_mode_navigation = true,  -- Alt+hjkl cell navigation
+        },
       },
       filetypes = { "markdown" },  -- Filetypes to enable the plugin for
     })
@@ -789,6 +818,247 @@ Normal line 2
 
 </details>
 
+<details>
+<summary>Table Support Examples</summary>
+
+### Create a New Table
+
+```markdown
+Press <leader>tc to create a new table interactively:
+1. You'll be prompted: "Number of rows: "
+2. Enter the number of rows (e.g., 3)
+3. You'll be prompted: "Number of columns: "
+4. Enter the number of columns (e.g., 4)
+
+Result:
+| Header 1 | Header 2 | Header 3 | Header 4 |
+|----------|----------|----------|----------|
+|          |          |          |          |
+|          |          |          |          |
+|          |          |          |          |
+```
+
+### Format and Normalize Tables
+
+```markdown
+Format a table with <leader>tf:
+| Name | Age | City |
+|---|---|---|
+| Alice | 25 | NYC |
+| Bob | 30 | LA |
+
+→
+
+| Name  | Age | City |
+|-------|-----|------|
+| Alice | 25  | NYC  |
+| Bob   | 30  | LA   |
+
+Normalize malformed tables with <leader>tn:
+| Header 1 | Header 2
+|---|---
+Missing pipes | fixed automatically
+
+→
+
+| Header 1         | Header 2          |
+|------------------|-------------------|
+| Missing pipes    | fixed automatically |
+```
+
+### Row Operations
+
+```markdown
+Insert row below with <leader>tir:
+| Name | Age |
+|------|-----|
+| Alice | 25 | ← cursor here
+| Bob  | 30 |
+
+→
+
+| Name  | Age |
+|-------|-----|
+| Alice | 25  |
+|       |     | ← new row inserted
+| Bob   | 30  |
+
+Insert row above with <leader>tiR:
+| Name  | Age |
+|-------|-----|
+|       |     | ← new row inserted
+| Alice | 25  | ← cursor was here
+
+Delete row with <leader>tdr:
+| Name  | Age |
+|-------|-----|
+| Alice | 25  | ← cursor here (row deleted)
+| Bob   | 30  |
+
+→
+
+| Name | Age |
+|------|-----|
+| Bob  | 30  |
+
+Duplicate row with <leader>tyr:
+| Name  | Age |
+|-------|-----|
+| Alice | 25  | ← cursor here
+| Bob   | 30  |
+
+→
+
+| Name  | Age |
+|-------|-----|
+| Alice | 25  |
+| Alice | 25  | ← duplicated row
+| Bob   | 30  |
+```
+
+### Column Operations
+
+```markdown
+Insert column right with <leader>tic:
+| Name  | Age |
+|-------|-----|
+| Alice | 25  |
+| Bob   | 30  |
+       ↑ cursor here
+
+→
+
+| Name  | Age |     |
+|-------|-----|-----|
+| Alice | 25  |     | ← new column
+| Bob   | 30  |     |
+
+Insert column left with <leader>tiC:
+|     | Name  | Age | ← new column inserted left
+|-----|-------|-----|
+|     | Alice | 25  |
+|     | Bob   | 30  |
+
+Delete column with <leader>tdc:
+| Name  | Age | City | ← Age column deleted
+|-------|-----|------|
+| Alice | 25  | NYC  |
+
+→
+
+| Name  | City |
+|-------|------|
+| Alice | NYC  |
+
+Duplicate column with <leader>tyc:
+| Name  | Age | Age | ← Age column duplicated
+|-------|-----|-----|
+| Alice | 25  | 25  |
+| Bob   | 30  | 30  |
+```
+
+### Alignment Support
+
+```markdown
+Tables support left, center, and right alignment:
+
+Left-aligned (default):     :---
+Center-aligned:             :---:
+Right-aligned:              ---:
+
+Example:
+| Left | Center | Right |
+|:-----|:------:|------:|
+| A    | B      | C     |
+| D    | E      | F     |
+
+Formatting preserves alignment markers.
+```
+
+### Insert Mode Navigation
+
+```markdown
+Navigate table cells in insert mode with Alt+hjkl:
+
+| Name  | Age | City     |
+|-------|-----|----------|
+| Alice | 25  | New York | ← cursor here
+| Bob   | 30  | LA       |
+
+Press <A-l> (Alt+l) to move right:
+| Name  | Age | City     |
+|-------|-----|----------|
+| Alice | 25  | New York |
+| Bob   | 30  | LA       | ← cursor moves here
+                ^
+
+Press <A-j> (Alt+j) to move down:
+| Name  | Age | City     |
+|-------|-----|----------|
+| Alice | 25  | New York |
+| Bob   | 30  | LA       | ← cursor moves down
+          ^
+
+Wrapping behavior (circular navigation):
+- <A-l> at last column wraps to first column
+- <A-h> at first column wraps to last column
+- <A-j> at last row wraps to header row
+- <A-k> at header row wraps to last data row
+
+Falls back to arrow keys when not in a table.
+```
+
+### Edge Cases
+
+```markdown
+Tables handle various edge cases:
+
+Empty cells:
+| Header 1 | Header 2 |
+|----------|----------|
+|          | Data     |
+| Data     |          |
+
+Special characters:
+| Name      | Symbol |
+|-----------|--------|
+| Greater   | >      |
+| Less      | <      |
+| Pipe      | \|     |
+
+Unicode:
+| English | Japanese | Emoji |
+|---------|----------|-------|
+| Hello   | こんにちは | 👋    |
+| World   | 世界     | 🌍    |
+
+Malformed tables (normalized automatically):
+| No closing pipe
+| Missing separator
+    →
+| No closing pipe    |
+|--------------------|
+| Missing separator  |
+```
+
+### Smart Features
+
+```markdown
+**Header Protection:**
+Cannot delete header row or separator row. Operations protect table integrity.
+
+**Minimum Constraints:**
+- Cannot delete the last column
+- Cannot delete the only data row
+- Maintains at least one header + separator + one data row
+
+**Smart Cursor Positioning:**
+After all operations, cursor is automatically positioned in the most
+logical cell (usually first cell of new/modified row/column).
+```
+
+</details>
+
 ## Keymaps Reference
 
 <details open>
@@ -822,6 +1092,7 @@ Normal line 2
 | | `<leader>h1` to `h6` | Normal | Set header level |
 | | `<leader>ht` | Normal | Generate TOC |
 | | `<leader>hu` | Normal | Update TOC |
+| | `<leader>hT` | Normal | Toggle TOC window |
 | | `gd` | Normal | Follow TOC link |
 | **Links** |
 | | `<leader>ml` | Normal | Insert new link |
@@ -833,6 +1104,22 @@ Normal line 2
 | | `gx` | Normal | Open link in browser |
 | **Quotes** |
 | | `<leader>mq` | Normal/Visual | Toggle blockquote |
+| **Tables** |
+| | `<leader>tc` | Normal | Create table |
+| | `<leader>tf` | Normal | Format table |
+| | `<leader>tn` | Normal | Normalize table |
+| | `<leader>tir` | Normal | Insert row below |
+| | `<leader>tiR` | Normal | Insert row above |
+| | `<leader>tdr` | Normal | Delete row |
+| | `<leader>tyr` | Normal | Duplicate row |
+| | `<leader>tic` | Normal | Insert column right |
+| | `<leader>tiC` | Normal | Insert column left |
+| | `<leader>tdc` | Normal | Delete column |
+| | `<leader>tyc` | Normal | Duplicate column |
+| | `<A-h>` | Insert | Move to cell left (wraps) |
+| | `<A-l>` | Insert | Move to cell right (wraps) |
+| | `<A-j>` | Insert | Move to cell down (wraps) |
+| | `<A-k>` | Insert | Move to cell up (wraps) |
 
 </details>
 
@@ -913,6 +1200,28 @@ Normal line 2
  | `<leader>mq` | Normal     | Toggle blockquote on current line    |
  | `<leader>mq` | Visual     | Toggle blockquote on selected lines  |
 
+### Tables (Normal & Insert Mode)
+
+| Keymap | Mode | Description |
+|--------|------|-------------|
+| `<leader>tc` | Normal | Create new table interactively |
+| `<leader>tf` | Normal | Format table at cursor |
+| `<leader>tn` | Normal | Normalize malformed table |
+| `<leader>tir` | Normal | Insert row below current row |
+| `<leader>tiR` | Normal | Insert row above current row |
+| `<leader>tdr` | Normal | Delete current row |
+| `<leader>tyr` | Normal | Duplicate current row |
+| `<leader>tic` | Normal | Insert column to the right |
+| `<leader>tiC` | Normal | Insert column to the left |
+| `<leader>tdc` | Normal | Delete current column |
+| `<leader>tyc` | Normal | Duplicate current column |
+| `<A-h>` | Insert | Move to cell on the left (wraps) |
+| `<A-l>` | Insert | Move to cell on the right (wraps) |
+| `<A-j>` | Insert | Move to cell below (wraps) |
+| `<A-k>` | Insert | Move to cell above (wraps) |
+
+**Note**: Insert mode navigation falls back to arrow keys when not in a table.
+
 **Note**: In normal mode, these commands operate on the word under cursor. In visual mode, they operate on the selected text.
 
 </details>
@@ -925,26 +1234,49 @@ Normal line 2
 ```lua
 require("markdown-plus").setup({
   -- Global enable/disable
-  enabled = true,
+  enabled = true,               -- default: true
 
-  -- Feature toggles
+  -- Feature toggles (all default: true)
   features = {
-    list_management = true,    -- List management features
-    text_formatting = true,    -- Text formatting features
-    headers_toc = true,        -- Headers and TOC features
-    links = true,              -- Link management and references
+    list_management = true,     -- default: true (list auto-continue / indent / renumber / checkboxes)
+    text_formatting = true,     -- default: true (bold/italic/strike/code + clear)
+    headers_toc = true,         -- default: true (headers nav + TOC generation & window)
+    links = true,               -- default: true (insert/edit/convert/reference links)
+    quotes = true,              -- default: true (blockquote toggle)
+    code_block = true,          -- default: true (visual selection -> fenced block)
+    table = true,               -- default: true (table creation & editing)
   },
 
-  -- Keymap configuration
+  -- TOC window configuration
+  toc = {
+    initial_depth = 2,          -- default: 2 (range 1-6) depth shown in :Toc window and generated TOC
+  },
+
+  -- Table configuration
+  table = {
+    auto_format = true,         -- default: true  auto format table after operations
+    default_alignment = "left", -- default: "left"  alignment used for new columns
+    keymaps = {                 -- Table-specific keymaps (prefix based)
+      enabled = true,           -- default: true  provide table keymaps
+      prefix = "<leader>t",     -- default: "<leader>t"  prefix for table ops
+      insert_mode_navigation = true,  -- default: true  Alt+hjkl cell navigation
+    },
+  },
+
+  -- Global keymap configuration
   keymaps = {
-    enabled = true,  -- Set to false to disable all default keymaps
+    enabled = true,             -- default: true  set false to disable ALL default maps (use <Plug>)
   },
 
   -- Filetypes configuration
-  -- Specifies which filetypes will enable the plugin features
-  -- Default: { "markdown" }
-  filetypes = { "markdown" },
+  filetypes = { "markdown" },   -- default: { "markdown" }
 })
+
+-- NOTES:
+-- 1. Any field omitted uses its default value shown above.
+-- 2. Unknown fields trigger a validation error.
+-- 3. vim.g.markdown_plus (table or function) is merged BEFORE this setup() call.
+-- 4. setup() options override vim.g values; both override internal defaults.
 ```
 
 ### Using with Multiple Filetypes
@@ -1180,6 +1512,27 @@ vim.keymap.set("n", "<C-q>", "<Plug>(MarkdownPlusToggleQuote)")
 vim.keymap.set("x", "<C-q>", "<Plug>(MarkdownPlusToggleQuote)")
 ```
 
+#### Tables
+
+```lua
+-- Table operations with different prefix
+vim.keymap.set("n", "<leader>Tc", "<Plug>(markdown-plus-table-create)")
+vim.keymap.set("n", "<leader>Tf", "<Plug>(markdown-plus-table-format)")
+vim.keymap.set("n", "<leader>Tn", "<Plug>(markdown-plus-table-normalize)")
+
+-- Row operations
+vim.keymap.set("n", "<leader>Tir", "<Plug>(markdown-plus-table-insert-row-below)")
+vim.keymap.set("n", "<leader>TiR", "<Plug>(markdown-plus-table-insert-row-above)")
+vim.keymap.set("n", "<leader>Tdr", "<Plug>(markdown-plus-table-delete-row)")
+vim.keymap.set("n", "<leader>Tyr", "<Plug>(markdown-plus-table-duplicate-row)")
+
+-- Column operations
+vim.keymap.set("n", "<leader>Tic", "<Plug>(markdown-plus-table-insert-column-right)")
+vim.keymap.set("n", "<leader>TiC", "<Plug>(markdown-plus-table-insert-column-left)")
+vim.keymap.set("n", "<leader>Tdc", "<Plug>(markdown-plus-table-delete-column)")
+vim.keymap.set("n", "<leader>Tyc", "<Plug>(markdown-plus-table-duplicate-column)")
+```
+
 ### Available <Plug> Mappings
 
 #### Text Formatting
@@ -1225,6 +1578,20 @@ vim.keymap.set("x", "<C-q>", "<Plug>(MarkdownPlusToggleQuote)")
 #### Quotes
 
 - `<Plug>(MarkdownPlusToggleQuote)` - Toggle blockquote (n, x)
+
+#### Tables
+
+- `<Plug>(markdown-plus-table-create)` - Create table interactively (n)
+- `<Plug>(markdown-plus-table-format)` - Format table (n)
+- `<Plug>(markdown-plus-table-normalize)` - Normalize malformed table (n)
+- `<Plug>(markdown-plus-table-insert-row-below)` - Insert row below (n)
+- `<Plug>(markdown-plus-table-insert-row-above)` - Insert row above (n)
+- `<Plug>(markdown-plus-table-delete-row)` - Delete current row (n)
+- `<Plug>(markdown-plus-table-duplicate-row)` - Duplicate row (n)
+- `<Plug>(markdown-plus-table-insert-column-right)` - Insert column right (n)
+- `<Plug>(markdown-plus-table-insert-column-left)` - Insert column left (n)
+- `<Plug>(markdown-plus-table-delete-column)` - Delete column (n)
+- `<Plug>(markdown-plus-table-duplicate-column)` - Duplicate column (n)
 
 ### Mixing Default and Custom Keymaps
 

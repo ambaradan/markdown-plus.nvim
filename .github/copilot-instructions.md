@@ -132,8 +132,7 @@ make check             # Run lint + format-check + test
 
 #### Version Control
 - [ ] Create atomic commits (one logical change per commit)
-- [ ] Write clear commit messages
-- [ ] Update CHANGELOG.md with changes
+- [ ] Write simple, concise one-line commit messages (no detailed descriptions)
 - [ ] **ASK PERMISSION before committing or pushing**
 
 ### Common Patterns
@@ -153,8 +152,7 @@ make check             # Run lint + format-check + test
 2. Fix the bug
 3. Verify the test passes
 4. Run `make check`
-5. Update CHANGELOG.md
-6. **Request permission to commit**
+5. **Request permission to commit**
 
 ### Important Constraints
 
@@ -164,6 +162,7 @@ make check             # Run lint + format-check + test
 - Bypass validation for user configuration
 - Commit large refactors without test coverage
 - Create multiple top-level commands (prefer `<Plug>` or subcommands)
+- Write verbose multi-line commit messages (keep it one line)
 - **Commit or push without explicit user permission**
 
 #### DO
@@ -172,6 +171,7 @@ make check             # Run lint + format-check + test
 - Keep changes surgical and focused
 - Write tests before implementation when fixing bugs
 - Update all related documentation in the same changeset
+- Write concise one-line commit messages in conventional commit format
 - **Always ask permission before committing or pushing**
 
 ### Performance & Safety
@@ -184,8 +184,6 @@ make check             # Run lint + format-check + test
 - **Patch:** Bug fixes, test improvements, internal refactors (no API changes)
 - **Minor:** New features, new config keys (non-breaking), new mappings
 - **Major:** Breaking changes, removal of deprecated APIs, structural changes
-
-Always update CHANGELOG.md with: Added / Changed / Fixed / Deprecated sections
 
 ---
 

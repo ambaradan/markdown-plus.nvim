@@ -9,6 +9,7 @@
 ---@field filetypes? string[] Filetypes to enable plugin for (default: {"markdown"})
 ---@field code_block? markdown-plus.CodeBlockConfig Code block configuration
 ---@field toc? markdown-plus.TocConfig TOC window configuration
+---@field table? markdown-plus.TableConfig Table configuration
 
 ---Feature configuration
 ---@class markdown-plus.FeatureConfig
@@ -18,6 +19,20 @@
 ---@field links? boolean Enable link management (default: true)
 ---@field quotes? boolean Enable quote management (default: true)
 ---@field code_block? boolean Enable code block management (default: true)
+---@field table? boolean Enable table management (default: true)
+
+---Table configuration
+---@class markdown-plus.TableConfig
+---@field enabled? boolean Enable table features (default: true)
+---@field auto_format? boolean Automatically format tables on edit (default: true)
+---@field default_alignment? string Default column alignment: 'left', 'center', 'right' (default: 'left')
+---@field keymaps? markdown-plus.TableKeymapConfig Table keymap configuration
+
+---Table keymap configuration
+---@class markdown-plus.TableKeymapConfig
+---@field enabled? boolean Enable default table keymaps (default: true)
+---@field prefix? string Keymap prefix (default: '<leader>t')
+---@field insert_mode_navigation? boolean Enable insert mode cell navigation with Alt+hjkl (default: true)
 
 ---Code block configuration
 ---@class markdown-plus.CodeBlockConfig
@@ -37,6 +52,7 @@
 ---@field features markdown-plus.InternalFeatureConfig
 ---@field keymaps markdown-plus.InternalKeymapConfig
 ---@field code_block markdown-plus.InternalCodeBlockConfig
+---@field toc? markdown-plus.TocConfig
 
 ---Internal feature configuration
 ---@class markdown-plus.InternalFeatureConfig
@@ -46,6 +62,19 @@
 ---@field links boolean
 ---@field quotes boolean
 ---@field code_block boolean
+---@field table boolean
+
+---Internal table configuration
+---@class markdown-plus.InternalTableConfig
+---@field enabled boolean
+---@field auto_format boolean
+---@field default_alignment string
+---@field keymaps markdown-plus.InternalTableKeymapConfig
+
+---Internal table keymap configuration
+---@class markdown-plus.InternalTableKeymapConfig
+---@field enabled boolean
+---@field prefix string
 
 ---Internal code block configuration
 ---@class markdown-plus.InternalCodeBlockConfig
