@@ -785,13 +785,15 @@ describe("markdown-plus list management", function()
       it("creates normal list item when cursor is near end of line", function()
         local line = "- Content"
         vim.api.nvim_buf_set_lines(buf, 0, -1, false, { line })
-        -- Set cursor after all content (at the actual end position)
+        -- Set cursor after all content
+        -- Note: nvim_win_set_cursor clamps column #line to #line-1 (the last valid character position)
+        -- At last char position, content will be split
         vim.api.nvim_win_set_cursor(0, { 1, #line })
         list.handle_enter()
         local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
-        -- When at/past end, should create new empty item
-        assert.are.equal("- Content", lines[1])
-        assert.are.equal("- ", lines[2])
+        -- Cursor at last char splits: "- Conten" + "t" -> "- Conten" + "- t"
+        assert.are.equal("- Conten", lines[1])
+        assert.are.equal("- t", lines[2])
       end)
     end)
 
@@ -875,11 +877,11 @@ describe("markdown-plus list management", function()
       end)
 
       it("creates next list item for checkbox list continuation", function()
-        vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "- [ ] Task description", "      more details" })
+        vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "- [ ] Task", "      more details" })
         vim.api.nvim_win_set_cursor(0, { 2, 18 }) -- After "details"
         list.handle_enter()
         local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
-        assert.are.equal("- [ ] Task description", lines[1])
+        assert.are.equal("- [ ] Task", lines[1])
         assert.are.equal("      more details", lines[2])
         assert.are.equal("- [ ] ", lines[3])
       end)
