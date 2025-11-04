@@ -15,10 +15,6 @@ local M = {}
 ---@param keymaps markdown-plus.KeymapDef[] List of keymap definitions
 ---@return nil
 function M.setup_keymaps(config, keymaps)
-  if not config.keymaps or not config.keymaps.enabled then
-    return
-  end
-
   for _, keymap in ipairs(keymaps) do
     local modes = type(keymap.modes) == "table" and keymap.modes or { keymap.modes }
     local default_keys = keymap.default_key
@@ -27,7 +23,7 @@ function M.setup_keymaps(config, keymaps)
     end
 
     for idx, mode in ipairs(modes) do
-      -- Create <Plug> mapping
+      -- Always create <Plug> mapping (regardless of keymaps.enabled)
       local plug_name = "<Plug>(" .. keymap.plug .. ")"
       local fn = keymap.fn
 
@@ -41,8 +37,8 @@ function M.setup_keymaps(config, keymaps)
         desc = keymap.desc,
       })
 
-      -- Set default keymap if not already mapped and default is specified
-      if default_keys and default_keys[idx] then
+      -- Set default keymap only if keymaps are enabled and default is specified
+      if config.keymaps and config.keymaps.enabled and default_keys and default_keys[idx] then
         -- Check if a buffer-local mapping already exists for this key
         local existing = vim.fn.maparg(default_keys[idx], mode, false, true)
         local has_buffer_mapping = existing and existing.buffer == 1

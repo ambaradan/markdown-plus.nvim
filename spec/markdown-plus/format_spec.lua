@@ -335,13 +335,18 @@ describe("markdown-plus format", function()
   end)
 
   describe("setup_keymaps", function()
-    it("does not set keymaps if keymaps.enabled is false", function()
+    it("creates <Plug> mappings even when keymaps.enabled is false", function()
       format.setup({
         keymaps = {
           enabled = false,
         },
       })
-      -- Verify that no keymap is set
+      format.setup_keymaps()
+      -- Verify that <Plug> mapping exists (can be checked with maparg)
+      local plug_mapping = vim.fn.maparg("<Plug>(MarkdownPlusCodeBlock)", "x", false, true)
+      assert.is_not_nil(plug_mapping)
+      assert.is_not.equal("", plug_mapping)
+      -- Verify that no default keymap is set (hasmapto checks for mappings TO the <Plug>)
       assert.is_false(vim.fn.hasmapto("<Plug>(MarkdownPlusCodeBlock)", "x") == 1)
     end)
 

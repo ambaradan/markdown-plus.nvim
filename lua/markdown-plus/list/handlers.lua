@@ -100,10 +100,12 @@ function M.handle_enter()
 
   -- Check if we're in a list
   local list_info = parser.parse_list_line(current_line)
+  local is_continuation_line = false
 
   if not list_info then
     -- Not directly on a list item line - check if we're on a continuation line
     list_info = find_parent_list_item(row, current_line)
+    is_continuation_line = list_info ~= nil
 
     if not list_info then
       -- Not in a list at all, simulate default Enter behavior
@@ -127,8 +129,19 @@ function M.handle_enter()
   -- Calculate where list content starts
   local marker_end = get_content_start_col(list_info)
 
-  -- Check if cursor is in the middle of content
-  if col > marker_end and col < #current_line - 1 then
+  -- For continuation lines, only split if there's meaningful content after cursor
+  -- For list item lines, split if cursor is before the last character
+  local should_split
+  if is_continuation_line then
+    -- On continuation line: only split if there's non-whitespace content after cursor
+    local content_after = current_line:sub(col + 1)
+    should_split = content_after:match("%S") ~= nil and #content_after:match("^%s*(.*)") > 1
+  else
+    -- On list item line: split if cursor is after marker and before last char
+    should_split = col > marker_end and col <= #current_line - 1
+  end
+
+  if should_split then
     -- Split content at cursor position
     local content_before = current_line:sub(1, col)
     local content_after = current_line:sub(col + 1)
