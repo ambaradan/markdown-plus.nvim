@@ -20,6 +20,44 @@ local function get_content_start_col(list_info)
   return #list_info.indent + #list_info.full_marker + 1
 end
 
+---Find parent list item by looking upward from current line
+---@param current_row number Current row number (1-indexed)
+---@param current_line string Current line content
+---@return table|nil, number|nil List info and row number of parent, or nil if not found
+local function find_parent_list_item(current_row, current_line)
+  -- Check if current line is indented (potential continuation)
+  local current_indent = current_line:match("^(%s*)")
+  if not current_indent or #current_indent == 0 then
+    return nil
+  end
+
+  -- Look upward for a list item with matching or less indentation
+  for i = current_row - 1, math.max(1, current_row - 20), -1 do
+    local line = utils.get_line(i)
+    if not line then
+      break
+    end
+
+    -- Try to parse as list item
+    local list_info = parser.parse_list_line(line)
+    if list_info then
+      -- Check if current line's indentation matches list content position
+      local content_start_col = get_content_start_col(list_info)
+      if #current_indent == content_start_col then
+        return list_info, i
+      end
+    end
+
+    -- Stop if we hit a line with less indentation (different block)
+    local line_indent = line:match("^(%s*)")
+    if line_indent and #line_indent < #current_indent then
+      break
+    end
+  end
+
+  return nil
+end
+
 ---Break out of list (remove current empty item)
 ---@param list_info table List information
 function M.break_out_of_list(list_info)
@@ -64,14 +102,19 @@ function M.handle_enter()
   local list_info = parser.parse_list_line(current_line)
 
   if not list_info then
-    -- Not in a list, simulate default Enter behavior
-    local line_before = current_line:sub(1, col)
-    local line_after = current_line:sub(col + 1)
+    -- Not directly on a list item line - check if we're on a continuation line
+    list_info = find_parent_list_item(row, current_line)
 
-    utils.set_line(row, line_before)
-    utils.insert_line(row + 1, line_after)
-    utils.set_cursor(row + 1, 0)
-    return
+    if not list_info then
+      -- Not in a list at all, simulate default Enter behavior
+      local line_before = current_line:sub(1, col)
+      local line_after = current_line:sub(col + 1)
+
+      utils.set_line(row, line_before)
+      utils.insert_line(row + 1, line_after)
+      utils.set_cursor(row + 1, 0)
+      return
+    end
   end
 
   -- Check if current list item is empty
