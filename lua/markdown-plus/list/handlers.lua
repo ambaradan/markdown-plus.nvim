@@ -73,8 +73,77 @@ function M.handle_enter()
     return
   end
 
-  -- Create next list item
+  -- Calculate marker end position
+  local marker_end = #list_info.indent + #list_info.full_marker + 1
+  if list_info.checkbox then
+    marker_end = marker_end + 4 -- Add "[ ] " length
+  end
+
+  -- Check if cursor is in the middle of content
+  if col > marker_end and col < #current_line then
+    -- Split content at cursor position
+    local content_before = current_line:sub(1, col)
+    local content_after = current_line:sub(col + 1)
+
+    -- Update current line with content before cursor
+    utils.set_line(row, content_before)
+
+    -- Create next list item with content after cursor
+    local next_marker = parser.get_next_marker(list_info)
+    local next_line = list_info.indent .. next_marker .. " "
+    if list_info.checkbox then
+      next_line = next_line .. "[ ] "
+    end
+    next_line = next_line .. content_after:match("^%s*(.*)")
+
+    utils.insert_line(row + 1, next_line)
+    utils.set_cursor(row + 1, #list_info.indent + #next_marker + 1 + (list_info.checkbox and 4 or 0))
+    return
+  end
+
+  -- Cursor at end or near marker - create next list item
   M.create_next_list_item(list_info)
+end
+
+---Handle Shift+Enter key in lists (continue content on next line)
+function M.handle_shift_enter()
+  local current_line = utils.get_current_line()
+  local cursor = utils.get_cursor()
+  local row, col = cursor[1], cursor[2]
+
+  -- Check if we're in a list
+  local list_info = parser.parse_list_line(current_line)
+
+  if not list_info then
+    -- Not in a list, simulate default Enter behavior
+    local line_before = current_line:sub(1, col)
+    local line_after = current_line:sub(col + 1)
+
+    utils.set_line(row, line_before)
+    utils.insert_line(row + 1, line_after)
+    utils.set_cursor(row + 1, 0)
+    return
+  end
+
+  -- Calculate the indentation for continuation (align with list content start)
+  local marker_end = #list_info.indent + #list_info.full_marker + 1
+  if list_info.checkbox then
+    marker_end = marker_end + 4 -- Add "[ ] " length
+  end
+
+  -- Split line at cursor
+  local line_before = current_line:sub(1, col)
+  local line_after = current_line:sub(col + 1)
+
+  -- Update current line
+  utils.set_line(row, line_before)
+
+  -- Create continuation line with proper indentation
+  local continuation_indent = string.rep(" ", marker_end)
+  local continuation_line = continuation_indent .. line_after:match("^%s*(.*)")
+
+  utils.insert_line(row + 1, continuation_line)
+  utils.set_cursor(row + 1, marker_end)
 end
 
 ---Handle Tab key for indentation
