@@ -267,6 +267,17 @@ function M.handle_shift_tab()
   utils.set_cursor(row, new_col)
 end
 
+local function delete_prev_char(line, row, col)
+  local char_idx = vim.fn.charidx(line, col)
+  local prev_char_idx = char_idx - 1
+  if prev_char_idx < 0 then
+    return
+  end
+  local new_col = vim.fn.byteidx(line, prev_char_idx)
+  vim.api.nvim_buf_set_text(0, row - 1, new_col, row - 1, col, { "" })
+  utils.set_cursor(row, new_col)
+end
+
 ---Handle Backspace key
 function M.handle_backspace()
   local current_line = utils.get_current_line()
@@ -279,9 +290,7 @@ function M.handle_backspace()
   if not list_info then
     -- Not in a list, default backspace behavior
     if col > 0 then
-      local new_line = current_line:sub(1, col - 1) .. current_line:sub(col + 1)
-      utils.set_line(row, new_line)
-      utils.set_cursor(row, col - 1)
+      delete_prev_char(current_line, row, col)
     elseif row > 1 then
       -- At start of line, join with previous line
       local prev_line = utils.get_line(row - 1)
@@ -304,9 +313,7 @@ function M.handle_backspace()
 
   -- Default backspace in list content
   if col > 0 then
-    local new_line = current_line:sub(1, col - 1) .. current_line:sub(col + 1)
-    utils.set_line(row, new_line)
-    utils.set_cursor(row, col - 1)
+    delete_prev_char(current_line, row, col)
   end
 end
 
