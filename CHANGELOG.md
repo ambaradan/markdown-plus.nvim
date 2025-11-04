@@ -5,6 +5,20 @@ All notable changes to markdown-plus.nvim will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.0](https://github.com/YousefHadder/markdown-plus.nvim/compare/v1.6.0...v1.7.0) (2025-11-04)
+
+
+### Features
+
+* **table:** add insert mode cell navigation with Alt+hjkl and circular wrapping ([f9d8199](https://github.com/YousefHadder/markdown-plus.nvim/commit/f9d8199e818a27a900b14ccc46f27066a168c596))
+
+
+### Bug Fixes
+
+* **bug:** buffer-local keymap recreation and enhanced list content handling ([9799f35](https://github.com/YousefHadder/markdown-plus.nvim/commit/9799f35b74d5e1302f461caa880a25f340ad51de))
+* TOC generation and window now respect initial_depth configuration ([5f35596](https://github.com/YousefHadder/markdown-plus.nvim/commit/5f355963ae7f4f2b112569b94104771b1c9163d1))
+* TOC generation and window now respect initial_depth configuration ([36bcee7](https://github.com/YousefHadder/markdown-plus.nvim/commit/36bcee79e5841124ddc73c51e4d3162776beeecf))
+
 ## [1.6.0](https://github.com/YousefHadder/markdown-plus.nvim/compare/v1.5.1...v1.6.0) (2025-11-01)
 
 
