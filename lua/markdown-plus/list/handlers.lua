@@ -133,9 +133,11 @@ function M.handle_enter()
   -- For list item lines, split if cursor is before the last character
   local should_split
   if is_continuation_line then
-    -- On continuation line: only split if there's non-whitespace content after cursor
+    -- On continuation line: only split if there's multiple characters of content after cursor
+    -- This prevents splitting at the very end which would create a list item with just one char
     local content_after = current_line:sub(col + 1)
-    should_split = content_after:match("%S") ~= nil and #content_after:match("^%s*(.*)") > 1
+    local trimmed = content_after:match("^%s*(.*)") or ""
+    should_split = content_after:match("%S") ~= nil and #trimmed > 1
   else
     -- On list item line: split if cursor is after marker and before last char
     should_split = col > marker_end and col <= #current_line - 1
