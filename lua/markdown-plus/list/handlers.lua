@@ -13,7 +13,7 @@ local function extract_list_content(line, list_info)
 end
 
 ---Calculate the column position where list content starts (after marker and checkbox)
----Note: full_marker already includes checkbox if present (e.g., "- [ ]")
+---Note: full_marker already includes checkbox if present (e.g., "- [x]", "1. [ ]")
 ---@param list_info table List information
 ---@return number The column position where content starts
 local function get_content_start_col(list_info)
@@ -85,7 +85,7 @@ function M.handle_enter()
   local marker_end = get_content_start_col(list_info)
 
   -- Check if cursor is in the middle of content
-  if col > marker_end and col < #current_line then
+  if col > marker_end and col < #current_line - 1 then
     -- Split content at cursor position
     local content_before = current_line:sub(1, col)
     local content_after = current_line:sub(col + 1)

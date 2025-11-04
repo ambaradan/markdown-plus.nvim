@@ -45,7 +45,7 @@ function M.setup_keymaps(config, keymaps)
       if default_keys and default_keys[idx] then
         -- Check if a buffer-local mapping already exists for this key
         local existing = vim.fn.maparg(default_keys[idx], mode, false, true)
-        local has_buffer_mapping = existing and existing ~= {} and existing.buffer == 1
+        local has_buffer_mapping = existing and existing.buffer == 1
 
         if not has_buffer_mapping then
           vim.keymap.set(mode, default_keys[idx], plug_name, {
