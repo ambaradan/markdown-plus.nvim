@@ -250,4 +250,93 @@ describe("markdown-plus configuration", function()
       assert.is_not_nil(setup_succeeded)
     end)
   end)
+
+  describe("keymap setup with buffer-local detection", function()
+    local buf
+    local keymap_helper
+
+    before_each(function()
+      buf = vim.api.nvim_create_buf(false, true)
+      vim.api.nvim_buf_set_option(buf, "filetype", "markdown")
+      vim.api.nvim_set_current_buf(buf)
+      keymap_helper = require("markdown-plus.keymap_helper")
+    end)
+
+    after_each(function()
+      if vim.api.nvim_buf_is_valid(buf) then
+        vim.api.nvim_buf_delete(buf, { force = true })
+      end
+    end)
+
+    it("creates default keymaps when no buffer-local mappings exist", function()
+      local test_config = {
+        keymaps = { enabled = true },
+      }
+
+      keymap_helper.setup_keymaps(test_config, {
+        {
+          plug = "MarkdownPlusTestAction",
+          fn = function() end,
+          modes = "i",
+          default_key = "<C-x>",
+          desc = "Test action",
+        },
+      })
+
+      -- Check that buffer-local mapping was created
+      local mapping = vim.fn.maparg("<C-x>", "i", false, true)
+      assert.is_not_nil(mapping)
+      assert.are.equal(1, mapping.buffer)
+    end)
+
+    it("does not create default keymaps when buffer-local mappings already exist", function()
+      -- Create a buffer-local mapping first
+      vim.keymap.set("i", "<C-y>", "existing", { buffer = true })
+
+      local test_config = {
+        keymaps = { enabled = true },
+      }
+
+      -- Try to set up with same key
+      keymap_helper.setup_keymaps(test_config, {
+        {
+          plug = "MarkdownPlusTestAction2",
+          fn = function() end,
+          modes = "i",
+          default_key = "<C-y>",
+          desc = "Test action 2",
+        },
+      })
+
+      -- Check that original mapping was preserved
+      local mapping = vim.fn.maparg("<C-y>", "i", false, true)
+      assert.is_not_nil(mapping)
+      assert.are.equal("existing", mapping.rhs)
+    end)
+
+    it("creates default keymaps even when global <Plug> mappings exist", function()
+      -- Create a global <Plug> mapping
+      vim.keymap.set("i", "<Plug>(MarkdownPlusTestGlobal)", function() end)
+
+      local test_config = {
+        keymaps = { enabled = true },
+      }
+
+      -- Set up with default key that should still be created
+      keymap_helper.setup_keymaps(test_config, {
+        {
+          plug = "MarkdownPlusTestGlobal",
+          fn = function() end,
+          modes = "i",
+          default_key = "<C-z>",
+          desc = "Test global action",
+        },
+      })
+
+      -- Check that buffer-local mapping was created
+      local mapping = vim.fn.maparg("<C-z>", "i", false, true)
+      assert.is_not_nil(mapping)
+      assert.are.equal(1, mapping.buffer)
+    end)
+  end)
 end)

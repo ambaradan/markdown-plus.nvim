@@ -790,7 +790,8 @@ Default keymaps:
         set_h6 = '<leader>h6',              -- Convert to H6
 
         -- List operations (Insert mode)
-        auto_continue = '<CR>',             -- Auto-continue lists
+        auto_continue = '<CR>',             -- Auto-continue lists or split content
+        continue_content = '<A-CR>',        -- Continue content on next line
         indent_list = '<Tab>',              -- Indent list item
         dedent_list = '<S-Tab>',            -- Dedent list item
         smart_backspace = '<BS>',           -- Smart backspace
@@ -1119,7 +1120,15 @@ LIST MODULE                                              *markdown-plus.list*
 
                                               *markdown-plus.list.handle_enter*
 markdown-plus.list.handle_enter()
-    Handles Enter key in insert mode for auto-continuing lists.
+    Handles Enter key in insert mode for auto-continuing lists or splitting
+    list content at cursor position. When cursor is in the middle of list
+    content, creates a new list item with the remaining content.
+
+                                        *markdown-plus.list.handle_shift_enter*
+markdown-plus.list.handle_shift_enter()
+    Handles Alt+Enter key (<A-CR>) in insert mode for continuing list content
+    on the next line without creating a new bullet. Aligns continuation text
+    with the list content start position.
 
                                                 *markdown-plus.list.handle_tab*
 markdown-plus.list.handle_tab()

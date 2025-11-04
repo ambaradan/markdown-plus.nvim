@@ -40,7 +40,14 @@ function M.setup_keymaps()
       fn = handlers.handle_enter,
       modes = "i",
       default_key = "<CR>",
-      desc = "Auto-continue list or break out",
+      desc = "Auto-continue list or split content",
+    },
+    {
+      plug = keymap_helper.plug_name("ListShiftEnter"),
+      fn = handlers.handle_shift_enter,
+      modes = "i",
+      default_key = "<A-CR>",
+      desc = "Continue list content on next line",
     },
     {
       plug = keymap_helper.plug_name("ListIndent"),
@@ -130,6 +137,7 @@ M.index_to_letter = parser.index_to_letter
 M.next_letter = parser.next_letter
 M.create_next_list_item = handlers.create_next_list_item
 M.handle_enter = handlers.handle_enter
+M.handle_shift_enter = handlers.handle_shift_enter
 M.handle_tab = handlers.handle_tab
 M.handle_shift_tab = handlers.handle_shift_tab
 M.handle_backspace = handlers.handle_backspace
