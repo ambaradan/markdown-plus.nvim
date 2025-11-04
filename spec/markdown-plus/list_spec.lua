@@ -786,7 +786,7 @@ describe("markdown-plus list management", function()
         local line = "- Content"
         vim.api.nvim_buf_set_lines(buf, 0, -1, false, { line })
         -- Set cursor after all content
-        -- Note: API clamps #line to #line-1 (last char position)
+        -- Note: nvim_win_set_cursor clamps column #line to #line-1 (the last valid character position)
         -- At last char position, content will be split
         vim.api.nvim_win_set_cursor(0, { 1, #line })
         list.handle_enter()

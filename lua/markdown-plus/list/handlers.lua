@@ -137,6 +137,7 @@ function M.handle_enter()
     -- This prevents splitting at the very end which would create a list item with just one char
     local content_after = current_line:sub(col + 1)
     local trimmed = content_after:match("^%s*(.*)") or ""
+    -- Ensure both non-whitespace exists and trimmed content has multiple characters to avoid single-char list items
     should_split = content_after:match("%S") ~= nil and #trimmed > 1
   else
     -- On list item line: split if cursor is after marker and before last char
