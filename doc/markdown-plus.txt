@@ -1124,11 +1124,11 @@ markdown-plus.list.handle_enter()
     list content at cursor position. When cursor is in the middle of list
     content, creates a new list item with the remaining content.
 
-                                        *markdown-plus.list.handle_shift_enter*
-markdown-plus.list.handle_shift_enter()
-    Handles Alt+Enter key (<A-CR>) in insert mode for continuing list content
-    on the next line without creating a new bullet. Aligns continuation text
-    with the list content start position.
+                                        *markdown-plus.list.continue_list_content*
+markdown-plus.list.continue_list_content()
+    Continue list content on next line. Creates a continuation line with
+    proper indentation aligned with the list content start position. Typically
+    bound to Alt+Enter (<A-CR>) in insert mode.
 
                                                 *markdown-plus.list.handle_tab*
 markdown-plus.list.handle_tab()

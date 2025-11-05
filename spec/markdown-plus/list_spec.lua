@@ -470,6 +470,80 @@ describe("markdown-plus list management", function()
       assert.are.equal("", result[3])
       assert.are.equal("a. Third", result[4]) -- Should restart at a
     end)
+
+    it("does not renumber when continuation line is added (Alt-Enter)", function()
+      local lines = {
+        "1. Hello",
+        "   ",
+        "2. Hi",
+        "3. Hola",
+      }
+
+      vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+      list.renumber_ordered_lists()
+
+      local result = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+      assert.are.equal("1. Hello", result[1])
+      assert.are.equal("   ", result[2]) -- Continuation line
+      assert.are.equal("2. Hi", result[3]) -- Should remain as 2, not restart at 1
+      assert.are.equal("3. Hola", result[4]) -- Should remain as 3
+    end)
+
+    it("preserves numbering with continuation line with content", function()
+      local lines = {
+        "1. First item",
+        "   continuation text",
+        "2. Second item",
+        "3. Third item",
+      }
+
+      vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+      list.renumber_ordered_lists()
+
+      local result = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+      assert.are.equal("1. First item", result[1])
+      assert.are.equal("   continuation text", result[2])
+      assert.are.equal("2. Second item", result[3]) -- Should remain as 2
+      assert.are.equal("3. Third item", result[4]) -- Should remain as 3
+    end)
+
+    it("handles multiple continuation lines", function()
+      local lines = {
+        "1. First",
+        "   line 1",
+        "   line 2",
+        "2. Second",
+        "3. Third",
+      }
+
+      vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+      list.renumber_ordered_lists()
+
+      local result = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+      assert.are.equal("1. First", result[1])
+      assert.are.equal("   line 1", result[2])
+      assert.are.equal("   line 2", result[3])
+      assert.are.equal("2. Second", result[4]) -- Should remain as 2
+      assert.are.equal("3. Third", result[5]) -- Should remain as 3
+    end)
+
+    it("handles checkbox list with continuation lines", function()
+      local lines = {
+        "1. [ ] Task 1",
+        "       details here",
+        "2. [ ] Task 2",
+        "3. [x] Task 3",
+      }
+
+      vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+      list.renumber_ordered_lists()
+
+      local result = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+      assert.are.equal("1. [ ] Task 1", result[1])
+      assert.are.equal("       details here", result[2])
+      assert.are.equal("2. [ ] Task 2", result[3]) -- Should remain as 2
+      assert.are.equal("3. [x] Task 3", result[4]) -- Should remain as 3
+    end)
   end)
 
   describe("checkbox management", function()
@@ -797,11 +871,11 @@ describe("markdown-plus list management", function()
       end)
     end)
 
-    describe("handle_shift_enter for content continuation", function()
+    describe("continue_list_content for content continuation", function()
       it("continues content on next line for unordered list", function()
         vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "- First line text" })
         vim.api.nvim_win_set_cursor(0, { 1, 12 }) -- After "line"
-        list.handle_shift_enter()
+        list.continue_list_content()
         local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
         assert.are.equal("- First line", lines[1])
         assert.are.equal("  text", lines[2])
@@ -810,7 +884,7 @@ describe("markdown-plus list management", function()
       it("continues content on next line for ordered list", function()
         vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "1. Item with more text" })
         vim.api.nvim_win_set_cursor(0, { 1, 12 }) -- After "with"
-        list.handle_shift_enter()
+        list.continue_list_content()
         local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
         assert.are.equal("1. Item with", lines[1])
         assert.are.equal("   more text", lines[2])
@@ -821,7 +895,7 @@ describe("markdown-plus list management", function()
         vim.api.nvim_buf_set_lines(buf, 0, -1, false, { line })
         local target = "- [ ] Task continues"
         vim.api.nvim_win_set_cursor(0, { 1, #target }) -- After "continues"
-        list.handle_shift_enter()
+        list.continue_list_content()
         local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
         assert.are.equal("- [ ] Task continues", lines[1])
         assert.are.equal("      here", lines[2])
@@ -830,7 +904,7 @@ describe("markdown-plus list management", function()
       it("continues content on next line for letter list", function()
         vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "a. Content to continue" })
         vim.api.nvim_win_set_cursor(0, { 1, 13 }) -- After "to"
-        list.handle_shift_enter()
+        list.continue_list_content()
         local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
         assert.are.equal("a. Content to", lines[1])
         assert.are.equal("   continue", lines[2])
@@ -839,7 +913,7 @@ describe("markdown-plus list management", function()
       it("positions cursor at correct indentation on continuation line", function()
         vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "- Some text" })
         vim.api.nvim_win_set_cursor(0, { 1, 6 }) -- After "Some"
-        list.handle_shift_enter()
+        list.continue_list_content()
         local cursor = vim.api.nvim_win_get_cursor(0)
         assert.are.equal(2, cursor[1]) -- Second line
         assert.are.equal(2, cursor[2]) -- At indentation start (after "  ")
@@ -848,7 +922,7 @@ describe("markdown-plus list management", function()
       it("falls back to default Enter when not in a list", function()
         vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "Regular text here" })
         vim.api.nvim_win_set_cursor(0, { 1, 8 })
-        list.handle_shift_enter()
+        list.continue_list_content()
         local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
         assert.are.equal("Regular ", lines[1])
         assert.are.equal("text here", lines[2])
