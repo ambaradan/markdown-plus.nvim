@@ -44,7 +44,7 @@ function M.setup_keymaps()
     },
     {
       plug = keymap_helper.plug_name("ListShiftEnter"),
-      fn = handlers.handle_shift_enter,
+      fn = handlers.continue_list_content,
       modes = "i",
       default_key = "<A-CR>",
       desc = "Continue list content on next line",
@@ -137,7 +137,7 @@ M.index_to_letter = parser.index_to_letter
 M.next_letter = parser.next_letter
 M.create_next_list_item = handlers.create_next_list_item
 M.handle_enter = handlers.handle_enter
-M.handle_shift_enter = handlers.handle_shift_enter
+M.continue_list_content = handlers.continue_list_content
 M.handle_tab = handlers.handle_tab
 M.handle_shift_tab = handlers.handle_shift_tab
 M.handle_backspace = handlers.handle_backspace

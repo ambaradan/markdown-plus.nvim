@@ -1,61 +1,17 @@
 -- List input handlers module for markdown-plus.nvim
 local utils = require("markdown-plus.utils")
 local parser = require("markdown-plus.list.parser")
+local shared = require("markdown-plus.list.shared")
 local M = {}
-
----Extract content from a list line after the marker
----@param line string The line to extract from
----@param list_info table List information
----@return string Content after the marker
-local function extract_list_content(line, list_info)
-  local marker_end = #list_info.indent + #list_info.full_marker
-  return line:sub(marker_end + 1):match("^%s*(.*)") or ""
-end
-
----Calculate the column position where list content starts (after marker and checkbox)
----Note: full_marker already includes checkbox if present (e.g., "- [x]", "1. [ ]")
----@param list_info table List information
----@return number The column position where content starts
-local function get_content_start_col(list_info)
-  return #list_info.indent + #list_info.full_marker + 1
-end
 
 ---Find parent list item by looking upward from current line
 ---@param current_row number Current row number (1-indexed)
 ---@param current_line string Current line content
 ---@return table|nil, number|nil List info and row number of parent, or nil if not found
 local function find_parent_list_item(current_row, current_line)
-  -- Check if current line is indented (potential continuation)
-  local current_indent = current_line:match("^(%s*)")
-  if not current_indent or #current_indent == 0 then
-    return nil
-  end
-
-  -- Look upward for a list item with matching or less indentation
-  for i = current_row - 1, math.max(1, current_row - 20), -1 do
-    local line = utils.get_line(i)
-    if not line then
-      break
-    end
-
-    -- Try to parse as list item
-    local list_info = parser.parse_list_line(line)
-    if list_info then
-      -- Check if current line's indentation matches list content position
-      local content_start_col = get_content_start_col(list_info)
-      if #current_indent == content_start_col then
-        return list_info, i
-      end
-    end
-
-    -- Stop if we hit a line with less indentation (different block)
-    local line_indent = line:match("^(%s*)")
-    if line_indent and #line_indent < #current_indent then
-      break
-    end
-  end
-
-  return nil
+  -- Get all buffer lines for the search
+  local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+  return shared.find_parent_list_item(current_line, current_row, lines)
 end
 
 ---Break out of list (remove current empty item)
@@ -127,7 +83,7 @@ function M.handle_enter()
   end
 
   -- Calculate where list content starts
-  local marker_end = get_content_start_col(list_info)
+  local marker_end = shared.get_content_start_col(list_info)
 
   -- For continuation lines, only split if there's meaningful content after cursor
   -- For list item lines, split if cursor is before the last character
@@ -174,8 +130,9 @@ function M.handle_enter()
   M.create_next_list_item(list_info)
 end
 
----Handle Shift+Enter key in lists (continue content on next line)
-function M.handle_shift_enter()
+---Continue list content on next line with proper indentation
+---Splits the line at cursor and creates a continuation line aligned with content start
+function M.continue_list_content()
   local current_line = utils.get_current_line()
   local cursor = utils.get_cursor()
   local row, col = cursor[1], cursor[2]
@@ -195,7 +152,7 @@ function M.handle_shift_enter()
   end
 
   -- Calculate the indentation for continuation (align with list content start)
-  local marker_end = get_content_start_col(list_info)
+  local marker_end = shared.get_content_start_col(list_info)
 
   -- Split line at cursor
   local line_before = current_line:sub(1, col)
@@ -234,7 +191,7 @@ function M.handle_tab()
   local indent_size = vim.bo.shiftwidth
 
   local new_indent = list_info.indent .. string.rep(" ", indent_size)
-  local content = extract_list_content(current_line, list_info)
+  local content = shared.extract_list_content(current_line, list_info)
   local new_line = new_indent .. list_info.full_marker .. " " .. content
 
   utils.set_line(row, new_line)
@@ -273,7 +230,7 @@ function M.handle_shift_tab()
   end
 
   local new_indent = list_info.indent:sub(1, #list_info.indent - indent_size)
-  local content = extract_list_content(current_line, list_info)
+  local content = shared.extract_list_content(current_line, list_info)
   local new_line = new_indent .. list_info.full_marker .. " " .. content
 
   utils.set_line(row, new_line)
@@ -321,7 +278,7 @@ function M.handle_backspace()
   local marker_end_col = #list_info.indent + #list_info.full_marker + 1
   if col <= marker_end_col and col > #list_info.indent then
     -- Remove list marker, keep content
-    local content = extract_list_content(current_line, list_info)
+    local content = shared.extract_list_content(current_line, list_info)
     utils.set_line(row, list_info.indent .. content)
     utils.set_cursor(row, #list_info.indent)
     return

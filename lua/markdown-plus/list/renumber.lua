@@ -1,32 +1,31 @@
 -- List renumbering module for markdown-plus.nvim
 local utils = require("markdown-plus.utils")
 local parser = require("markdown-plus.list.parser")
+local shared = require("markdown-plus.list.shared")
 local M = {}
-
--- Constants
-local DELIMITER_DOT = "."
-local DELIMITER_PAREN = ")"
-
----Extract content from a list line after the marker
----@param line string The line to extract from
----@param list_info table List information
----@return string Content after the marker
-local function extract_list_content(line, list_info)
-  local marker_end = #list_info.indent + #list_info.full_marker
-  return line:sub(marker_end + 1):match("^%s*(.*)") or ""
-end
 
 ---Check if a line breaks list continuity
 ---@param line string
+---@param line_num number|nil The line number (1-indexed). Optional, but must be provided together with `lines` for continuation line checks.
+---@param lines string[]|nil All buffer lines. Optional, but must be provided together with `line_num` for continuation line checks.
 ---@return boolean
-function M.is_list_breaking_line(line)
+function M.is_list_breaking_line(line, line_num, lines)
   -- Empty lines terminate list groups
   if not line or line:match("^%s*$") then
+    -- But check if it's a continuation line first
+    if line_num and lines and shared.is_continuation_line(line, line_num, lines) then
+      return false
+    end
     return true
   end
 
   -- Any non-list content breaks list continuity
   if parser.parse_list_line(line) then
+    return false
+  end
+
+  -- Check if it's a continuation line
+  if line_num and lines and shared.is_continuation_line(line, line_num, lines) then
     return false
   end
 
@@ -44,17 +43,7 @@ function M.find_list_groups(lines)
   for i, line in ipairs(lines) do
     local list_info = parser.parse_list_line(line)
 
-    if
-      list_info
-      and (
-        list_info.type == "ordered"
-        or list_info.type == "letter_lower"
-        or list_info.type == "letter_upper"
-        or list_info.type == "ordered_paren"
-        or list_info.type == "letter_lower_paren"
-        or list_info.type == "letter_upper_paren"
-      )
-    then
+    if list_info and shared.is_orderable_type(list_info.type) then
       local indent_level = #list_info.indent
       local list_type = list_info.type
 
@@ -84,7 +73,7 @@ function M.find_list_groups(lines)
       end
 
       -- Add item to current group
-      local content = extract_list_content(line, list_info)
+      local content = shared.extract_list_content(line, list_info)
 
       table.insert(current_group.items, {
         line_num = i,
@@ -95,7 +84,7 @@ function M.find_list_groups(lines)
       })
     else
       -- Not an ordered/letter list item
-      if M.is_list_breaking_line(line) then
+      if M.is_list_breaking_line(line, i, lines) then
         -- Clear all active groups
         current_groups_by_indent = {}
       end
@@ -122,20 +111,7 @@ function M.renumber_list_group(group)
     end
 
     -- Determine expected marker based on list type
-    local expected_marker
-    if group.list_type == "ordered" then
-      expected_marker = idx .. DELIMITER_DOT
-    elseif group.list_type == "ordered_paren" then
-      expected_marker = idx .. DELIMITER_PAREN
-    elseif group.list_type == "letter_lower" then
-      expected_marker = parser.index_to_letter(idx, false) .. DELIMITER_DOT
-    elseif group.list_type == "letter_lower_paren" then
-      expected_marker = parser.index_to_letter(idx, false) .. DELIMITER_PAREN
-    elseif group.list_type == "letter_upper" then
-      expected_marker = parser.index_to_letter(idx, true) .. DELIMITER_DOT
-    elseif group.list_type == "letter_upper_paren" then
-      expected_marker = parser.index_to_letter(idx, true) .. DELIMITER_PAREN
-    end
+    local expected_marker = shared.get_marker_for_index(group.list_type, idx)
 
     local expected_line = item.indent .. expected_marker .. checkbox_part .. " " .. item.content
 
