@@ -2,10 +2,12 @@
 local utils = require("markdown-plus.utils")
 local parser = require("markdown-plus.list.parser")
 local shared = require("markdown-plus.list.shared")
-local M = {} ---Check if a line breaks list continuity
+local M = {}
+
+---Check if a line breaks list continuity
 ---@param line string
----@param line_num number|nil The line number (1-indexed), optional for backward compatibility
----@param lines string[]|nil All buffer lines, optional for backward compatibility
+---@param line_num number|nil The line number (1-indexed). Optional, but must be provided together with `lines` for continuation line checks.
+---@param lines string[]|nil All buffer lines. Optional, but must be provided together with `line_num` for continuation line checks.
 ---@return boolean
 function M.is_list_breaking_line(line, line_num, lines)
   -- Empty lines terminate list groups

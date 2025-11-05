@@ -16,6 +16,9 @@ M.ORDERABLE_LIST_TYPES = {
 M.DELIMITER_DOT = "."
 M.DELIMITER_PAREN = ")"
 
+-- Maximum number of lines to look back when searching for parent list item
+M.MAX_PARENT_LOOKBACK = 20
+
 ---Check if a list type is orderable (supports renumbering)
 ---@param list_type string List type to check
 ---@return boolean True if the list type is orderable
@@ -84,8 +87,8 @@ function M.find_parent_list_item(line, line_num, lines)
     return nil
   end
 
-  -- Look upward for a list item with matching content position (max 20 lines)
-  for i = line_num - 1, math.max(1, line_num - 20), -1 do
+  -- Look upward for a list item with matching content position
+  for i = line_num - 1, math.max(1, line_num - M.MAX_PARENT_LOOKBACK), -1 do
     local prev_line = lines[i]
     if not prev_line then
       break
