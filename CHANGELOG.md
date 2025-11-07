@@ -5,6 +5,22 @@ All notable changes to markdown-plus.nvim will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.1](https://github.com/YousefHadder/markdown-plus.nvim/compare/v1.7.0...v1.7.1) (2025-11-07)
+
+
+### Bug Fixes
+
+* allow custom keymaps when disabled and fix list enter splitting at last char ([5748974](https://github.com/YousefHadder/markdown-plus.nvim/commit/57489741a1c5a0f65ed1ba96a8a16b901fac613b))
+* **bug:** critical table bugs, add health check, and improve reference id handling ([e31d3a0](https://github.com/YousefHadder/markdown-plus.nvim/commit/e31d3a015a2e53655c135f305b6170c5ec8c7b6e))
+* **bug:** custom keymaps and list enter splitting bugs ([f3ca2fd](https://github.com/YousefHadder/markdown-plus.nvim/commit/f3ca2fd6791b9ffdf8d891bc9893766e9ad15540))
+* **bug:** list continuation line handling and refactor shared utilities ([51116c8](https://github.com/YousefHadder/markdown-plus.nvim/commit/51116c874f4795a6be5d8027320319cff7975ac9))
+* **bug:** process unicode character properly ([968d132](https://github.com/YousefHadder/markdown-plus.nvim/commit/968d132f67f51450414862148af751c87c5a350e))
+* critical table bugs, add health check, and improve reference ID handling ([6b8795c](https://github.com/YousefHadder/markdown-plus.nvim/commit/6b8795c907f9d819849cbeb62135738a99e31857))
+* handle list continuation lines in renumbering and refactor shared utilities ([a198f62](https://github.com/YousefHadder/markdown-plus.nvim/commit/a198f62708998efc97879fc534651a2985e4ed44))
+* **list:** continue lists when enter is pressed on indented continuation lines ([7d0d052](https://github.com/YousefHadder/markdown-plus.nvim/commit/7d0d05212aeb6a012fc0ae346f39c076ed11a957))
+* **list:** continue lists when Enter is pressed on indented continuation lines ([90a3adc](https://github.com/YousefHadder/markdown-plus.nvim/commit/90a3adc29ba77cc20ca0daeb39941b88135ed077))
+* process unicode character properly ([6ac2e81](https://github.com/YousefHadder/markdown-plus.nvim/commit/6ac2e811983c95b0a12b1d4abbdafc99e87a50dd))
+
 ## [1.7.0](https://github.com/YousefHadder/markdown-plus.nvim/compare/v1.6.0...v1.7.0) (2025-11-04)
 
 
