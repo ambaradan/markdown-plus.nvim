@@ -258,7 +258,11 @@ describe("markdown-plus links", function()
       assert.is_true(notified, "Should notify user about reusing reference")
     end)
 
-    it("handles case-insensitive reference matching", function()
+    -- Note: The generated ref_id is always lowercase ('hello-world'),
+    -- so it matches the existing reference definition which is also lowercase.
+    -- This test verifies that we don't create duplicates when link text
+    -- case differs but normalizes to the same reference ID.
+    it("handles case normalization in reference matching", function()
       vim.api.nvim_buf_set_lines(0, 0, -1, false, {
         "Link [Hello World](https://example.com)",
         "",
@@ -275,7 +279,7 @@ describe("markdown-plus links", function()
           ref_count = ref_count + 1
         end
       end
-      -- Should reuse existing (case-insensitive match), not create new one
+      -- Should reuse existing reference (normalized to same ID), not create duplicate
       assert.equals(1, ref_count)
     end)
   end)
