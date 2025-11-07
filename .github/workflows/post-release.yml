@@ -3,6 +3,12 @@ name: Post Release
 on:
   release:
     types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., v1.7.1)'
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -16,13 +22,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
         with:
+          ref: main
           fetch-depth: 0
 
       - name: Extract version from release
         id: version
         run: |
-          # Extract version from tag (e.g., v1.2.3 -> 1.2.3)
-          VERSION="${{ github.event.release.tag_name }}"
+          # Extract version from tag or workflow input
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ inputs.version }}"
+          else
+            VERSION="${{ github.event.release.tag_name }}"
+          fi
           VERSION="${VERSION#v}"  # Remove 'v' prefix if present
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Version: $VERSION"
@@ -58,6 +69,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: "chore: add rockspec for v${{ steps.version.outputs.version }}"
           branch: "chore/add-rockspec-v${{ steps.version.outputs.version }}"
+          base: main
           delete-branch: true
           title: "chore: add rockspec for v${{ steps.version.outputs.version }}"
           body: |
