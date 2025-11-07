@@ -319,10 +319,10 @@ local function show_toc_help()
   vim.wo[win].winhl = "Normal:Normal,FloatBorder:FloatBorder"
 
   -- Close on any key press
-  vim.keymap.set("n", "<Esc>", "<cmd>close<cr>", { buffer = buf, nowait = true })
-  vim.keymap.set("n", "q", "<cmd>close<cr>", { buffer = buf, nowait = true })
-  vim.keymap.set("n", "?", "<cmd>close<cr>", { buffer = buf, nowait = true })
-  vim.keymap.set("n", "<CR>", "<cmd>close<cr>", { buffer = buf, nowait = true })
+  vim.keymap.set("n", "<Esc>", "<cmd>close<cr>", { buffer = buf, nowait = true, desc = "Close help window" })
+  vim.keymap.set("n", "q", "<cmd>close<cr>", { buffer = buf, nowait = true, desc = "Close help window" })
+  vim.keymap.set("n", "?", "<cmd>close<cr>", { buffer = buf, nowait = true, desc = "Close help window" })
+  vim.keymap.set("n", "<CR>", "<cmd>close<cr>", { buffer = buf, nowait = true, desc = "Close help window" })
 end
 
 --- Set up keymaps for the TOC buffer

@@ -131,29 +131,30 @@ local function setup_buffer_keymaps(config)
   if config.keymaps.enabled then
     local default_mappings = {
       -- Table creation & formatting (normal mode)
-      { "n", prefix .. "c", "<Plug>(markdown-plus-table-create)" },
-      { "n", prefix .. "f", "<Plug>(markdown-plus-table-format)" },
-      { "n", prefix .. "n", "<Plug>(markdown-plus-table-normalize)" },
+      { "n", prefix .. "c", "<Plug>(markdown-plus-table-create)", "Create new table" },
+      { "n", prefix .. "f", "<Plug>(markdown-plus-table-format)", "Format table" },
+      { "n", prefix .. "n", "<Plug>(markdown-plus-table-normalize)", "Normalize table" },
 
       -- Row operations (normal mode)
-      { "n", prefix .. "ir", "<Plug>(markdown-plus-table-insert-row-below)" },
-      { "n", prefix .. "iR", "<Plug>(markdown-plus-table-insert-row-above)" },
-      { "n", prefix .. "dr", "<Plug>(markdown-plus-table-delete-row)" },
-      { "n", prefix .. "yr", "<Plug>(markdown-plus-table-duplicate-row)" },
+      { "n", prefix .. "ir", "<Plug>(markdown-plus-table-insert-row-below)", "Insert row below" },
+      { "n", prefix .. "iR", "<Plug>(markdown-plus-table-insert-row-above)", "Insert row above" },
+      { "n", prefix .. "dr", "<Plug>(markdown-plus-table-delete-row)", "Delete row" },
+      { "n", prefix .. "yr", "<Plug>(markdown-plus-table-duplicate-row)", "Duplicate row" },
 
       -- Column operations (normal mode)
-      { "n", prefix .. "ic", "<Plug>(markdown-plus-table-insert-column-right)" },
-      { "n", prefix .. "iC", "<Plug>(markdown-plus-table-insert-column-left)" },
-      { "n", prefix .. "dc", "<Plug>(markdown-plus-table-delete-column)" },
-      { "n", prefix .. "yc", "<Plug>(markdown-plus-table-duplicate-column)" },
+      { "n", prefix .. "ic", "<Plug>(markdown-plus-table-insert-column-right)", "Insert column right" },
+      { "n", prefix .. "iC", "<Plug>(markdown-plus-table-insert-column-left)", "Insert column left" },
+      { "n", prefix .. "dc", "<Plug>(markdown-plus-table-delete-column)", "Delete column" },
+      { "n", prefix .. "yc", "<Plug>(markdown-plus-table-duplicate-column)", "Duplicate column" },
     }
 
     for _, mapping in ipairs(default_mappings) do
-      local mode, lhs, rhs = mapping[1], mapping[2], mapping[3]
+      local mode, lhs, rhs, desc = mapping[1], mapping[2], mapping[3], mapping[4]
       if vim.fn.hasmapto(rhs, mode) == 0 then
         vim.keymap.set(mode, lhs, rhs, {
           buffer = true,
           silent = true,
+          desc = desc,
         })
       end
     end
