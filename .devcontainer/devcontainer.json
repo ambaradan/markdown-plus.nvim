@@ -40,8 +40,8 @@
     "PLENARY_DIR": "/home/vscode/.local/share/nvim/site/pack/vendor/start/plenary.nvim"
   },
   "mounts": [
-    "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached"
+    "source=${localWorkspaceFolder},target=/workspaces/markdown-plus.nvim,type=bind,consistency=cached"
   ],
-  "workspaceFolder": "/workspace",
+  "workspaceFolder": "/workspaces/markdown-plus.nvim",
   "remoteUser": "vscode"
 }

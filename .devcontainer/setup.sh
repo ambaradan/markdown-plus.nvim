@@ -22,7 +22,7 @@ if [ -f "$DOTFILES_DIR/install.sh" ]; then
   echo "Installing dotfiles..."
   cd "$DOTFILES_DIR"
   ./install.sh
-  cd /workspace
+  cd /workspaces/markdown-plus.nvim
   echo "✓ Dotfiles installed"
 else
   echo "⚠️  install.sh not found in dotfiles directory"
@@ -69,7 +69,7 @@ cd lua-language-server
 ./make.sh
 sudo cp -r bin/lua-language-server /usr/local/bin/
 sudo cp -r bin/main.lua /usr/local/bin/lua-language-server-main.lua
-cd /workspace
+cd /workspaces/markdown-plus.nvim
 rm -rf /tmp/lua-language-server
 
 # Create Neovim directories
