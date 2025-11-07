@@ -230,7 +230,7 @@ describe("table.row_mapper", function()
     it("no cells index maps to separator row", function()
       for cells_index = 1, 20 do
         local pos_row = row_mapper.cells_index_to_pos_row(cells_index)
-        assert.is_not.equals(row_mapper.SEPARATOR_ROW, pos_row)
+        assert.are_not.equal(row_mapper.SEPARATOR_ROW, pos_row)
       end
     end)
   end)

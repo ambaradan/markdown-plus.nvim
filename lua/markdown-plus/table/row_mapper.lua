@@ -81,7 +81,7 @@ function M.validate_cells_index(cells_index, cells_count)
   if cells_index > cells_count then
     return false, string.format("cells_index %d exceeds cells count %d", cells_index, cells_count)
   end
-  return true
+  return true, nil
 end
 
 return M

@@ -322,7 +322,7 @@ local function generate_unique_ref_id(text, target_url)
 
   -- If reference doesn't exist or points to same URL, use it
   if not existing_url or existing_url == target_url then
-    return base_ref
+    return base_ref, nil
   end
 
   -- Reference exists with different URL - generate unique ID by appending counter
