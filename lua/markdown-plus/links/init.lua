@@ -298,6 +298,51 @@ function M.find_reference_url(ref)
   return nil
 end
 
+---Generate a unique reference ID from link text
+---@param text string Link text
+---@param target_url string Target URL for the reference
+---@return string|nil ref_id Unique reference ID
+---@return string|nil error_msg Error message if generation failed
+local function generate_unique_ref_id(text, target_url)
+  -- Generate base reference ID from text
+  local base_ref = text
+    :lower()
+    :gsub("%s+", "-") -- Replace spaces with hyphens
+    :gsub("[^%w%-]", "") -- Remove non-alphanumeric (except hyphens)
+    :gsub("%-+", "-") -- Collapse multiple hyphens
+    :gsub("^%-", "") -- Remove leading hyphen
+    :gsub("%-$", "") -- Remove trailing hyphen
+
+  -- Validate that base_ref is not empty
+  if base_ref == "" then
+    return nil, "Link text does not contain any alphanumeric characters"
+  end
+
+  -- Check if base reference already exists
+  local existing_url = M.find_reference_url(base_ref)
+
+  -- If reference doesn't exist or points to same URL, use it
+  if not existing_url or existing_url == target_url then
+    return base_ref, nil
+  end
+
+  -- Reference exists with different URL - generate unique ID by appending counter
+  local counter = 1
+  local unique_ref = base_ref .. "-" .. counter
+
+  while M.find_reference_url(unique_ref) do
+    counter = counter + 1
+    unique_ref = base_ref .. "-" .. counter
+
+    -- Safety limit to prevent infinite loop
+    if counter > 100 then
+      return nil, "Could not generate unique reference ID (too many conflicts)"
+    end
+  end
+
+  return unique_ref
+end
+
 -- Convert inline link to reference-style
 function M.convert_to_reference()
   local link = M.get_link_at_cursor()
@@ -312,29 +357,16 @@ function M.convert_to_reference()
     return
   end
 
-  -- Generate reference ID (use lowercase text as ref)
-  local ref = link.text:lower():gsub("%s+", "-"):gsub("[^%w%-]", "")
-
-  -- Validate that ref is not empty
-  if ref == "" then
-    utils.notify(
-      "Cannot generate reference: link text does not contain any alphanumeric characters",
-      vim.log.levels.ERROR
-    )
+  -- Generate unique reference ID
+  local ref, err = generate_unique_ref_id(link.text, link.url)
+  if not ref then
+    utils.notify("Cannot generate reference: " .. err, vim.log.levels.ERROR)
     return
   end
 
-  -- Check if reference already exists with the same URL
+  -- Check if we're reusing an existing reference
   local existing_url = M.find_reference_url(ref)
-  if existing_url and existing_url == link.url then
-    -- Use existing reference
-    local line = utils.get_line(link.line_num)
-    local new_link = "[" .. link.text .. "][" .. ref .. "]"
-    local new_line = line:sub(1, link.start_pos - 1) .. new_link .. line:sub(link.end_pos + 1)
-    utils.set_line(link.line_num, new_line)
-    utils.notify("Converted to reference link (existing ref)")
-    return
-  end
+  local reusing_existing = existing_url and existing_url == link.url
 
   -- Replace inline link with reference link
   local line = utils.get_line(link.line_num)
@@ -342,21 +374,25 @@ function M.convert_to_reference()
   local new_line = line:sub(1, link.start_pos - 1) .. new_link .. line:sub(link.end_pos + 1)
   utils.set_line(link.line_num, new_line)
 
-  -- Add reference definition at end of document
-  local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
-  local last_line = #lines
+  -- Only add reference definition if not reusing existing one
+  if not reusing_existing then
+    local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+    local last_line = #lines
 
-  -- Add blank line if needed
-  if lines[last_line] ~= "" then
-    vim.api.nvim_buf_set_lines(0, last_line, last_line, false, { "" })
-    last_line = last_line + 1
+    -- Add blank line if needed
+    if lines[last_line] ~= "" then
+      vim.api.nvim_buf_set_lines(0, last_line, last_line, false, { "" })
+      last_line = last_line + 1
+    end
+
+    -- Add reference definition
+    local ref_def = "[" .. ref .. "]: " .. link.url
+    vim.api.nvim_buf_set_lines(0, last_line, last_line, false, { ref_def })
+
+    utils.notify("Converted to reference-style link")
+  else
+    utils.notify("Converted to reference-style link (reusing existing reference)")
   end
-
-  -- Add reference definition
-  local ref_def = "[" .. ref .. "]: " .. link.url
-  vim.api.nvim_buf_set_lines(0, last_line, last_line, false, { ref_def })
-
-  utils.notify("Converted to reference-style link")
 end
 
 -- Convert reference link to inline

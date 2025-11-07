@@ -64,8 +64,10 @@ function M.move_to_cell(table_info, row, col)
     return false
   end
 
-  -- Validate row bounds (row=1 is separator, not in cells array)
-  if row < 0 or (row > SEPARATOR_ROW and row - 1 > #table_info.cells) then
+  -- Validate row bounds
+  -- row: 0=header (cells[1]), 1=separator (virtual), 2+=data rows (cells[2+])
+  -- For data rows (row >= 2), check if corresponding cells index exists
+  if row < 0 or row > #table_info.cells then
     return false
   end
 

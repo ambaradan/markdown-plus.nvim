@@ -475,4 +475,53 @@ describe("markdown-plus format", function()
       assert.are.equal(2, selection.end_row)
     end)
   end)
+
+  describe("UTF-8 handling", function()
+    -- Basic tests that verify UTF-8 text doesn't crash the plugin
+
+    it("doesn't crash with emoji in text", function()
+      vim.api.nvim_buf_set_lines(0, 0, -1, false, { "Hello 👋 world" })
+      vim.api.nvim_win_set_cursor(0, { 1, 6 })
+
+      -- Should not crash
+      local success = pcall(function()
+        format.get_word_boundaries()
+      end)
+      assert.is_true(success)
+    end)
+
+    it("doesn't crash with accented characters", function()
+      vim.api.nvim_buf_set_lines(0, 0, -1, false, { "café naïve résumé" })
+      vim.api.nvim_win_set_cursor(0, { 1, 2 })
+
+      local success = pcall(function()
+        format.get_word_boundaries()
+      end)
+      assert.is_true(success)
+    end)
+
+    it("doesn't crash with CJK characters", function()
+      vim.api.nvim_buf_set_lines(0, 0, -1, false, { "你好 世界 test" })
+      vim.api.nvim_win_set_cursor(0, { 1, 0 })
+
+      local success = pcall(function()
+        format.get_word_boundaries()
+      end)
+      assert.is_true(success)
+    end)
+
+    it("can format simple ASCII text", function()
+      vim.api.nvim_buf_set_lines(0, 0, -1, false, { "test" })
+      vim.api.nvim_win_set_cursor(0, { 1, 0 })
+
+      local success = pcall(function()
+        format.toggle_format_word("bold")
+      end)
+      assert.is_true(success)
+
+      local line = utils.get_current_line()
+      -- Should have bold formatting
+      assert.matches("%*%*", line)
+    end)
+  end)
 end)
