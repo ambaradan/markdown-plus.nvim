@@ -33,6 +33,7 @@ A comprehensive Neovim plugin that provides modern markdown editing capabilities
 - [Keymaps Reference](#keymaps-reference)
 - [Configuration](#configuration)
 - [Customizing Keymaps](#customizing-keymaps)
+- [Troubleshooting](#troubleshooting)
 - [Contributing & Development](#contributing--development)
 - [License](#license)
 
@@ -1609,6 +1610,92 @@ vim.keymap.set("n", "<C-b>", "<Plug>(MarkdownPlusBold)", { buffer = false })  --
 ```
 
 Note: The plugin uses `hasmapto()` to check if a `<Plug>` mapping is already mapped before setting defaults, so your custom mappings will take precedence.
+
+</details>
+
+## Troubleshooting
+
+### Health Check
+
+markdown-plus.nvim includes a comprehensive health check that validates your configuration and reports any issues. Run it with:
+
+```vim
+:checkhealth markdown-plus
+```
+
+The health check will verify:
+- ✅ Neovim version (requires 0.11+)
+- ✅ Lua/LuaJIT version
+- ✅ Plugin configuration validity
+- ✅ Enabled features status
+- ✅ Configured filetypes
+- ✅ Keymap configuration
+- ⚠️  Plugin conflicts (e.g., with vim-markdown)
+- 📦 Development dependencies (for contributors)
+
+If you encounter any issues, run the health check first - it will often identify the problem and suggest solutions.
+
+### Common Issues
+
+<details>
+<summary><b>Plugin not working / keymaps not active</b></summary>
+
+1. Ensure the plugin loaded for your buffer:
+   ```vim
+   :lua print(vim.g.loaded_markdown_plus)
+   ```
+   Should print `1`. If not, the plugin didn't load.
+
+2. Check your filetype:
+   ```vim
+   :set filetype?
+   ```
+   By default, the plugin only loads for `markdown` filetype. See [Configuration](#configuration) to enable for other filetypes.
+
+3. Run the health check:
+   ```vim
+   :checkhealth markdown-plus
+   ```
+
+</details>
+
+<details>
+<summary><b>Keymaps conflicting with other plugins</b></summary>
+
+If you have keymap conflicts with other plugins (like vim-markdown), you have two options:
+
+1. **Disable markdown-plus default keymaps** and create custom ones:
+   ```lua
+   require("markdown-plus").setup({
+     default_keymaps = false,
+   })
+
+   -- Then create custom keymaps
+   vim.keymap.set("n", "<leader>mb", "<Plug>(MarkdownPlusBold)")
+   ```
+
+2. **Disable conflicting keymaps** from the other plugin. See the other plugin's documentation.
+
+The health check will warn you about detected conflicts.
+
+</details>
+
+<details>
+<summary><b>Lists not auto-continuing</b></summary>
+
+1. Check that list management is enabled:
+   ```vim
+   :checkhealth markdown-plus
+   ```
+
+2. Ensure you're in insert mode when pressing Enter
+
+3. Verify the line is recognized as a list item. The plugin supports:
+   - Unordered: `-`, `*`, `+`
+   - Ordered: `1.`, `2.`, etc.
+   - Letter: `a.`, `b.`, `A.`, `B.`, etc.
+   - Parenthesized: `1)`, `a)`, `A)`, etc.
+   - With checkboxes: `- [ ]`, `1. [x]`, etc.
 
 </details>
 

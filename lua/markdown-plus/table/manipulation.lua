@@ -17,6 +17,7 @@ local M = {}
 function M.insert_row(above)
   local parser = require("markdown-plus.table.parser")
   local formatter = require("markdown-plus.table.format")
+  local row_mapper = require("markdown-plus.table.row_mapper")
 
   local table_info = parser.get_table_at_cursor()
   if not table_info then
@@ -35,20 +36,23 @@ function M.insert_row(above)
     table.insert(empty_cells, "")
   end
 
-  -- Determine insertion position
+  -- Determine insertion position in cells array
   local insert_index
-  if pos.row == 0 then
-    -- In header - always insert after (becomes first data row)
-    insert_index = 2
-  elseif pos.row == 1 then
-    -- In separator - insert first data row
-    insert_index = 2
+  if row_mapper.is_header_row(pos.row) or row_mapper.is_separator_row(pos.row) then
+    -- In header or separator - always insert as first data row
+    insert_index = 2 -- cells[2] = first data row
   else
-    -- In data row
+    -- In data row - use row mapper for safe conversion
+    local current_cells_index = row_mapper.pos_row_to_cells_index(pos.row)
+    if not current_cells_index then
+      vim.notify("Cannot determine insertion position (internal error)", vim.log.levels.ERROR)
+      return false
+    end
+
     if above then
-      insert_index = pos.row
+      insert_index = current_cells_index
     else
-      insert_index = pos.row + 1
+      insert_index = current_cells_index + 1
     end
   end
 
@@ -77,6 +81,7 @@ function M.delete_row()
   local parser = require("markdown-plus.table.parser")
   local formatter = require("markdown-plus.table.format")
   local navigation = require("markdown-plus.table.navigation")
+  local row_mapper = require("markdown-plus.table.row_mapper")
 
   local table_info = parser.get_table_at_cursor()
   if not table_info then
@@ -90,7 +95,7 @@ function M.delete_row()
   end
 
   -- Cannot delete header or separator
-  if pos.row <= 1 then
+  if row_mapper.is_header_row(pos.row) or row_mapper.is_separator_row(pos.row) then
     vim.notify("Cannot delete header or separator row", vim.log.levels.WARN)
     return false
   end
@@ -101,10 +106,20 @@ function M.delete_row()
     return false
   end
 
-  -- pos.row uses 0-based indexing: 0=header, 1=separator, 2+=data rows
-  -- cells array is 1-indexed (Lua): cells[1]=header, cells[2+]=data rows
-  -- For data row at pos.row=N (where N>=2), delete cells[N]
-  local cells_index = pos.row
+  -- Convert position row to cells array index
+  local cells_index = row_mapper.pos_row_to_cells_index(pos.row)
+  if not cells_index then
+    vim.notify("Cannot delete separator row (internal error)", vim.log.levels.ERROR)
+    return false
+  end
+
+  -- Validate index is within bounds
+  local valid, err = row_mapper.validate_cells_index(cells_index, #table_info.cells)
+  if not valid then
+    vim.notify("Invalid row index: " .. err, vim.log.levels.ERROR)
+    return false
+  end
+
   table.remove(table_info.cells, cells_index)
 
   -- Reformat and update buffer
@@ -132,6 +147,7 @@ function M.duplicate_row()
   local parser = require("markdown-plus.table.parser")
   local formatter = require("markdown-plus.table.format")
   local navigation = require("markdown-plus.table.navigation")
+  local row_mapper = require("markdown-plus.table.row_mapper")
 
   local table_info = parser.get_table_at_cursor()
   if not table_info then
@@ -145,16 +161,28 @@ function M.duplicate_row()
   end
 
   -- Cannot duplicate separator row
-  if pos.row == 1 then
+  if row_mapper.is_separator_row(pos.row) then
     vim.notify("Cannot duplicate separator row", vim.log.levels.WARN)
     return false
   end
 
-  -- pos.row is 0-indexed: 0=header, 1=separator(virtual), 2+=data rows
-  -- cells array: 1=header, 2+=data rows
-  local cells_index = pos.row
+  -- Convert position row to cells array index
+  local cells_index = row_mapper.pos_row_to_cells_index(pos.row)
+  if not cells_index then
+    vim.notify("Invalid row position (internal error)", vim.log.levels.ERROR)
+    return false
+  end
+
+  -- Validate and get current cells
+  local valid, err = row_mapper.validate_cells_index(cells_index, #table_info.cells)
+  if not valid then
+    vim.notify("Invalid row index: " .. err, vim.log.levels.ERROR)
+    return false
+  end
+
   local current_cells = table_info.cells[cells_index]
   if not current_cells then
+    vim.notify("Cannot access row data (internal error)", vim.log.levels.ERROR)
     return false
   end
 
