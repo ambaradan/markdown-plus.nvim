@@ -1,0 +1,47 @@
+{
+  "name": "markdown-plus.nvim Development",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "installOhMyZsh": true,
+      "username": "vscode"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "sumneko.lua",
+        "github.copilot",
+        "github.copilot-chat",
+        "editorconfig.editorconfig"
+      ],
+      "settings": {
+        "Lua.runtime.version": "Lua 5.1",
+        "Lua.workspace.library": [
+          "${workspaceFolder}/lua",
+          "/usr/local/share/nvim/runtime/lua"
+        ],
+        "Lua.workspace.checkThirdParty": false,
+        "Lua.diagnostics.globals": [
+          "vim"
+        ],
+        "Lua.workspace.userThirdParty": [
+          "${workspaceFolder}/.luarc.json"
+        ]
+      }
+    }
+  },
+  "postCreateCommand": "bash .devcontainer/setup.sh",
+  "forwardPorts": [],
+  "remoteEnv": {
+    "PLENARY_DIR": "/home/vscode/.local/share/nvim/site/pack/vendor/start/plenary.nvim"
+  },
+  "mounts": [
+    "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached"
+  ],
+  "workspaceFolder": "/workspace",
+  "remoteUser": "vscode"
+}
