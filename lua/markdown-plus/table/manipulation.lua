@@ -181,10 +181,6 @@ function M.duplicate_row()
   end
 
   local current_cells = table_info.cells[cells_index]
-  if not current_cells then
-    vim.notify("Cannot access row data (internal error)", vim.log.levels.ERROR)
-    return false
-  end
 
   -- Duplicate the cells
   local duplicate_cells = {}

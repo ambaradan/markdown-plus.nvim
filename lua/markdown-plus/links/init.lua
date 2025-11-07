@@ -301,7 +301,8 @@ end
 ---Generate a unique reference ID from link text
 ---@param text string Link text
 ---@param target_url string Target URL for the reference
----@return string ref_id Unique reference ID
+---@return string|nil ref_id Unique reference ID
+---@return string|nil error_msg Error message if generation failed
 local function generate_unique_ref_id(text, target_url)
   -- Generate base reference ID from text
   local base_ref = text
