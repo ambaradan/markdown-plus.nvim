@@ -175,16 +175,34 @@ See [Configuration](#configuration) for all available options.
 </details>
 
 <details>
-<summary><b>Table Support (Phase 1)</b></summary>
+<summary><b>Table Support</b></summary>
 
+**Basic Operations:**
 - **Create tables**: `<leader>tc` to interactively create a new table with custom dimensions
 - **Format tables**: `<leader>tf` to auto-format and align columns
 - **Normalize tables**: `<leader>tn` to fix malformed tables
-- **Row operations**: Insert (`<leader>tir`/`<leader>tiR`), delete (`<leader>tdr`), duplicate (`<leader>tyr`)
-- **Column operations**: Insert (`<leader>tic`/`<leader>tiC`), delete (`<leader>tdc`), duplicate (`<leader>tyc`)
-- **Insert mode navigation**: Navigate table cells with `<A-h>`, `<A-l>`, `<A-j>`, `<A-k>` (wraps around)
-- **Alignment support**: Left (`:---`), center (`:---:`), right (`---:`)
 - **Smart cursor positioning**: Cursor automatically positioned after all operations
+
+**Row & Column Operations:**
+- **Insert rows**: `<leader>tir` (below) / `<leader>tiR` (above)
+- **Delete row**: `<leader>tdr` (protects header/separator)
+- **Duplicate row**: `<leader>tyr`
+- **Move rows**: `<leader>tmk` (up) / `<leader>tmj` (down)
+- **Insert columns**: `<leader>tic` (right) / `<leader>tiC` (left)
+- **Delete column**: `<leader>tdc` (protects last column)
+- **Duplicate column**: `<leader>tyc`
+- **Move columns**: `<leader>tmh` (left) / `<leader>tml` (right)
+
+**Cell Operations:**
+- **Toggle alignment**: `<leader>ta` cycles through left → center → right → left
+- **Clear cell**: `<leader>tx` clears content while preserving structure
+- **Insert mode navigation**: `<A-h>`, `<A-l>`, `<A-j>`, `<A-k>` (circular wrapping)
+
+**Advanced Operations:**
+- **Transpose table**: `<leader>tt` swaps rows and columns (with confirmation)
+- **Sort by column**: `<leader>tsa` (ascending) / `<leader>tsd` (descending), numeric & alphabetic
+- **CSV conversion**: `<leader>tvx` (to CSV) / `<leader>tvi` (from CSV)
+- **Alignment support**: Left (`:---`), center (`:---:`), right (`---:`)
 
 </details>
 
@@ -224,6 +242,7 @@ See [Configuration](#configuration) for all available options.
       table = {          -- Table sub-configuration
         auto_format = true,
         default_alignment = "left",
+        confirm_destructive = true,  -- Confirm before transpose/sort operations
         keymaps = {
           enabled = true,
           prefix = "<leader>t",
@@ -1009,6 +1028,171 @@ Wrapping behavior (circular navigation):
 Falls back to arrow keys when not in a table.
 ```
 
+### Cell Operations
+
+```markdown
+Toggle cell alignment with <leader>ta:
+| Left | Center | Right |
+|------|--------|-------|
+| A    | B      | C     |
+      ↑ cursor here, press <leader>ta
+
+→ Cycles through:
+| Left | Center | Right |
+|:-----|--------|-------| (left-aligned)
+|:-----|:------:|-------| (center-aligned)
+|:-----|:------:|------:| (right-aligned)
+|------|--------|-------| (back to left)
+
+Clear cell content with <leader>tx:
+| Name  | Age | City     |
+|-------|-----|----------|
+| Alice | 25  | New York |
+              ↑ cursor here, press <leader>tx
+
+→
+| Name  | Age | City     |
+|-------|-----|----------|
+| Alice |     | New York | (content cleared, structure intact)
+```
+
+### Row and Column Movement
+
+```markdown
+Move row up with <leader>tmk:
+| Name  | Age |
+|-------|-----|
+| Alice | 25  |
+| Bob   | 30  | ← cursor here
+| Carol | 35  |
+
+→
+| Name  | Age |
+|-------|-----|
+| Bob   | 30  | (moved up)
+| Alice | 25  |
+| Carol | 35  |
+
+Move row down with <leader>tmj:
+| Name  | Age |
+|-------|-----|
+| Alice | 25  | ← cursor here
+| Bob   | 30  |
+| Carol | 35  |
+
+→
+| Name  | Age |
+|-------|-----|
+| Bob   | 30  |
+| Alice | 25  | (moved down)
+| Carol | 35  |
+
+Move column left with <leader>tmh:
+| Name  | Age | City |
+|-------|-----|------|
+| Alice | 25  | NYC  |
+              ↑ cursor here
+
+→
+| Age | Name  | City |
+|-----|-------|------|
+| 25  | Alice | NYC  | (Age column moved left)
+
+Move column right with <leader>tml:
+| Name  | Age | City |
+|-------|-----|------|
+| Alice | 25  | NYC  |
+        ↑ cursor here
+
+→
+| Age | Name  | City |
+|-----|-------|------|
+| 25  | Alice | NYC  | (Name column moved right)
+```
+
+### Advanced Operations
+
+```markdown
+Transpose table with <leader>tt:
+| Name  | Age | City        |
+|-------|-----|-------------|
+| Alice | 30  | New York    |
+| Bob   | 25  | Los Angeles |
+↑ cursor anywhere in table, press <leader>tt, confirm
+
+→
+| Name | Alice    | Bob         |
+|------|----------|-------------|
+| Age  | 30       | 25          |
+| City | New York | Los Angeles |
+(Rows become columns, columns become rows)
+
+Sort by column ascending with <leader>tsa:
+| Name  | Age | City        |
+|-------|-----|-------------|
+| Bob   | 30  | Los Angeles |
+| Alice | 25  | New York    |
+| Carol | 35  | Chicago     |
+        ↑ cursor in Age column, press <leader>tsa, confirm
+
+→
+| Name  | Age | City        |
+|-------|-----|-------------|
+| Alice | 25  | New York    | (sorted by age ascending)
+| Bob   | 30  | Los Angeles |
+| Carol | 35  | Chicago     |
+
+Sort by column descending with <leader>tsd:
+| Product | Price |
+|---------|-------|
+| Apple   | 1.50  |
+| Banana  | 0.75  |
+| Orange  | 2.00  |
+           ↑ cursor in Price column, press <leader>tsd, confirm
+
+→
+| Product | Price |
+|---------|-------|
+| Orange  | 2.00  | (sorted by price descending)
+| Apple   | 1.50  |
+| Banana  | 0.75  |
+
+Convert table to CSV with <leader>tvx:
+| Name  | Age | City     |
+|-------|-----|----------|
+| Alice | 25  | New York |
+| Bob   | 30  | LA       |
+↑ cursor anywhere in table, press <leader>tvx
+
+→
+Name,Age,City
+Alice,25,New York
+Bob,30,LA
+(Table replaced with CSV format)
+
+Convert CSV to table with <leader>tvi:
+Name,Age,City
+Alice,25,New York
+Bob,30,LA
+↑ cursor on any CSV line, press <leader>tvi
+
+→
+| Name  | Age | City     |
+|-------|-----|----------|
+| Alice | 25  | New York |
+| Bob   | 30  | LA       |
+(CSV converted to formatted table)
+
+Handles quoted CSV fields with commas:
+"Last, First",Age,"City, State"
+"Smith, John",30,"New York, NY"
+
+→
+| Last, First | Age | City, State  |
+|-------------|-----|---------------|
+| Smith, John | 30  | New York, NY |
+```
+
 ### Edge Cases
 
 ```markdown
@@ -1062,67 +1246,6 @@ logical cell (usually first cell of new/modified row/column).
 
 ## Keymaps Reference
 
-<details open>
-<summary><b>Quick Reference - All Keymaps</b></summary>
-
-| Feature | Keymap | Mode | Description |
-|---------|--------|------|-------------|
-| **List Management** |
-| | `<CR>` | Insert | Auto-continue lists, split content, or break out |
-| | `<A-CR>` | Insert | Continue content on next line (no new bullet) |
-| | `<Tab>` | Insert | Indent list item |
-| | `<S-Tab>` | Insert | Outdent list item |
-| | `<BS>` | Insert | Smart backspace |
-| | `o` | Normal | Create next list item |
-| | `O` | Normal | Create previous list item |
-| | `<leader>mr` | Normal | Manual renumber lists |
-| | `<leader>mx` | Normal/Visual | Toggle checkbox |
-| | `<C-t>` | Insert | Toggle checkbox |
-| **Text Formatting** |
-| | `<leader>mb` | Normal/Visual | Toggle **bold** |
-| | `<leader>mi` | Normal/Visual | Toggle *italic* |
-| | `<leader>ms` | Normal/Visual | Toggle ~~strikethrough~~ |
-| | `<leader>mc` | Normal/Visual | Toggle `code` |
-| | `<leader>mw` | Visual | Convert selection to code block |
-| | `<leader>mC` | Normal/Visual | Clear all formatting |
-| **Headers & TOC** |
-| | `]]` | Normal | Jump to next header |
-| | `[[` | Normal | Jump to previous header |
-| | `<leader>h+` | Normal | Promote header |
-| | `<leader>h-` | Normal | Demote header |
-| | `<leader>h1` to `h6` | Normal | Set header level |
-| | `<leader>ht` | Normal | Generate TOC |
-| | `<leader>hu` | Normal | Update TOC |
-| | `<leader>hT` | Normal | Toggle TOC window |
-| | `gd` | Normal | Follow TOC link |
-| **Links** |
-| | `<leader>ml` | Normal | Insert new link |
-| | `<leader>ml` | Visual | Convert selection to link |
-| | `<leader>me` | Normal | Edit link |
-| | `<leader>ma` | Normal | Auto-convert URL |
-| | `<leader>mR` | Normal | Convert to reference |
-| | `<leader>mI` | Normal | Convert to inline |
-| | `gx` | Normal | Open link in browser |
-| **Quotes** |
-| | `<leader>mq` | Normal/Visual | Toggle blockquote |
-| **Tables** |
-| | `<leader>tc` | Normal | Create table |
-| | `<leader>tf` | Normal | Format table |
-| | `<leader>tn` | Normal | Normalize table |
-| | `<leader>tir` | Normal | Insert row below |
-| | `<leader>tiR` | Normal | Insert row above |
-| | `<leader>tdr` | Normal | Delete row |
-| | `<leader>tyr` | Normal | Duplicate row |
-| | `<leader>tic` | Normal | Insert column right |
-| | `<leader>tiC` | Normal | Insert column left |
-| | `<leader>tdc` | Normal | Delete column |
-| | `<leader>tyc` | Normal | Duplicate column |
-| | `<A-h>` | Insert | Move to cell left (wraps) |
-| | `<A-l>` | Insert | Move to cell right (wraps) |
-| | `<A-j>` | Insert | Move to cell down (wraps) |
-| | `<A-k>` | Insert | Move to cell up (wraps) |
-
-</details>
 
 <details>
 <summary><b>Detailed Keymaps by Category</b></summary>
@@ -1605,6 +1728,17 @@ vim.keymap.set("n", "<leader>Tyc", "<Plug>(markdown-plus-table-duplicate-column)
 - `<Plug>(markdown-plus-table-insert-column-left)` - Insert column left (n)
 - `<Plug>(markdown-plus-table-delete-column)` - Delete column (n)
 - `<Plug>(markdown-plus-table-duplicate-column)` - Duplicate column (n)
+- `<Plug>(markdown-plus-table-toggle-cell-alignment)` - Toggle cell alignment (n)
+- `<Plug>(markdown-plus-table-clear-cell)` - Clear cell content (n)
+- `<Plug>(markdown-plus-table-move-row-up)` - Move row up (n)
+- `<Plug>(markdown-plus-table-move-row-down)` - Move row down (n)
+- `<Plug>(markdown-plus-table-move-column-left)` - Move column left (n)
+- `<Plug>(markdown-plus-table-move-column-right)` - Move column right (n)
+- `<Plug>(markdown-plus-table-transpose)` - Transpose table (n)
+- `<Plug>(markdown-plus-table-sort-ascending)` - Sort by column ascending (n)
+- `<Plug>(markdown-plus-table-sort-descending)` - Sort by column descending (n)
+- `<Plug>(markdown-plus-table-to-csv)` - Convert table to CSV (n)
+- `<Plug>(markdown-plus-table-from-csv)` - Convert CSV to table (n)
 
 ### Mixing Default and Custom Keymaps
 

@@ -767,7 +767,7 @@ KEYMAPS                                      *markdown-plus-configuration-keymap
 
 Keymaps are automatically set up when the plugin loads (for configured filetypes).
 You can disable all defaults with `keymaps.enabled = false` and use provided
-`<Plug>` mappings to define custom keymaps (see below).
+`<Plug>` mappings to define custom keymaps (see |markdown-plus-plug-mappings|).
 
 Default keymaps:
 
@@ -1052,7 +1052,110 @@ See |markdown-plus-api| for a complete list of available functions.
 
 
 ==============================================================================
-6. API                                                         *markdown-plus-api*
+6. PLUG MAPPINGS                                       *markdown-plus-plug-mappings*
+
+All interactive features are exposed through `<Plug>` mappings, allowing you to
+create custom keybindings. When `keymaps.enabled = false`, you can map these
+yourself.
+
+TEXT FORMATTING ~
+
+    <Plug>(MarkdownPlusBold)               - Toggle bold (n, x)
+    <Plug>(MarkdownPlusItalic)             - Toggle italic (n, x)
+    <Plug>(MarkdownPlusStrikethrough)      - Toggle strikethrough (n, x)
+    <Plug>(MarkdownPlusCode)               - Toggle inline code (n, x)
+    <Plug>(MarkdownPlusCodeBlock)          - Convert to code block (x)
+    <Plug>(MarkdownPlusClearFormatting)    - Clear all formatting (n, x)
+
+HEADERS & TOC ~
+
+    <Plug>(MarkdownPlusNextHeader)         - Jump to next header (n)
+    <Plug>(MarkdownPlusPrevHeader)         - Jump to previous header (n)
+    <Plug>(MarkdownPlusPromoteHeader)      - Promote header (n)
+    <Plug>(MarkdownPlusDemoteHeader)       - Demote header (n)
+    <Plug>(MarkdownPlusGenerateTOC)        - Generate TOC (n)
+    <Plug>(MarkdownPlusUpdateTOC)          - Update TOC (n)
+    <Plug>(MarkdownPlusFollowLink)         - Follow TOC link (n)
+    <Plug>(MarkdownPlusHeader1)            - Set header level 1 (n)
+    <Plug>(MarkdownPlusHeader2)            - Set header level 2 (n)
+    <Plug>(MarkdownPlusHeader3)            - Set header level 3 (n)
+    <Plug>(MarkdownPlusHeader4)            - Set header level 4 (n)
+    <Plug>(MarkdownPlusHeader5)            - Set header level 5 (n)
+    <Plug>(MarkdownPlusHeader6)            - Set header level 6 (n)
+
+LINKS ~
+
+    <Plug>(MarkdownPlusInsertLink)         - Insert new link (n)
+    <Plug>(MarkdownPlusSelectionToLink)    - Convert selection to link (v)
+    <Plug>(MarkdownPlusEditLink)           - Edit link under cursor (n)
+    <Plug>(MarkdownPlusConvertToReference) - Convert to reference-style (n)
+    <Plug>(MarkdownPlusConvertToInline)    - Convert to inline link (n)
+    <Plug>(MarkdownPlusAutoLinkURL)        - Auto-convert URL to link (n)
+
+LIST MANAGEMENT ~
+
+    <Plug>(MarkdownPlusListEnter)          - Auto-continue list (i)
+    <Plug>(MarkdownPlusListIndent)         - Indent list item (i)
+    <Plug>(MarkdownPlusListOutdent)        - Outdent list item (i)
+    <Plug>(MarkdownPlusListBackspace)      - Smart backspace (i)
+    <Plug>(MarkdownPlusRenumberLists)      - Renumber lists (n)
+    <Plug>(MarkdownPlusDebugLists)         - Debug list groups (n)
+    <Plug>(MarkdownPlusNewListItemBelow)   - New item below (n)
+    <Plug>(MarkdownPlusNewListItemAbove)   - New item above (n)
+
+QUOTES ~
+
+    <Plug>(MarkdownPlusToggleQuote)        - Toggle blockquote (n, x)
+
+TABLES ~
+
+    Basic operations:
+    <Plug>(markdown-plus-table-create)              - Create table (n)
+    <Plug>(markdown-plus-table-format)              - Format table (n)
+    <Plug>(markdown-plus-table-normalize)           - Normalize table (n)
+
+    Row operations:
+    <Plug>(markdown-plus-table-insert-row-below)    - Insert row below (n)
+    <Plug>(markdown-plus-table-insert-row-above)    - Insert row above (n)
+    <Plug>(markdown-plus-table-delete-row)          - Delete row (n)
+    <Plug>(markdown-plus-table-duplicate-row)       - Duplicate row (n)
+    <Plug>(markdown-plus-table-move-row-up)         - Move row up (n)
+    <Plug>(markdown-plus-table-move-row-down)       - Move row down (n)
+
+    Column operations:
+    <Plug>(markdown-plus-table-insert-column-right) - Insert column right (n)
+    <Plug>(markdown-plus-table-insert-column-left)  - Insert column left (n)
+    <Plug>(markdown-plus-table-delete-column)       - Delete column (n)
+    <Plug>(markdown-plus-table-duplicate-column)    - Duplicate column (n)
+    <Plug>(markdown-plus-table-move-column-left)    - Move column left (n)
+    <Plug>(markdown-plus-table-move-column-right)   - Move column right (n)
+
+    Cell operations:
+    <Plug>(markdown-plus-table-toggle-cell-alignment) - Toggle alignment (n)
+    <Plug>(markdown-plus-table-clear-cell)           - Clear cell (n)
+
+    Advanced operations:
+    <Plug>(markdown-plus-table-transpose)           - Transpose table (n)
+    <Plug>(markdown-plus-table-sort-ascending)      - Sort ascending (n)
+    <Plug>(markdown-plus-table-sort-descending)     - Sort descending (n)
+    <Plug>(markdown-plus-table-to-csv)              - To CSV (n)
+    <Plug>(markdown-plus-table-from-csv)            - From CSV (n)
+
+Example custom mapping: ~
+>lua
+    -- Disable default keymaps
+    require('markdown-plus').setup({
+      keymaps = { enabled = false },
+    })
+
+    -- Create custom keymaps
+    vim.keymap.set('n', '<C-b>', '<Plug>(MarkdownPlusBold)')
+    vim.keymap.set('n', '<leader>tt', '<Plug>(markdown-plus-table-transpose)')
+<
+
+
+==============================================================================
+7. API                                                         *markdown-plus-api*
 
 For plugin developers or advanced users, markdown-plus.nvim exposes a Lua API:
 
