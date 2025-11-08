@@ -6,28 +6,6 @@ echo "Setting up markdown-plus.nvim development environment..."
 # Update package lists
 sudo apt-get update
 
-# Clone dotfiles if not already present
-DOTFILES_DIR="/workspaces/.codespaces/.persistedshare/dotfiles"
-if [ ! -d "$DOTFILES_DIR" ]; then
-  echo "Cloning dotfiles..."
-  mkdir -p /workspaces/.codespaces/.persistedshare
-  git clone https://github.com/yousefhadder/dotfiles.git "$DOTFILES_DIR"
-  echo "✓ Dotfiles cloned to $DOTFILES_DIR"
-else
-  echo "✓ Dotfiles already present at $DOTFILES_DIR"
-fi
-
-# Install dotfiles
-if [ -f "$DOTFILES_DIR/install.sh" ]; then
-  echo "Installing dotfiles..."
-  cd "$DOTFILES_DIR"
-  ./install.sh
-  cd /workspaces/markdown-plus.nvim
-  echo "✓ Dotfiles installed"
-else
-  echo "⚠️  install.sh not found in dotfiles directory"
-fi
-
 # Install Neovim stable from official PPA
 echo "Installing Neovim stable..."
 sudo apt-get install -y software-properties-common
