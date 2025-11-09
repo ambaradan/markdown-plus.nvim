@@ -8,13 +8,12 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 
 [![Tests](https://img.shields.io/github/actions/workflow/status/yousefhadder/markdown-plus.nvim/ci.yml?branch=main&style=flat-square&logo=github&label=Tests)](https://github.com/yousefhadder/markdown-plus.nvim/actions/workflows/tests.yml)
-[![Neovim](https://img.shields.io/badge/Neovim%200.11+-green.svg?style=flat-square&logo=neovim)](https://neovim.io)
-[![Lua](https://img.shields.io/badge/Lua%205.1+-blue.svg?style=flat-square&logo=lua)](https://www.lua.org/)
+[![Neovim](https://img.shields.io/badge/Neovim%200.11+-green.svg?style=flat-square&logo=neovim&label=Neovim)](https://neovim.io)
+[![Lua](https://img.shields.io/badge/Lua%205.1+-blue.svg?style=flat-square&logo=lua&label=Lua)](https://www.lua.org/)
 
 [![GitHub stars](https://img.shields.io/github/stars/yousefhadder/markdown-plus.nvim?style=flat-square&logo=github)](https://github.com/yousefhadder/markdown-plus.nvim/stargazers)
 [![GitHub issues](https://img.shields.io/github/issues/yousefhadder/markdown-plus.nvim?style=flat-square&logo=github)](https://github.com/yousefhadder/markdown-plus.nvim/issues)
 [![GitHub contributors](https://img.shields.io/github/contributors/yousefhadder/markdown-plus.nvim?style=flat-square&logo=github)](https://github.com/yousefhadder/markdown-plus.nvim/graphs/contributors)
-[![Dotfyle](https://dotfyle.com/plugins/yousefhadder/markdown-plus.nvim/shield?style=flat-square)](https://dotfyle.com/plugins/yousefhadder/markdown-plus.nvim)
 
 </div>
 
