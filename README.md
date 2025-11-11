@@ -1889,6 +1889,24 @@ vim.keymap.set("n", "<C-q>", "<Plug>(MarkdownPlusToggleQuote)")
 vim.keymap.set("x", "<C-q>", "<Plug>(MarkdownPlusToggleQuote)")
 ```
 
+#### Callouts
+
+```lua
+-- Normal mode - Insert callout
+vim.keymap.set("n", "<leader>mc", "<Plug>(MarkdownPlusInsertCallout)")
+-- Visual mode - Wrap selection in callout
+vim.keymap.set("x", "<leader>mc", "<Plug>(MarkdownPlusInsertCallout)")
+
+-- Toggle callout type (cycle through types)
+vim.keymap.set("n", "<leader>mC", "<Plug>(MarkdownPlusToggleCalloutType)")
+
+-- Convert blockquote to callout
+vim.keymap.set("n", "<leader>m>c", "<Plug>(MarkdownPlusConvertToCallout)")
+
+-- Convert callout to blockquote
+vim.keymap.set("n", "<leader>m>b", "<Plug>(MarkdownPlusConvertToBlockquote)")
+```
+
 #### Tables
 
 ```lua
@@ -1955,6 +1973,13 @@ vim.keymap.set("n", "<leader>Tyc", "<Plug>(markdown-plus-table-duplicate-column)
 #### Quotes
 
 - `<Plug>(MarkdownPlusToggleQuote)` - Toggle blockquote (n, x)
+
+#### Callouts
+
+- `<Plug>(MarkdownPlusInsertCallout)` - Insert/wrap callout (n, x)
+- `<Plug>(MarkdownPlusToggleCalloutType)` - Toggle callout type (n)
+- `<Plug>(MarkdownPlusConvertToCallout)` - Convert blockquote to callout (n)
+- `<Plug>(MarkdownPlusConvertToBlockquote)` - Convert callout to blockquote (n)
 
 #### Tables
 
