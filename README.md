@@ -177,6 +177,11 @@ See [Configuration](#configuration) for all available options.
 <details>
 <summary><b>Callouts/Admonitions (GitHub Flavored Markdown)</b></summary>
 
+  <img src="https://vhs.charm.sh/vhs-6oZptwX2nCC3PFI3VvMF3j.gif" alt="Made with VHS">
+  <a href="https://vhs.charm.sh">
+    <img src="https://stuff.charm.sh/vhs/badge.svg">
+  </a>
+
 - **Insert callouts**: `<leader>mQi` to insert a callout block with type selection (NOTE, TIP, IMPORTANT, WARNING, CAUTION)
 - **Wrap selection**: Select text in visual mode and `<leader>mQi` to wrap it in a callout
 - **Toggle type**: `<leader>mQt` to cycle through callout types (NOTE → TIP → IMPORTANT → WARNING → CAUTION)
@@ -190,6 +195,11 @@ See [Configuration](#configuration) for all available options.
 
 <details>
 <summary><b>Table Support</b></summary>
+
+  <img src="https://vhs.charm.sh/vhs-62LQbSXBJZmTW3j5WvFhaR.gif" alt="Made with VHS">
+  <a href="https://vhs.charm.sh">
+    <img src="https://stuff.charm.sh/vhs/badge.svg">
+  </a>
 
 **Basic Operations:**
 - **Create tables**: `<leader>tc` to interactively create a new table with custom dimensions
@@ -2058,13 +2068,13 @@ If you encounter any issues, run the health check first - it will often identify
    ```
    Should print `1`. If not, the plugin didn't load.
 
-2. Check your filetype:
+1. Check your filetype:
    ```vim
    :set filetype?
    ```
    By default, the plugin only loads for `markdown` filetype. See [Configuration](#configuration) to enable for other filetypes.
 
-3. Run the health check:
+1. Run the health check:
    ```vim
    :checkhealth markdown-plus
    ```
@@ -2086,7 +2096,7 @@ If you have keymap conflicts with other plugins (like vim-markdown), you have tw
    vim.keymap.set("n", "<leader>mb", "<Plug>(MarkdownPlusBold)")
    ```
 
-2. **Disable conflicting keymaps** from the other plugin. See the other plugin's documentation.
+1. **Disable conflicting keymaps** from the other plugin. See the other plugin's documentation.
 
 The health check will warn you about detected conflicts.
 
@@ -2100,9 +2110,9 @@ The health check will warn you about detected conflicts.
    :checkhealth markdown-plus
    ```
 
-2. Ensure you're in insert mode when pressing Enter
+1. Ensure you're in insert mode when pressing Enter
 
-3. Verify the line is recognized as a list item. The plugin supports:
+1. Verify the line is recognized as a list item. The plugin supports:
    - Unordered: `-`, `*`, `+`
    - Ordered: `1.`, `2.`, etc.
    - Letter: `a.`, `b.`, `A.`, `B.`, etc.
