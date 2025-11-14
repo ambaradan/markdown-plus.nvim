@@ -105,6 +105,34 @@ function M.debug_print(...)
   end
 end
 
+---Get the byte index of the last byte of a multi-byte character
+---When vim.fn.getpos() returns a column position for a multi-byte character,
+---it returns the byte index of the FIRST byte of that character.
+---This function adjusts it to return the byte index of the LAST byte.
+---@param line string The line content
+---@param byte_col number The 1-indexed byte column from getpos()
+---@return number The 1-indexed byte column of the last byte of the character
+function M.get_char_end_byte(line, byte_col)
+  if byte_col > #line then
+    return #line
+  end
+
+  -- Convert 1-indexed byte position to 0-indexed for vim.str_utfindex
+  local char_idx = vim.str_utfindex(line, byte_col - 1)
+
+  -- Get the byte index of the next character (0-indexed)
+  local success, next_byte = pcall(vim.str_byteindex, line, char_idx + 1)
+
+  if success and next_byte then
+    -- next_byte is 0-indexed and points to the start of next char
+    -- We want the last byte of current char, which is next_byte (in 1-indexed terms)
+    return next_byte
+  else
+    -- We're at the last character or beyond, return line length
+    return #line
+  end
+end
+
 ---Get visual selection range
 ---@param include_col? boolean Whether to include column info (default: true)
 ---@return {start_row: number, end_row: number, start_col?: number, end_col?: number}
@@ -134,6 +162,13 @@ function M.get_visual_selection(include_col)
       start_col = 1
       local end_line = vim.api.nvim_buf_get_lines(0, end_row - 1, end_row, false)[1] or ""
       end_col = #end_line
+    else
+      -- For character-wise (v) and block-wise (<C-v>) visual modes,
+      -- adjust end_col to handle multi-byte characters
+      -- getpos() returns the byte position of the first byte of a multi-byte character
+      -- We need the byte position of the last byte for proper text extraction
+      local end_line = vim.api.nvim_buf_get_lines(0, end_row - 1, end_row, false)[1] or ""
+      end_col = M.get_char_end_byte(end_line, end_col)
     end
 
     if include_col then
@@ -154,17 +189,25 @@ function M.get_visual_selection(include_col)
     local start_pos = vim.fn.getpos("'<")
     local end_pos = vim.fn.getpos("'>")
 
+    local start_col = start_pos[3]
+    local end_col = end_pos[3]
+
+    -- Adjust end_col for multi-byte characters in previous visual selection
+    local end_row = end_pos[2]
+    local end_line = vim.api.nvim_buf_get_lines(0, end_row - 1, end_row, false)[1] or ""
+    end_col = M.get_char_end_byte(end_line, end_col)
+
     if include_col then
       return {
         start_row = start_pos[2],
-        start_col = start_pos[3],
-        end_row = end_pos[2],
-        end_col = end_pos[3],
+        start_col = start_col,
+        end_row = end_row,
+        end_col = end_col,
       }
     else
       return {
         start_row = start_pos[2],
-        end_row = end_pos[2],
+        end_row = end_row,
       }
     end
   end
