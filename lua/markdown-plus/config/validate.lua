@@ -31,6 +31,7 @@ function M.validate(opts)
     table = { opts.table, "table", true },
     callouts = { opts.callouts, "table", true },
     code_block = { opts.code_block, "table", true },
+    footnotes = { opts.footnotes, "table", true },
   })
   if not ok then
     return false, err
@@ -38,7 +39,7 @@ function M.validate(opts)
 
   -- Validate filetypes array
   if opts.filetypes then
-    if not vim.islist(opts.filetypes) then
+    if not vim.tbl_islist(opts.filetypes) then
       return false, "config.filetypes: must be an array (list)"
     end
     for i, ft in ipairs(opts.filetypes) do
@@ -60,6 +61,7 @@ function M.validate(opts)
       callouts = { opts.features.callouts, "boolean", true },
       code_block = { opts.features.code_block, "boolean", true },
       table = { opts.features.table, "boolean", true },
+      footnotes = { opts.features.footnotes, "boolean", true },
     })
     if not ok then
       return false, err
@@ -159,6 +161,7 @@ function M.validate(opts)
     table = true,
     callouts = true,
     code_block = true,
+    footnotes = true,
   }
   for key in pairs(opts) do
     if not known_fields[key] then
@@ -183,6 +186,7 @@ function M.validate(opts)
       callouts = true,
       code_block = true,
       table = true,
+      footnotes = true,
     }
     for key in pairs(opts.features) do
       if not known_feature_fields[key] then
@@ -289,7 +293,7 @@ function M.validate(opts)
 
     -- Validate custom_types array
     if opts.callouts.custom_types then
-      if not vim.islist(opts.callouts.custom_types) then
+      if not vim.tbl_islist(opts.callouts.custom_types) then
         return false, "config.callouts.custom_types: must be an array (list)"
       end
       for i, custom_type in ipairs(opts.callouts.custom_types) do
@@ -318,6 +322,30 @@ function M.validate(opts)
             "config.callouts: unknown field '%s'. Valid fields are: %s",
             key,
             table.concat(vim.tbl_keys(known_callouts_fields), ", ")
+          )
+      end
+    end
+  end
+
+  -- Validate footnotes config
+  if opts.footnotes then
+    ok, err = validate_path("config.footnotes", {
+      section_header = { opts.footnotes.section_header, "string", true },
+      confirm_delete = { opts.footnotes.confirm_delete, "boolean", true },
+    })
+    if not ok then
+      return false, err
+    end
+
+    -- Check for unknown footnotes fields
+    local known_footnotes_fields = { section_header = true, confirm_delete = true }
+    for key in pairs(opts.footnotes) do
+      if not known_footnotes_fields[key] then
+        return false,
+          string.format(
+            "config.footnotes: unknown field '%s'. Valid fields are: %s",
+            key,
+            table.concat(vim.tbl_keys(known_footnotes_fields), ", ")
           )
       end
     end
