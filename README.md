@@ -249,6 +249,11 @@ See [Configuration](#configuration) for all available options.
 <details>
 <summary><b>Footnotes Support</b></summary>
 
+  <img src="https://vhs.charm.sh/vhs-5qHWnLxtRcvZMSzEclq8mn.gif" alt="Made with VHS">
+  <a href="https://vhs.charm.sh">
+    <img src="https://stuff.charm.sh/vhs/badge.svg">
+  </a>
+
 Comprehensive footnote support for managing markdown footnotes:
 
 - **Insert footnotes**: `<leader>mfi` to create new footnote references and definitions with auto-generated IDs
