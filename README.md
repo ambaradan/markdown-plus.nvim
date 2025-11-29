@@ -23,15 +23,9 @@ A comprehensive Neovim plugin that provides modern markdown editing capabilities
 
 ## Examples
 
-  <img src="https://vhs.charm.sh/vhs-62LQbSXBJZmTW3j5WvFhaR.gif" alt="Made with VHS">
-  <a href="https://vhs.charm.sh">
-    <img src="https://stuff.charm.sh/vhs/badge.svg">
-  </a>
+https://github.com/user-attachments/assets/493361af-f191-4faf-ac1c-4da01222e37d
 
-  <img src="https://vhs.charm.sh/vhs-4rvquCvWyeMiRnG4hrhLRN.gif" alt="Made with VHS">
-  <a href="https://vhs.charm.sh">
-    <img src="https://stuff.charm.sh/vhs/badge.svg">
-  </a>
+https://github.com/user-attachments/assets/5ddbc02c-68ba-44f0-8cc0-41807a23e788
 
 
 ## Table of Contents
