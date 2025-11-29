@@ -21,6 +21,19 @@ A comprehensive Neovim plugin that provides modern markdown editing capabilities
 
 **Key Features:** Zero dependencies • Works with any filetype • Full test coverage (85%+) • Extensively documented
 
+## Examples
+
+  <img src="https://vhs.charm.sh/vhs-62LQbSXBJZmTW3j5WvFhaR.gif" alt="Made with VHS">
+  <a href="https://vhs.charm.sh">
+    <img src="https://stuff.charm.sh/vhs/badge.svg">
+  </a>
+
+  <img src="https://vhs.charm.sh/vhs-4rvquCvWyeMiRnG4hrhLRN.gif" alt="Made with VHS">
+  <a href="https://vhs.charm.sh">
+    <img src="https://stuff.charm.sh/vhs/badge.svg">
+  </a>
+
+
 ## Table of Contents
 
 - [Why markdown-plus.nvim?](#why-markdown-plusnvim)
