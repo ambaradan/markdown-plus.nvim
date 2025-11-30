@@ -56,6 +56,13 @@ markdown-plus.nvim brings the best markdown editing experience to Neovim with se
 - **Flexible Configuration**: Modular feature system - enable only what you need
 - **Smart Defaults**: Works out of the box with sensible keymaps that respect your existing configuration
 
+## Similar plugins
+
+- [obsidian.nvim](https://github.com/obsidian-nvim/obsidian.nvim)
+- [markdown.nvim](https://github.com/tadmccorkle/markdown.nvim)
+- [mkdnflow.nvim](https://github.com/jakewvincent/mkdnflow.nvim)
+- [mdnotes.nvim](https://github.com/ymich9963/mdnotes.nvim)
+
 ## Quick Start
 
 **Using lazy.nvim:**
