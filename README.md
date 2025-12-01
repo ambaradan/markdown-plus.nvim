@@ -58,10 +58,10 @@ markdown-plus.nvim brings the best markdown editing experience to Neovim with se
 
 ## Similar plugins
 
-- [obsidian.nvim](https://github.com/obsidian-nvim/obsidian.nvim)
-- [markdown.nvim](https://github.com/tadmccorkle/markdown.nvim)
-- [mkdnflow.nvim](https://github.com/jakewvincent/mkdnflow.nvim)
-- [mdnotes.nvim](https://github.com/ymich9963/mdnotes.nvim)
+- [obsidian.nvim](https://github.com/obsidian-nvim/obsidian.nvim) - A Neovim plugin for writing and navigating Obsidian vaults with features like autocompletion for notes/tags, link navigation, image pasting, and daily notes.
+- [markdown.nvim](https://github.com/tadmccorkle/markdown.nvim) - Configurable tools for markdown editing including inline style toggling (bold/italic/code), table of contents generation, list management, link handling, and heading navigation.
+- [mkdnflow.nvim](https://github.com/jakewvincent/mkdnflow.nvim) - A comprehensive markdown notebook/wiki plugin for fluent navigation with features like link following, to-do lists, table editing, section folding, buffer history navigation, and citation support.
+- [mdnotes.nvim](https://github.com/ymich9963/mdnotes.nvim) - A Markdown note-taking plugin with WikiLink support, hyperlink management, asset cleanup, sequential buffer history, table creation, and automatic list continuation.
 
 ## Quick Start
 
