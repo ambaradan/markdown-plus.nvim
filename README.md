@@ -37,14 +37,14 @@ https://github.com/user-attachments/assets/5ddbc02c-68ba-44f0-8cc0-41807a23e788
 
 ## Table of Contents
 
-- [Features](https://github.com/yousefhadder/markdown-plus.nvim/wiki/Features)
-- [Installation](https://github.com/yousefhadder/markdown-plus.nvim/wiki/Installation)
-- [Usage](https://github.com/yousefhadder/markdown-plus.nvim/wiki/Usage)
-- [Keymaps Reference](https://github.com/yousefhadder/markdown-plus.nvim/wiki/Keymaps)
-- [Configuration](https://github.com/yousefhadder/markdown-plus.nvim/wiki/Configuration)
-- [Customizing Keymaps](https://github.com/yousefhadder/markdown-plus.nvim/wiki/Customizing-Keymaps)
-- [Troubleshooting](https://github.com/yousefhadder/markdown-plus.nvim/wiki/Troubleshooting)
-- [Contributing](https://github.com/yousefhadder/markdown-plus.nvim/wiki/Contributing)
+- [Installation](https://github.com/yousefhadder/markdown-plus.nvim/wiki/1.Installation)
+- [Features](https://github.com/yousefhadder/markdown-plus.nvim/wiki/2.Features)
+- [Configuration](https://github.com/yousefhadder/markdown-plus.nvim/wiki/3.Configuration)
+- [Usage](https://github.com/yousefhadder/markdown-plus.nvim/wiki/4.Usage)
+- [Keymaps Reference](https://github.com/yousefhadder/markdown-plus.nvim/wiki/5.Keymaps)
+- [Customizing Keymaps](https://github.com/yousefhadder/markdown-plus.nvim/wiki/6.Customizing-Keymaps)
+- [Contributing](https://github.com/yousefhadder/markdown-plus.nvim/wiki/7.Contributing)
+- [Troubleshooting](https://github.com/yousefhadder/markdown-plus.nvim/wiki/8.Troubleshooting)
 
 ## Quick Start
 
