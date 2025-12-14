@@ -1,6 +1,6 @@
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/8e241658-5908-44de-b413-b0743e54d09e" alt="ChatGPT Image Nov 8, 2025 at 10_42_50 PM">
-</p>
+
+![507DBB8A-996C-44B7-88BE-ABB7BC1BFD92_1_201_a](https://github.com/user-attachments/assets/8f6b9adf-13ce-4418-b6cf-1196784bda45)
+
 
 <div align="center">
 
