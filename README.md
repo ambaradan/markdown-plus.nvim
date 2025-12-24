@@ -73,7 +73,7 @@ That's it! The plugin will automatically activate with default keymaps when you 
 }
 ```
 
-See [Configuration](https://github.com/yousefhadder/markdown-plus.nvim/wiki/Configuration) for all available options.
+See [Configuration](https://github.com/YousefHadder/markdown-plus.nvim/wiki/3.Configuration) for all available options.
 
 ## License
 
