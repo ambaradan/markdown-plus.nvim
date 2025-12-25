@@ -101,6 +101,9 @@ end
 ---@param opts? markdown-plus.Config User configuration
 ---@return nil
 function M.setup(opts)
+  -- Mark that setup was explicitly called (prevents auto-setup deprecation warning)
+  vim.g.markdown_plus_setup_called = true
+
   opts = opts or {}
 
   -- Get vim.g config and merge with setup() parameter
