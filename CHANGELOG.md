@@ -5,6 +5,24 @@ All notable changes to markdown-plus.nvim will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.10.0](https://github.com/YousefHadder/markdown-plus.nvim/compare/v1.9.1...v1.10.0) (2025-12-25)
+
+
+### Features
+
+* **format:** add highlight and underline support ([#156](https://github.com/YousefHadder/markdown-plus.nvim/issues/156)) ([c7c9357](https://github.com/YousefHadder/markdown-plus.nvim/commit/c7c9357e1092df804b822e8ebd119bdd57cffc70))
+* **format:** add smart format toggle with treesitter detection ([#158](https://github.com/YousefHadder/markdown-plus.nvim/issues/158)) ([ef2ba09](https://github.com/YousefHadder/markdown-plus.nvim/commit/ef2ba096bf9799360ee204576dfb23b0bd607cb4))
+
+
+### Bug Fixes
+
+* add jump list entries for footnote navigation ([#148](https://github.com/YousefHadder/markdown-plus.nvim/issues/148)) ([9903fd4](https://github.com/YousefHadder/markdown-plus.nvim/commit/9903fd47c2ca4e47cd2eff2cc54b13f618349953))
+* **config:** replace vim.defer_fn with FileType autocmd for proper lazy loading ([dd035bd](https://github.com/YousefHadder/markdown-plus.nvim/commit/dd035bd0fe58ea613aaa8ca9d8e5b82afb4c2d51))
+* **format:** strip same-type inner formatting when toggling on visual selection ([#166](https://github.com/YousefHadder/markdown-plus.nvim/issues/166)) ([8bee4c4](https://github.com/YousefHadder/markdown-plus.nvim/commit/8bee4c4ed20f9b00415cbe5ab443bd69681fccea))
+* **mapping:** table nav mapping ([#153](https://github.com/YousefHadder/markdown-plus.nvim/issues/153)) ([2f55299](https://github.com/YousefHadder/markdown-plus.nvim/commit/2f5529983a5ad0513124b624456941bb36769299))
+* **multibyte:** handle utf-8 multibyte characters in text manipulation operations ([#146](https://github.com/YousefHadder/markdown-plus.nvim/issues/146)) ([7fc2f32](https://github.com/YousefHadder/markdown-plus.nvim/commit/7fc2f32ebc7345e7d502b6e5097d7f284ab4dd13))
+* replace vim.defer_fn with FileType autocmd for proper lazy loading ([833eebb](https://github.com/YousefHadder/markdown-plus.nvim/commit/833eebb2d32f0ea903586c376ff06ba8f48b16c6))
+
 ## [1.9.1](https://github.com/YousefHadder/markdown-plus.nvim/compare/v1.9.0...v1.9.1) (2025-11-28)
 
 
