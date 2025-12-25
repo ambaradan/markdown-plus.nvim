@@ -54,6 +54,7 @@ https://github.com/user-attachments/assets/5ddbc02c-68ba-44f0-8cc0-41807a23e788
 {
   "yousefhadder/markdown-plus.nvim",
   ft = "markdown",
+  opts = {},
 }
 ```
 
@@ -65,11 +66,9 @@ That's it! The plugin will automatically activate with default keymaps when you 
 {
   "yousefhadder/markdown-plus.nvim",
   ft = "markdown",
-  config = function()
-    require("markdown-plus").setup({
-      -- Your custom configuration here
-    })
-  end,
+  opts = {
+    -- Your custom configuration here
+  },
 }
 ```
 
