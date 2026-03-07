@@ -13,7 +13,7 @@ permissions:
   pull-requests: read
 
 tracker-id: daily-file-diet
-engine: claude
+engine: copilot
 
 imports:
   - shared/mood.md
