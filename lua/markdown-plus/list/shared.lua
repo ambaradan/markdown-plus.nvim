@@ -69,11 +69,48 @@ function M.get_marker_for_index(list_type, index)
   return ""
 end
 
+---Find the closest ordered parent list item at a specific indentation level
+---Scans backward from `row - 1` and stops at structural breaks.
+---@param row number Current row number (1-indexed)
+---@param target_indent number Target indentation width in spaces
+---@param lines table<number, string> Sparse absolute-row line map (missing keys stop scan)
+---@return markdown-plus.ListInfo|nil, number|nil Parent list info and row, or nil if not found
+function M.find_parent_list_at_indent(row, target_indent, lines)
+  for i = row - 1, 1, -1 do
+    local line = lines[i]
+    if not line then
+      break
+    end
+
+    local list_info = parser.parse_list_line(line, i)
+    if list_info then
+      local indent = #list_info.indent
+      if indent == target_indent and M.is_orderable_type(list_info.type) then
+        return list_info, i
+      end
+      if indent < target_indent then
+        break
+      end
+    else
+      if line:match("^%s*$") then
+        break
+      end
+
+      local indent = #(line:match("^(%s*)") or "")
+      if indent <= target_indent then
+        break
+      end
+    end
+  end
+
+  return nil
+end
+
 ---Find parent list item by looking upward from current line
 ---Checks if a line is a continuation line of a list item by looking for a parent
 ---@param line string The line to check
 ---@param line_num number The line number (1-indexed)
----@param lines string[] All buffer lines
+---@param lines table<number, string> Sparse absolute-row line map (missing keys stop scan)
 ---@return table|nil, number|nil List info and row number of parent, or nil if not found
 function M.find_parent_list_item(line, line_num, lines)
   -- Must be indented
@@ -120,7 +157,7 @@ end
 ---A continuation line has indentation that matches a list item's content position
 ---@param line string The line to check
 ---@param line_num number The line number (1-indexed)
----@param lines string[] All buffer lines
+---@param lines table<number, string> Sparse absolute-row line map (missing keys stop scan)
 ---@return boolean True if the line is a continuation line
 function M.is_continuation_line(line, line_num, lines)
   return M.find_parent_list_item(line, line_num, lines) ~= nil

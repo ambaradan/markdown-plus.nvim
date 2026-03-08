@@ -64,6 +64,12 @@ function M.check()
       health.warn("Plugin is not loaded (may load on FileType event)")
     end
 
+    if vim.g.markdown_plus ~= nil then
+      health.warn("vim.g.markdown_plus is set but no longer supported in v2.0", {
+        "Use require('markdown-plus').setup(opts) instead",
+      })
+    end
+
     -- Check configuration
     local validator_ok, validator = pcall(require, "markdown-plus.config.validate")
     if not validator_ok then
@@ -71,31 +77,20 @@ function M.check()
       return
     end
 
-    local config = vim.g.markdown_plus or {}
-
-    -- Handle function config
-    if type(config) == "function" then
-      local fn_ok, result = pcall(config)
-      if fn_ok and type(result) == "table" then
-        config = result
-      elseif fn_ok then
-        health.error(string.format("vim.g.markdown_plus function returned %s instead of table", type(result)))
-        config = {}
-      else
-        health.error("vim.g.markdown_plus function failed: " .. tostring(result))
-        config = {}
-      end
+    local mp_ok, markdown_plus = pcall(require, "markdown-plus")
+    if not mp_ok then
+      health.error("Failed to load markdown-plus module")
+      return
     end
 
-    local ok, validation_err = validator.validate(config)
+    local ok, validation_err = validator.validate(markdown_plus.config or {})
     if ok then
-      health.ok("Configuration is valid")
+      health.ok("Active configuration is valid")
     else
       health.error("Configuration error: " .. validation_err)
     end
 
     -- Check enabled features
-    local mp_ok, markdown_plus = pcall(require, "markdown-plus")
     if mp_ok and markdown_plus.config then
       local features = markdown_plus.config.features or {}
       local enabled_features = {}

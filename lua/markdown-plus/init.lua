@@ -7,12 +7,14 @@ M.config = {
   features = {
     list_management = true,
     text_formatting = true,
+    thematic_break = true,
     links = true,
     images = true,
     headers_toc = true,
     quotes = true,
     callouts = true,
     code_block = true,
+    html_block_awareness = true,
     table = true,
     footnotes = true,
   },
@@ -30,7 +32,7 @@ M.config = {
     confirm_destructive = true,
     keymaps = {
       enabled = true,
-      prefix = "<leader>t",
+      prefix = "<localleader>t",
       insert_mode_navigation = true,
     },
   },
@@ -38,14 +40,20 @@ M.config = {
     default_type = "NOTE",
     custom_types = {},
   },
+  thematic_break = {
+    style = "---",
+  },
   code_block = {
     enabled = true,
+    fence_style = "backtick",
+    languages = { "lua", "python", "javascript", "typescript", "bash", "json", "yaml", "markdown" },
   },
   footnotes = {
     section_header = "Footnotes",
     confirm_delete = true,
   },
   list = {
+    smart_outdent = true,
     checkbox_completion = {
       enabled = false,
       format = "emoji",
@@ -65,66 +73,22 @@ M.config = {
 -- Module references
 M.list = nil
 M.format = nil
+M.thematic_break = nil
 M.links = nil
 M.images = nil
 M.headers = nil
 M.quotes = nil
 M.callouts = nil
+M.code_block = nil
 M.table = nil
 M.footnotes = nil
 
----Get user configuration from vim.g.markdown_plus
----Supports both table and function forms
----@return markdown-plus.Config
-local function get_vim_g_config()
-  local vim_g = vim.g.markdown_plus
-
-  if vim_g == nil then
-    return {}
-  end
-
-  if type(vim_g) == "table" then
-    return vim_g
-  elseif type(vim_g) == "function" then
-    local ok, result = pcall(vim_g)
-    if ok and type(result) == "table" then
-      return result
-    elseif ok then
-      vim.notify(
-        string.format("markdown-plus.nvim: vim.g.markdown_plus function returned %s instead of a table", type(result)),
-        vim.log.levels.WARN
-      )
-      return {}
-    else
-      vim.notify(
-        string.format("markdown-plus.nvim: vim.g.markdown_plus function failed: %s", tostring(result)),
-        vim.log.levels.ERROR
-      )
-      return {}
-    end
-  else
-    vim.notify(
-      string.format("markdown-plus.nvim: vim.g.markdown_plus must be a table or function, got %s", type(vim_g)),
-      vim.log.levels.WARN
-    )
-    return {}
-  end
-end
-
 ---Setup markdown-plus.nvim with user configuration
----Configuration priority: vim.g.markdown_plus < setup(opts)
+---Configuration priority: setup(opts) overrides defaults
 ---@param opts? markdown-plus.Config User configuration
 ---@return nil
 function M.setup(opts)
-  -- Mark that setup was explicitly called (prevents auto-setup deprecation warning)
-  vim.g.markdown_plus_setup_called = true
-
-  opts = opts or {}
-
-  -- Get vim.g config and merge with setup() parameter
-  -- setup() parameter takes precedence over vim.g
-  local vim_g_config = get_vim_g_config()
-  local merged_opts = vim.tbl_deep_extend("force", vim_g_config, opts)
+  local merged_opts = opts or {}
 
   -- Validate merged configuration
   local validator = require("markdown-plus.config.validate")
@@ -153,6 +117,11 @@ function M.setup(opts)
     M.format.setup(M.config)
   end
 
+  if M.config.features.thematic_break then
+    M.thematic_break = require("markdown-plus.thematic_break")
+    M.thematic_break.setup(M.config)
+  end
+
   if M.config.features.headers_toc then
     M.headers = require("markdown-plus.headers")
     M.headers.setup(M.config)
@@ -176,6 +145,11 @@ function M.setup(opts)
   if M.config.features.callouts then
     M.callouts = require("markdown-plus.callouts")
     M.callouts.setup(M.config)
+  end
+
+  if M.config.features.code_block then
+    M.code_block = require("markdown-plus.code_block")
+    M.code_block.setup(M.config)
   end
 
   if M.config.features.table then
@@ -211,6 +185,9 @@ function M.enable_features_for_buffer()
   if M.format then
     M.format.enable()
   end
+  if M.thematic_break then
+    M.thematic_break.enable()
+  end
   if M.headers then
     M.headers.enable()
   end
@@ -225,6 +202,9 @@ function M.enable_features_for_buffer()
   end
   if M.callouts then
     M.callouts.enable()
+  end
+  if M.code_block then
+    M.code_block.enable()
   end
   if M.table and M.config.keymaps.enabled then
     -- Set up buffer-local table keymaps (only if global keymaps are enabled)

@@ -4,13 +4,46 @@
 local utils = require("markdown-plus.utils")
 local patterns = require("markdown-plus.format.patterns")
 local detection = require("markdown-plus.format.detection")
+local escape = require("markdown-plus.format.escape")
 local treesitter = require("markdown-plus.format.treesitter")
 local word = require("markdown-plus.format.word")
 
 local M = {}
 
+local html_awareness = true
+
 -- ESC character constant for consistency
 local ESC = "\027"
+
+---Set HTML block awareness state
+---@param enabled boolean
+---@return nil
+function M.set_html_awareness(enabled)
+  html_awareness = enabled ~= false
+end
+
+---Check whether HTML block awareness is enabled (default: true)
+---@return boolean
+local function html_awareness_enabled()
+  return html_awareness
+end
+
+---Check if any row in selection intersects an HTML block
+---@param selection table
+---@return boolean
+local function selection_in_html_block(selection)
+  local start_row = math.min(selection.start_row, selection.end_row)
+  local end_row = math.max(selection.start_row, selection.end_row)
+  local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+  local html_lines = utils.get_html_block_lines(lines)
+
+  for row = start_row, end_row do
+    if html_lines[row] then
+      return true
+    end
+  end
+  return false
+end
 
 ---Toggle formatting on visual selection
 ---If the selection is entirely within a formatted range of the same type,
@@ -22,6 +55,12 @@ local ESC = "\027"
 function M.toggle_format(format_type)
   -- Get the current visual selection (works even on first selection due to vim.fn.getpos('v'))
   local selection = utils.get_visual_selection()
+
+  if html_awareness_enabled() and selection_in_html_block(selection) then
+    vim.cmd("normal! " .. ESC)
+    return
+  end
+
   local text = utils.get_text_in_range(selection.start_row, selection.start_col, selection.end_row, selection.end_col)
 
   -- First, check if the selection already has formatting markers wrapping it
@@ -94,6 +133,10 @@ end
 ---@param format_type string The format type to toggle
 ---@return nil
 function M.toggle_format_word(format_type)
+  if html_awareness_enabled() and utils.is_in_html_block() then
+    return
+  end
+
   -- First, try treesitter-based detection for the entire formatted range
   local node_info = treesitter.get_formatting_node_at_cursor(format_type)
   if node_info then
@@ -155,6 +198,12 @@ end
 ---@return nil
 function M.clear_formatting()
   local selection = utils.get_visual_selection()
+
+  if html_awareness_enabled() and selection_in_html_block(selection) then
+    vim.cmd("normal! " .. ESC)
+    return
+  end
+
   local text = utils.get_text_in_range(selection.start_row, selection.start_col, selection.end_row, selection.end_col)
 
   local new_text = detection.strip_all_formatting(text)
@@ -165,9 +214,41 @@ function M.clear_formatting()
   vim.cmd("normal! " .. ESC)
 end
 
+---Toggle markdown escaping on visual selection
+---Escapes punctuation if unescaped, unescapes if already escaped.
+---@return nil
+function M.toggle_escape_selection()
+  local selection = utils.get_visual_selection()
+
+  if html_awareness_enabled() and selection_in_html_block(selection) then
+    vim.cmd("normal! " .. ESC)
+    return
+  end
+
+  local text = utils.get_text_in_range(selection.start_row, selection.start_col, selection.end_row, selection.end_col)
+  if text == "" then
+    vim.cmd("normal! " .. ESC)
+    return
+  end
+
+  local new_text
+  if escape.has_escaped_markdown(text) then
+    new_text = escape.unescape_markdown(text)
+  else
+    new_text = escape.escape_markdown(text)
+  end
+
+  utils.set_text_in_range(selection.start_row, selection.start_col, selection.end_row, selection.end_col, new_text)
+  vim.cmd("normal! " .. ESC)
+end
+
 ---Remove all formatting from current word
 ---@return nil
 function M.clear_formatting_word()
+  if html_awareness_enabled() and utils.is_in_html_block() then
+    return
+  end
+
   local boundaries = word.get_word_boundaries()
   local text = utils.get_text_in_range(boundaries.row, boundaries.start_col, boundaries.row, boundaries.end_col)
 
@@ -181,11 +262,11 @@ function M.clear_formatting_word()
 end
 
 ---Convert visual selection to a code block
----@param config table Plugin configuration
+---@param plugin_config table Plugin configuration
 ---@return nil
-function M.convert_to_code_block(config)
+function M.convert_to_code_block(plugin_config)
   -- Check if text formatting feature is enabled
-  if not config.features or not config.features.text_formatting then
+  if not plugin_config.features or not plugin_config.features.text_formatting then
     utils.notify("Text formatting feature is disabled.", vim.log.levels.WARN)
     return
   end

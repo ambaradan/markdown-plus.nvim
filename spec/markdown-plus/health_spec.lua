@@ -2,18 +2,17 @@
 ---Tests configuration validation, version checks, and diagnostics
 ---@diagnostic disable: undefined-field
 local health_module = require("markdown-plus.health")
+local markdown_plus = require("markdown-plus")
 
 describe("health check", function()
   before_each(function()
-    -- Clean up global config before each test
-    vim.g.markdown_plus = nil
+    -- Clean up global state before each test
     vim.g.loaded_markdown_plus = nil
     vim.g.loaded_vim_markdown = nil
   end)
 
   after_each(function()
-    -- Clean up global config
-    vim.g.markdown_plus = nil
+    -- Clean up global state
     vim.g.loaded_markdown_plus = nil
     vim.g.loaded_vim_markdown = nil
   end)
@@ -28,7 +27,7 @@ describe("health check", function()
     end)
 
     it("runs with minimal configuration", function()
-      vim.g.markdown_plus = {}
+      markdown_plus.setup({})
 
       local success = pcall(function()
         health_module.check()
@@ -37,19 +36,18 @@ describe("health check", function()
     end)
 
     it("runs with full configuration", function()
-      vim.g.markdown_plus = {
+      markdown_plus.setup({
         enabled = true,
         features = {
           list_management = true,
-          headers = true,
+          headers_toc = true,
           text_formatting = true,
           links = true,
-          quote = true,
+          quotes = true,
           table = true,
         },
         filetypes = { "markdown", "md" },
-        default_keymaps = true,
-      }
+      })
 
       local success = pcall(function()
         health_module.check()
@@ -77,6 +75,37 @@ describe("health check", function()
       assert.is_true(success, "Health check should work when plugin loaded")
 
       vim.g.loaded_markdown_plus = nil
+    end)
+
+    it("warns when deprecated vim.g.markdown_plus config is present", function()
+      local saved_warn = vim.health.warn
+      local saved_global_config = vim.g.markdown_plus
+      local warning_messages = {}
+
+      vim.health.warn = function(msg, _)
+        table.insert(warning_messages, msg)
+      end
+
+      vim.g.markdown_plus = { enabled = true }
+
+      local success = pcall(function()
+        health_module.check()
+      end)
+
+      vim.health.warn = saved_warn
+      vim.g.markdown_plus = saved_global_config
+
+      assert.is_true(success, "Health check should run with deprecated config present")
+
+      local found_deprecation_warning = false
+      for _, msg in ipairs(warning_messages) do
+        if msg:match("vim%.g%.markdown_plus") then
+          found_deprecation_warning = true
+          break
+        end
+      end
+
+      assert.is_true(found_deprecation_warning, "Expected warning for deprecated vim.g.markdown_plus configuration")
     end)
   end)
 

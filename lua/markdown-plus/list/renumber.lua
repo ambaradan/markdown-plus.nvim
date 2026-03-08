@@ -2,42 +2,21 @@
 local utils = require("markdown-plus.utils")
 local parser = require("markdown-plus.list.parser")
 local shared = require("markdown-plus.list.shared")
+local code_block_parser = require("markdown-plus.code_block.parser")
 local M = {}
 
--- Recognized fence patterns — capture the fence character and its full run
--- e.g. "    ```python" captures indent="    ", fence_char="`", fence_run="```"
-local CODE_FENCE_OPEN_PATTERN = "^(%s*)((`+)(.*))"
-local CODE_FENCE_TILDE_OPEN_PATTERN = "^(%s*)((~+)(.*))"
+local ORDERED_LIST_CANDIDATE_PATTERNS = {
+  "^%s*%d+[%.%)]",
+  "^%s*[A-Za-z][%.%)]",
+}
 
----Parse a line as a potential code fence opener or closer.
----Tracks fence character type and length per CommonMark §4.5:
----a closing fence must use the same character as the opener, be at least
----as long, and may only be followed by spaces/tabs.
----@param line string
----@param active_fence {char: string, len: number}|nil Currently open fence, if any
----@return {indent: string, char: string, len: number}|nil info Fence info, or nil if not a fence
-local function parse_fence_line(line, active_fence)
-  for _, pat in ipairs({ CODE_FENCE_OPEN_PATTERN, CODE_FENCE_TILDE_OPEN_PATTERN }) do
-    local indent, _, fence_run, trailing = line:match(pat)
-    if fence_run then
-      local char = fence_run:sub(1, 1)
-      local len = #fence_run
-      if len >= 3 then
-        if active_fence then
-          -- Closing fence: must match char, length >= opener, and trailing
-          -- text must be whitespace-only (CommonMark §4.5)
-          if char == active_fence.char and len >= active_fence.len and trailing:match("^%s*$") then
-            return { indent = indent, char = char, len = len }
-          end
-          -- Not a valid closer — treat as content inside the block
-          return nil
-        end
-        -- Opening fence: trailing info string is allowed
-        return { indent = indent, char = char, len = len }
-      end
-    end
-  end
-  return nil
+local html_awareness = true
+
+---Set HTML block awareness state
+---@param enabled boolean
+---@return nil
+function M.set_html_awareness(enabled)
+  html_awareness = enabled ~= false
 end
 
 ---Build set of line numbers inside fenced code blocks using regex fence-toggle
@@ -57,16 +36,19 @@ local function get_fenced_code_block_lines(lines)
 
   for i, line in ipairs(lines) do
     if not active_fence then
-      local info = parse_fence_line(line, nil)
-      if info then
+      local opening = code_block_parser.parse_opening_fence(line)
+      if opening then
         code_lines[i] = true
-        active_fence = { char = info.char, len = info.len }
+        active_fence = {
+          fence_char = opening.fence_char,
+          fence_length = opening.fence_length,
+        }
         block_start = i
         -- Only column-0 fences are unambiguous structural separators.
         -- Fences indented 1+ spaces adjacent to list items are treated as
         -- nested content (the list marker width determines nesting, not the
         -- CommonMark standalone 0-3 rule which doesn't apply inside lists).
-        if #info.indent == 0 then
+        if #opening.indent == 0 then
           non_indented_regions[i] = true
         end
       end
@@ -76,8 +58,8 @@ local function get_fenced_code_block_lines(lines)
       if non_indented_regions[block_start] then
         non_indented_regions[i] = true
       end
-      local info = parse_fence_line(line, active_fence)
-      if info then
+      local closing = code_block_parser.parse_closing_fence(line, active_fence)
+      if closing then
         -- Valid closer found
         active_fence = nil
         block_start = nil
@@ -150,6 +132,74 @@ function M.is_list_breaking_line(line, line_num, lines)
   return true
 end
 
+---Check whether groups can be merged without crossing structural separators.
+---All lines between groups must be blank or deeper-indented than parent indent.
+---@param lines string[]
+---@param start_line number
+---@param end_line number
+---@param parent_indent number
+---@return boolean
+local function can_merge_between(lines, start_line, end_line, parent_indent)
+  local saw_nested_content = false
+
+  for line_num = start_line + 1, end_line - 1 do
+    local line = lines[line_num] or ""
+    if not line:match("^%s*$") then
+      local list_info = parser.parse_list_line(line, line_num)
+      if list_info then
+        if #list_info.indent <= parent_indent then
+          return false
+        end
+        saw_nested_content = true
+      else
+        local indent = #(line:match("^(%s*)") or "")
+        if indent <= parent_indent then
+          return false
+        end
+        saw_nested_content = true
+      end
+    end
+  end
+
+  return saw_nested_content
+end
+
+---Merge same-indent/type groups fragmented by nested children.
+---@param groups table[]
+---@param lines string[]
+---@return table[]
+local function merge_fragmented_groups(groups, lines)
+  if #groups < 2 then
+    return groups
+  end
+
+  local merged = {}
+  for _, group in ipairs(groups) do
+    local previous = merged[#merged]
+    local can_merge = previous
+      and previous.indent == group.indent
+      and previous.list_type == group.list_type
+      and #previous.items > 0
+      and #group.items > 0
+
+    if can_merge then
+      local prev_end = previous.items[#previous.items].line_num
+      local next_start = group.items[1].line_num
+      if can_merge_between(lines, prev_end, next_start, previous.indent) then
+        for _, item in ipairs(group.items) do
+          table.insert(previous.items, item)
+        end
+      else
+        table.insert(merged, group)
+      end
+    else
+      table.insert(merged, group)
+    end
+  end
+
+  return merged
+end
+
 ---Find all distinct list groups in the buffer
 ---@param lines string[] All buffer lines
 ---@return table[] List of list groups
@@ -157,8 +207,16 @@ function M.find_list_groups(lines)
   local groups = {}
   local current_groups_by_indent = {} -- Track active groups by indentation level
   local code_block_lines, non_indented_regions = get_fenced_code_block_lines(lines)
+  local html_block_lines = {}
+  if html_awareness then
+    html_block_lines = utils.get_html_block_lines(lines)
+  end
 
   for i, line in ipairs(lines) do
+    if html_block_lines[i] then
+      goto continue
+    end
+
     if code_block_lines[i] then
       -- Non-indented (column 0) code blocks are structural separators per
       -- CommonMark — they break list continuity even without surrounding
@@ -234,7 +292,7 @@ function M.find_list_groups(lines)
     ::continue::
   end
 
-  return groups
+  return merge_fragmented_groups(groups, lines)
 end
 
 ---Renumber items in a list group
@@ -270,9 +328,64 @@ function M.renumber_list_group(group)
   return #changes > 0 and changes or nil
 end
 
+---Cheap pre-filter to skip expensive parsing when no ordered list candidates exist
+---@param lines string[]
+---@return boolean
+local function has_ordered_list_candidates(lines)
+  for _, line in ipairs(lines) do
+    for _, pattern in ipairs(ORDERED_LIST_CANDIDATE_PATTERNS) do
+      if line:match(pattern) then
+        return true
+      end
+    end
+  end
+  return false
+end
+
+---Apply line changes using contiguous batch writes
+---@param changes {line_num: integer, new_line: string}[]
+local function apply_changes(changes)
+  table.sort(changes, function(a, b)
+    return a.line_num < b.line_num
+  end)
+
+  local start_line = nil
+  local end_line = nil
+  local replacement_lines = {}
+
+  local function flush_segment()
+    if not start_line then
+      return
+    end
+    vim.api.nvim_buf_set_lines(0, start_line - 1, end_line, false, replacement_lines)
+  end
+
+  for _, change in ipairs(changes) do
+    if not start_line then
+      start_line = change.line_num
+      end_line = change.line_num
+      replacement_lines = { change.new_line }
+    elseif change.line_num == end_line + 1 then
+      end_line = change.line_num
+      table.insert(replacement_lines, change.new_line)
+    else
+      flush_segment()
+      start_line = change.line_num
+      end_line = change.line_num
+      replacement_lines = { change.new_line }
+    end
+  end
+
+  flush_segment()
+end
+
 ---Renumber all ordered lists in the buffer
 function M.renumber_ordered_lists()
   local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+  if not has_ordered_list_candidates(lines) then
+    return
+  end
+
   local modified = false
   local changes = {}
 
@@ -292,9 +405,7 @@ function M.renumber_ordered_lists()
 
   -- Apply changes if any were made
   if modified then
-    for _, change in ipairs(changes) do
-      utils.set_line(change.line_num, change.new_line)
-    end
+    apply_changes(changes)
   end
 end
 

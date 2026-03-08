@@ -471,6 +471,38 @@ describe("markdown-plus list management", function()
       assert.are.equal(1, #groups[4].items) -- D only
     end)
 
+    it("merges parent ordered groups fragmented by nested children and blank lines", function()
+      local lines = {
+        "1. Parent",
+        "  - Child item",
+        "",
+        "2. Next parent",
+      }
+
+      local groups = list.find_list_groups(lines)
+
+      assert.are.equal(1, #groups)
+      assert.are.equal("ordered", groups[1].list_type)
+      assert.are.equal(2, #groups[1].items)
+      assert.are.equal(1, groups[1].items[1].line_num)
+      assert.are.equal(4, groups[1].items[2].line_num)
+    end)
+
+    it("does not merge groups when intervening content is at parent indent", function()
+      local lines = {
+        "1. Parent",
+        "  - Child item",
+        "Paragraph break",
+        "2. Next parent",
+      }
+
+      local groups = list.find_list_groups(lines)
+
+      assert.are.equal(2, #groups)
+      assert.are.equal(1, groups[1].items[1].line_num)
+      assert.are.equal(4, groups[2].items[1].line_num)
+    end)
+
     it("treats indented backtick fenced code blocks as non-breaking", function()
       local lines = {
         "1. First",
@@ -2045,6 +2077,108 @@ describe("markdown-plus list management", function()
     end)
   end)
 
+  describe("setup_renumber_autocmds", function()
+    it("debounces insert-mode renumber callbacks and keeps normal-mode immediate", function()
+      local renumber_module = require("markdown-plus.list.renumber")
+      local original_renumber = renumber_module.renumber_ordered_lists
+      local original_schedule = vim.schedule
+      local original_create_augroup = vim.api.nvim_create_augroup
+      local original_create_autocmd = vim.api.nvim_create_autocmd
+      local original_timer_start = vim.fn.timer_start
+      local original_timer_stop = vim.fn.timer_stop
+
+      local callbacks = {}
+      local renumber_calls = 0
+      local timer_start_calls = 0
+      local timer_stop_calls = 0
+      local pending_timer_cb = nil
+
+      renumber_module.renumber_ordered_lists = function()
+        renumber_calls = renumber_calls + 1
+      end
+      vim.schedule = function(fn)
+        fn()
+      end
+      vim.api.nvim_create_augroup = function()
+        return 999
+      end
+      vim.api.nvim_create_autocmd = function(events, opts)
+        if type(events) == "string" then
+          callbacks[events] = opts.callback
+        else
+          for _, event in ipairs(events) do
+            callbacks[event] = opts.callback
+          end
+        end
+      end
+      vim.fn.timer_start = function(_, cb)
+        timer_start_calls = timer_start_calls + 1
+        pending_timer_cb = cb
+        return 1234
+      end
+      vim.fn.timer_stop = function(_)
+        timer_stop_calls = timer_stop_calls + 1
+      end
+
+      list.setup_renumber_autocmds()
+      vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "1. Item" })
+      vim.api.nvim_win_set_cursor(0, { 1, 0 })
+
+      callbacks.TextChangedI({ buf = buf })
+      callbacks.TextChangedI({ buf = buf })
+      assert.equals(0, renumber_calls)
+      assert.equals(2, timer_start_calls)
+      assert.equals(1, timer_stop_calls)
+      assert.is_not_nil(pending_timer_cb)
+
+      pending_timer_cb()
+      assert.equals(1, renumber_calls)
+
+      callbacks.TextChanged({ buf = buf })
+      assert.equals(2, renumber_calls)
+
+      renumber_module.renumber_ordered_lists = original_renumber
+      vim.schedule = original_schedule
+      vim.api.nvim_create_augroup = original_create_augroup
+      vim.api.nvim_create_autocmd = original_create_autocmd
+      vim.fn.timer_start = original_timer_start
+      vim.fn.timer_stop = original_timer_stop
+    end)
+  end)
+
+  describe("handle_normal_o", function()
+    it("creates next parent ordered item when on last nested child", function()
+      vim.bo[buf].shiftwidth = 2
+      vim.api.nvim_buf_set_lines(buf, 0, -1, false, {
+        "1. Parent",
+        "  - Child one",
+        "  - Child two",
+      })
+      vim.api.nvim_win_set_cursor(0, { 3, 2 })
+
+      list.handle_normal_o()
+
+      local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+      assert.are.equal("2. ", lines[4])
+    end)
+
+    it("creates next sibling child when current child is not last", function()
+      vim.bo[buf].shiftwidth = 2
+      vim.api.nvim_buf_set_lines(buf, 0, -1, false, {
+        "1. Parent",
+        "  - Child one",
+        "  - Child two",
+      })
+      vim.api.nvim_win_set_cursor(0, { 2, 2 })
+
+      list.handle_normal_o()
+
+      local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+      assert.are.equal("  - ", lines[3])
+      assert.are.equal("  - Child two", lines[4])
+    end)
+  end)
+
   describe("handle_shift_tab", function()
     describe("on list lines", function()
       it("outdents list item by shiftwidth", function()
@@ -2100,6 +2234,71 @@ describe("markdown-plus list management", function()
         local cursor = vim.api.nvim_win_get_cursor(0)
         assert.are.equal(0, cursor[2]) -- clamped to 0
       end)
+
+      it("adopts parent ordered marker when outdenting nested unordered item", function()
+        vim.bo[buf].shiftwidth = 2
+        vim.api.nvim_buf_set_lines(buf, 0, -1, false, {
+          "1. Parent",
+          "  - Child",
+        })
+        vim.api.nvim_win_set_cursor(0, { 2, 4 })
+
+        list.handle_shift_tab()
+
+        local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+        assert.are.equal("2. Child", lines[2])
+      end)
+
+      it("preserves checkbox state while adopting parent ordered marker", function()
+        vim.bo[buf].shiftwidth = 2
+        vim.api.nvim_buf_set_lines(buf, 0, -1, false, {
+          "1. Parent",
+          "  - [x] Done task",
+        })
+        vim.api.nvim_win_set_cursor(0, { 2, 8 })
+
+        list.handle_shift_tab()
+
+        local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+        assert.are.equal("2. [x] Done task", lines[2])
+      end)
+
+      it("adopts letter markers from parent letter list when outdenting", function()
+        vim.bo[buf].shiftwidth = 2
+        vim.api.nvim_buf_set_lines(buf, 0, -1, false, {
+          "a. First",
+          "b. Second",
+          "  - Child",
+        })
+        vim.api.nvim_win_set_cursor(0, { 3, 4 })
+
+        list.handle_shift_tab()
+
+        local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+        assert.are.equal("c. Child", lines[3])
+      end)
+
+      it("preserves original marker when smart_outdent is disabled", function()
+        list.setup({
+          list = {
+            smart_outdent = false,
+          },
+        })
+
+        vim.bo[buf].shiftwidth = 2
+        vim.api.nvim_buf_set_lines(buf, 0, -1, false, {
+          "1. Parent",
+          "  - Child",
+        })
+        vim.api.nvim_win_set_cursor(0, { 2, 4 })
+
+        list.handle_shift_tab()
+
+        local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+        assert.are.equal("- Child", lines[2])
+
+        list.setup({})
+      end)
     end)
 
     describe("on non-list lines", function()
@@ -2113,6 +2312,63 @@ describe("markdown-plus list management", function()
         -- Line should be unchanged (S-Tab key sent but not processed in test)
         assert.are.equal("    Regular text", lines[1])
       end)
+    end)
+  end)
+
+  describe("HTML block awareness in renumbering", function()
+    it("ignores list-like lines inside HTML blocks when grouping", function()
+      local lines = {
+        "1. Outside",
+        "<div>",
+        "2. inside html",
+        "</div>",
+        "",
+        "1. Next",
+      }
+
+      local groups = list.find_list_groups(lines)
+
+      assert.are.equal(2, #groups)
+      assert.are.equal(1, groups[1].items[1].line_num)
+      assert.are.equal(6, groups[2].items[1].line_num)
+    end)
+
+    it("does not renumber list-like lines inside HTML blocks", function()
+      vim.api.nvim_buf_set_lines(buf, 0, -1, false, {
+        "1. One",
+        "2. Two",
+        "<div>",
+        "9. pseudo list in html",
+        "</div>",
+        "",
+        "1. Three",
+        "5. Four",
+      })
+
+      list.renumber_ordered_lists()
+
+      local result = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+      assert.are.equal("9. pseudo list in html", result[4])
+      assert.are.equal("1. Three", result[7])
+      assert.are.equal("2. Four", result[8])
+    end)
+
+    it("includes HTML lines when awareness is disabled", function()
+      local renumber = require("markdown-plus.list.renumber")
+      renumber.set_html_awareness(false)
+
+      local groups = list.find_list_groups({
+        "1. One",
+        "<div>",
+        "2. inside html",
+        "</div>",
+      })
+
+      assert.are.equal(2, #groups)
+      assert.are.equal(1, groups[1].items[1].line_num)
+      assert.are.equal(3, groups[2].items[1].line_num)
+
+      renumber.set_html_awareness(true)
     end)
   end)
 end)

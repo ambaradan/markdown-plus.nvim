@@ -1198,10 +1198,10 @@ describe("table.keymaps", function()
       keymaps.register_plug_mappings()
 
       -- Check that <Plug> mappings exist for insert mode navigation
-      local nav_left = vim.fn.maparg("<Plug>(markdown-plus-table-nav-left)", "i", false, true)
-      local nav_right = vim.fn.maparg("<Plug>(markdown-plus-table-nav-right)", "i", false, true)
-      local nav_up = vim.fn.maparg("<Plug>(markdown-plus-table-nav-up)", "i", false, true)
-      local nav_down = vim.fn.maparg("<Plug>(markdown-plus-table-nav-down)", "i", false, true)
+      local nav_left = vim.fn.maparg("<Plug>(MarkdownPlusTableNavLeft)", "i", false, true)
+      local nav_right = vim.fn.maparg("<Plug>(MarkdownPlusTableNavRight)", "i", false, true)
+      local nav_up = vim.fn.maparg("<Plug>(MarkdownPlusTableNavUp)", "i", false, true)
+      local nav_down = vim.fn.maparg("<Plug>(MarkdownPlusTableNavDown)", "i", false, true)
 
       assert.is_not_nil(nav_left)
       assert.is_true(next(nav_left) ~= nil)
@@ -1217,8 +1217,8 @@ describe("table.keymaps", function()
       keymaps.register_plug_mappings()
 
       -- Check that <Plug> mappings exist for normal mode operations
-      local create = vim.fn.maparg("<Plug>(markdown-plus-table-create)", "n", false, true)
-      local format = vim.fn.maparg("<Plug>(markdown-plus-table-format)", "n", false, true)
+      local create = vim.fn.maparg("<Plug>(MarkdownPlusTableCreate)", "n", false, true)
+      local format = vim.fn.maparg("<Plug>(MarkdownPlusTableFormat)", "n", false, true)
 
       assert.is_not_nil(create)
       assert.is_true(next(create) ~= nil)
@@ -1237,16 +1237,16 @@ describe("table.keymaps", function()
         confirm_destructive = true,
         keymaps = {
           enabled = true,
-          prefix = "<leader>t",
+          prefix = "<localleader>t",
           insert_mode_navigation = true,
         },
       })
 
       -- Check that default keymaps point to <Plug> mappings
-      assert.is_true(vim.fn.hasmapto("<Plug>(markdown-plus-table-nav-left)", "i") == 1)
-      assert.is_true(vim.fn.hasmapto("<Plug>(markdown-plus-table-nav-right)", "i") == 1)
-      assert.is_true(vim.fn.hasmapto("<Plug>(markdown-plus-table-nav-up)", "i") == 1)
-      assert.is_true(vim.fn.hasmapto("<Plug>(markdown-plus-table-nav-down)", "i") == 1)
+      assert.is_true(vim.fn.hasmapto("<Plug>(MarkdownPlusTableNavLeft)", "i") == 1)
+      assert.is_true(vim.fn.hasmapto("<Plug>(MarkdownPlusTableNavRight)", "i") == 1)
+      assert.is_true(vim.fn.hasmapto("<Plug>(MarkdownPlusTableNavUp)", "i") == 1)
+      assert.is_true(vim.fn.hasmapto("<Plug>(MarkdownPlusTableNavDown)", "i") == 1)
     end)
 
     it("should create <Plug> mappings but not default keymaps when keymaps.enabled is false", function()
@@ -1258,18 +1258,18 @@ describe("table.keymaps", function()
         confirm_destructive = true,
         keymaps = {
           enabled = false,
-          prefix = "<leader>t",
+          prefix = "<localleader>t",
           insert_mode_navigation = true,
         },
       })
 
       -- <Plug> mappings should still exist
-      local nav_left = vim.fn.maparg("<Plug>(markdown-plus-table-nav-left)", "i", false, true)
+      local nav_left = vim.fn.maparg("<Plug>(MarkdownPlusTableNavLeft)", "i", false, true)
       assert.is_not_nil(nav_left)
       assert.is_true(next(nav_left) ~= nil)
 
       -- But no default keymaps should be set
-      assert.is_false(vim.fn.hasmapto("<Plug>(markdown-plus-table-nav-left)", "i") == 1)
+      assert.is_false(vim.fn.hasmapto("<Plug>(MarkdownPlusTableNavLeft)", "i") == 1)
     end)
 
     it("should not set insert mode navigation keymaps when insert_mode_navigation is false", function()
@@ -1281,18 +1281,18 @@ describe("table.keymaps", function()
         confirm_destructive = true,
         keymaps = {
           enabled = true,
-          prefix = "<leader>t",
+          prefix = "<localleader>t",
           insert_mode_navigation = false,
         },
       })
 
       -- <Plug> mappings should still exist (registered globally)
-      local nav_left = vim.fn.maparg("<Plug>(markdown-plus-table-nav-left)", "i", false, true)
+      local nav_left = vim.fn.maparg("<Plug>(MarkdownPlusTableNavLeft)", "i", false, true)
       assert.is_not_nil(nav_left)
       assert.is_true(next(nav_left) ~= nil)
 
       -- But no default keymaps should be set for insert mode navigation
-      assert.is_false(vim.fn.hasmapto("<Plug>(markdown-plus-table-nav-left)", "i") == 1)
+      assert.is_false(vim.fn.hasmapto("<Plug>(MarkdownPlusTableNavLeft)", "i") == 1)
     end)
   end)
 end)

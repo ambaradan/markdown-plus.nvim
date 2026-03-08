@@ -45,32 +45,6 @@ function M.insert_line(line_num, content)
   vim.api.nvim_buf_set_lines(0, line_num - 1, line_num - 1, false, { content })
 end
 
----Delete line at position (1-indexed)
----@param line_num number 1-indexed line number
----@return nil
-function M.delete_line(line_num)
-  vim.api.nvim_buf_set_lines(0, line_num - 1, line_num, false, {})
-end
-
----Get indentation level of a line
----@param line string Line content
----@return number Number of indentation characters
-function M.get_indent_level(line)
-  local indent = line:match("^(%s*)")
-  return #indent
-end
-
----Get indentation string (spaces or tabs)
----@param level number Indentation level
----@return string Indentation string
-function M.get_indent_string(level)
-  if vim.bo.expandtab then
-    return string.rep(" ", level * vim.bo.shiftwidth)
-  else
-    return string.rep("\t", math.floor(level / vim.bo.tabstop))
-  end
-end
-
 -- Check if current buffer is markdown (deprecated, kept for compatibility)
 -- Note: This check is now redundant as the autocmd pattern already filters by filetype
 ---@return boolean True if buffer filetype is markdown
@@ -78,15 +52,11 @@ function M.is_markdown_buffer()
   return true
 end
 
----Safe string matching with nil check
----@param str? string String to match
----@param pattern string Pattern to match against
----@return string|nil Matched string or nil
-function M.safe_match(str, pattern)
-  if not str then
-    return nil
-  end
-  return str:match(pattern)
+---Check whether HTML block awareness is enabled in config
+---@param plugin_config? markdown-plus.InternalConfig
+---@return boolean
+function M.is_html_awareness_enabled(plugin_config)
+  return not (plugin_config and plugin_config.features and plugin_config.features.html_block_awareness == false)
 end
 
 ---Escape special regex characters
@@ -94,15 +64,6 @@ end
 ---@return string Escaped string
 function M.escape_pattern(str)
   return str:gsub("([^%w])", "%%%1")
-end
-
----Debug print (only when debug mode is enabled)
----@param ... any Values to print
----@return nil
-function M.debug_print(...)
-  if vim.g.markdown_plus_debug then
-    print("[MarkdownPlus]", ...)
-  end
 end
 
 ---Split a line at a byte column position, ensuring proper UTF-8 character boundaries.
@@ -420,6 +381,20 @@ function M.is_in_code_block()
   return in_code_block
 end
 
+---Check if a specific row is inside a GFM HTML block
+---@param row? number 1-indexed row (defaults to current cursor row)
+---@return boolean
+function M.is_in_html_block(row)
+  local target_row = row or M.get_cursor()[1]
+  if not target_row or target_row < 1 then
+    return false
+  end
+
+  local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+  local html_lines = M.get_html_block_lines(lines)
+  return html_lines[target_row] == true
+end
+
 -- =============================================================================
 -- Element utilities (shared by links, images, and similar modules)
 -- =============================================================================
@@ -575,18 +550,203 @@ end
 ---@return table<number, boolean> Set of line numbers inside code blocks
 function M.get_code_block_lines(lines)
   local code_lines = {}
-  local in_code_block = false
+  local code_block_parser = require("markdown-plus.code_block.parser")
+  local blocks = code_block_parser.find_all_blocks_in_lines(lines)
 
-  for i, line in ipairs(lines) do
-    if line:match("^%s*```") or line:match("^%s*~~~") then
-      code_lines[i] = true
-      in_code_block = not in_code_block
-    elseif in_code_block then
-      code_lines[i] = true
+  for _, block in ipairs(blocks) do
+    for row = block.start_line, block.end_line do
+      code_lines[row] = true
     end
   end
 
   return code_lines
+end
+
+-- GFM §4.6 type-6 HTML block tags
+local HTML_BLOCK_TYPE6_TAGS = {
+  address = true,
+  article = true,
+  aside = true,
+  base = true,
+  basefont = true,
+  blockquote = true,
+  body = true,
+  caption = true,
+  center = true,
+  col = true,
+  colgroup = true,
+  dd = true,
+  details = true,
+  dialog = true,
+  dir = true,
+  div = true,
+  dl = true,
+  dt = true,
+  fieldset = true,
+  figcaption = true,
+  figure = true,
+  footer = true,
+  form = true,
+  frame = true,
+  frameset = true,
+  h1 = true,
+  h2 = true,
+  h3 = true,
+  h4 = true,
+  h5 = true,
+  h6 = true,
+  head = true,
+  header = true,
+  hr = true,
+  html = true,
+  iframe = true,
+  legend = true,
+  li = true,
+  link = true,
+  main = true,
+  menu = true,
+  menuitem = true,
+  nav = true,
+  noframes = true,
+  ol = true,
+  optgroup = true,
+  option = true,
+  p = true,
+  param = true,
+  search = true,
+  section = true,
+  summary = true,
+  table = true,
+  tbody = true,
+  td = true,
+  tfoot = true,
+  th = true,
+  thead = true,
+  title = true,
+  tr = true,
+  track = true,
+  ul = true,
+}
+
+---Build a set of line numbers inside GFM HTML blocks (§4.6).
+---Handles all 7 HTML block types:
+---1) <script|pre|style>, 2) <!-- -->, 3) <? ?>, 4) <!X...>, 5) <![CDATA[ ]]>,
+---6) block tags (e.g. <div>), 7) standalone open/close tags.
+---@param lines string[] All lines to scan
+---@return table<number, boolean> Set of 1-indexed line numbers inside HTML blocks
+function M.get_html_block_lines(lines)
+  local html_lines = {}
+  local mode = nil ---@type "type1"|"comment"|"pi"|"declaration"|"cdata"|"type6"|"type7"|nil
+  local type1_tag = nil ---@type string|nil
+
+  for i, line in ipairs(lines) do
+    local handled_existing_mode = false
+
+    if mode == "type6" or mode == "type7" then
+      handled_existing_mode = true
+      if line:match("^%s*$") then
+        mode = nil
+      else
+        html_lines[i] = true
+      end
+    elseif mode == "type1" then
+      handled_existing_mode = true
+      html_lines[i] = true
+      if type1_tag and line:lower():find("</" .. type1_tag .. "%s*>") then
+        mode = nil
+        type1_tag = nil
+      end
+    elseif mode == "comment" then
+      handled_existing_mode = true
+      html_lines[i] = true
+      if line:find("%-%->") then
+        mode = nil
+      end
+    elseif mode == "pi" then
+      handled_existing_mode = true
+      html_lines[i] = true
+      if line:find("%?>") then
+        mode = nil
+      end
+    elseif mode == "declaration" then
+      handled_existing_mode = true
+      html_lines[i] = true
+      if line:find(">", 1, true) then
+        mode = nil
+      end
+    elseif mode == "cdata" then
+      handled_existing_mode = true
+      html_lines[i] = true
+      if line:find("%]%]>") then
+        mode = nil
+      end
+    end
+
+    if not handled_existing_mode then
+      -- Type 1: <script>, <pre>, <style>
+      local open_tag = line:match("^%s*<([A-Za-z]+)[%s>/]")
+      local handled_new_mode = false
+      if open_tag then
+        local tag = open_tag:lower()
+        if tag == "script" or tag == "pre" or tag == "style" then
+          html_lines[i] = true
+          if not line:lower():find("</" .. tag .. "%s*>") then
+            mode = "type1"
+            type1_tag = tag
+          end
+          handled_new_mode = true
+        end
+      end
+
+      if not handled_new_mode then
+        -- Type 2: HTML comments
+        if line:match("^%s*<!%-%-") then
+          html_lines[i] = true
+          if not line:find("%-%->") then
+            mode = "comment"
+          end
+        -- Type 3: Processing instructions
+        elseif line:match("^%s*<%?") then
+          html_lines[i] = true
+          if not line:find("%?>") then
+            mode = "pi"
+          end
+        -- Type 4: Declarations (e.g. <!DOCTYPE html>)
+        elseif line:match("^%s*<!%u") then
+          html_lines[i] = true
+          if not line:find(">", 1, true) then
+            mode = "declaration"
+          end
+        -- Type 5: CDATA
+        elseif line:match("^%s*<!%[CDATA%[") then
+          html_lines[i] = true
+          if not line:find("%]%]>") then
+            mode = "cdata"
+          end
+        else
+          -- Type 6: Block tag starts (ends on first following blank line)
+          local block_tag = line:match("^%s*</?([A-Za-z][A-Za-z0-9%-]*)[%s>/]")
+          if block_tag and HTML_BLOCK_TYPE6_TAGS[block_tag:lower()] then
+            html_lines[i] = true
+            mode = "type6"
+          else
+            -- Type 7: Standalone open/close tag lines (ends on first following blank line)
+            local standalone_tag = line:match("^%s*<([A-Za-z][A-Za-z0-9%-]*)%f[%s/>][^>]*>%s*$")
+              or line:match("^%s*</([A-Za-z][A-Za-z0-9%-]*)%s*>%s*$")
+            if standalone_tag then
+              local tag = standalone_tag:lower()
+              if tag ~= "script" and tag ~= "pre" and tag ~= "style" and not HTML_BLOCK_TYPE6_TAGS[tag] then
+                html_lines[i] = true
+                mode = "type7"
+              end
+            end
+          end
+        end
+      end
+    end
+  end
+
+  return html_lines
 end
 
 ---Build a markdown link string: [text](url) or [text](url "title")
