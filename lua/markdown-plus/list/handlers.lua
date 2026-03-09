@@ -260,7 +260,7 @@ function M.handle_tab()
   end
 
   -- Increase indentation
-  local indent_size = vim.bo.shiftwidth
+  local indent_size = vim.fn.shiftwidth()
 
   local new_indent = list_info.indent .. string.rep(" ", indent_size)
   local content = shared.extract_list_content(current_line, list_info)
@@ -287,14 +287,15 @@ function M.handle_shift_tab()
   end
 
   -- Decrease indentation
-  local indent_size = vim.bo.shiftwidth
+  local indent_size = vim.fn.shiftwidth()
 
   -- Can't outdent if already at root level
-  if #list_info.indent < indent_size then
+  if #list_info.indent == 0 then
     return
   end
 
-  local new_indent = list_info.indent:sub(1, #list_info.indent - indent_size)
+  local remove = math.min(indent_size, #list_info.indent)
+  local new_indent = list_info.indent:sub(1, #list_info.indent - remove)
   local content = shared.extract_list_content(current_line, list_info)
   local new_marker = list_info.full_marker
 
@@ -316,7 +317,7 @@ function M.handle_shift_tab()
 
   -- Adjust cursor position
   local marker_delta = #new_marker - #list_info.full_marker
-  local new_col = math.max(0, col - indent_size + marker_delta)
+  local new_col = math.max(0, col - remove + marker_delta)
   utils.set_cursor(row, new_col)
 end
 
@@ -427,12 +428,12 @@ function M.handle_normal_o()
 
   if smart_outdent_enabled() then
     local current_indent = #list_info.indent
-    local indent_size = vim.bo.shiftwidth
+    local indent_size = vim.fn.shiftwidth()
     local lines, line_count = get_context_lines(row, CONTEXT_LOOKBACK, CONTEXT_LOOKAHEAD)
     local max_scan_row = math.min(line_count, row + MAX_LAST_ITEM_LOOKAHEAD)
 
-    if current_indent >= indent_size and is_last_item_at_indent(row, current_indent, lines, max_scan_row) then
-      local target_indent = current_indent - indent_size
+    if current_indent > 0 and is_last_item_at_indent(row, current_indent, lines, max_scan_row) then
+      local target_indent = math.max(0, current_indent - indent_size)
       local parent_list = shared.find_parent_list_at_indent(row, target_indent, lines)
 
       if parent_list then
